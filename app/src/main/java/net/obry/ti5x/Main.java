@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import android.Manifest;
 import android.app.Notification;
 import android.content.Intent;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
@@ -422,196 +423,122 @@ public class Main extends android.app.Activity {
   }
 
   @Override
-  public boolean onCreateOptionsMenu
-     (
-        android.view.Menu TheMenu
-     ) {
-    OptionsMenu = new java.util.HashMap<android.view.MenuItem, Runnable>();
-    android.view.MenuItem ThisItem;
-    OptionsMenu.put
-       (
-          TheMenu.add(R.string.load_prog),
-          new Runnable() {
-            public void run() {
-              final Picker.PickerAltList[] AltLists =
-                 {
-                    /* note the code that responds to the result Intent assumes
-                       that element 0 is saved programs and element 1 is libraries */
-                    new Picker.PickerAltList
-                       (
-                          R.id.select_saved,
-                          getString(R.string.prog_prompt),
-                          getString(R.string.no_programs),
-                          new String[]{Persistent.ProgExt},
-                          getBuiltinPrograms(Main.this)
-                       ),
-                    new Picker.PickerAltList
-                       (
-                          R.id.select_libraries,
-                          getString(R.string.module_prompt),
-                          getString(R.string.no_modules),
-                          new String[]{Persistent.LibExt},
-                          getBuiltinLibraries(Main.this)
-                          /* item representing selection of built-in libraries */
-                       ),
-                 };
-              PickerExtra = (ViewGroup) getLayoutInflater().inflate(R.layout.prog_type, null);
+  public boolean onCreateOptionsMenu(android.view.Menu menu) {
+     MenuInflater inflater = getMenuInflater();
+      inflater.inflate(R.menu.ti5x_menu, menu);
+      return true;
+  }
 
-              // check if directories exists to avoid messages about unreadable location
+  @Override
+  public boolean onOptionsItemSelected(android.view.MenuItem item) {
+    // Handle item selection
+    switch (item.getItemId()) {
 
-              ArrayList<String> CalcDirs = new ArrayList<String>();
+      case R.id.load_prog:
+        final Picker.PickerAltList[] AltLists =
+            {
+                /* note the code that responds to the result Intent assumes
+                   that element 0 is saved programs and element 1 is libraries */
+                new Picker.PickerAltList
+                    (
+                        R.id.select_saved,
+                        getString(R.string.prog_prompt),
+                        getString(R.string.no_programs),
+                        new String[]{Persistent.ProgExt},
+                        getBuiltinPrograms(Main.this)
+                    ),
+                new Picker.PickerAltList
+                    (
+                        R.id.select_libraries,
+                        getString(R.string.module_prompt),
+                        getString(R.string.no_modules),
+                        new String[]{Persistent.LibExt},
+                        getBuiltinLibraries(Main.this)
+                        /* item representing selection of built-in libraries */
+                    ),
+            };
+        PickerExtra = (ViewGroup) getLayoutInflater().inflate(R.layout.prog_type, null);
 
-              final String ProgramsDir =
-                 new java.io.File(getExternalFilesDir(null), Persistent.ProgramsDir)
-                 .getAbsolutePath();
+        // check if directories exists to avoid messages about unreadable location
 
-              final String DataDir =
-                 new java.io.File(getExternalFilesDir(null), Persistent.DataDir)
-                    .getAbsolutePath();
+        ArrayList<String> CalcDirs = new ArrayList<String>();
 
-              if (new java.io.File(ProgramsDir).exists()) {
-                CalcDirs.add(Persistent.ProgramsDir);
-              }
-              if (new java.io.File(DataDir).exists()) {
-                CalcDirs.add(Persistent.DataDir);
-              }
+        final String ProgramsDir =
+            new java.io.File(getExternalFilesDir(null), Persistent.ProgramsDir)
+                .getAbsolutePath();
 
-              Picker.Launch
-                 (
-                    Main.this,
-                    getString(R.string.load),
-                    LoadProgramRequest,
-                    PickerExtra,
-                    CalcDirs.toArray(new String[0]),
-                    AltLists
-                 );
-            } /*run*/
-          }
-       );
-    OptionsMenu.put
-       (
-          TheMenu.add(R.string.save_program_as),
-          new Runnable() {
-            public void run() {
-              SaveAs.Launch
-                 (
-                    Main.this,
-                    SaveProgramRequest,
-                    getString(R.string.program),
-                    Persistent.ProgramsDir,
-                    null,
-                    Persistent.ProgExt
-                 );
-            } /*run*/
-          }
-       );
-    OptionsMenu.put
-       (
-          TheMenu.add(R.string.import_data),
-          new Runnable() {
-            public void run() {
-              if (!Global.Calc.ImportInProgress()) {
-                LaunchImportPicker();
-              } else {
-                new ReplaceConfirm
-                   (
-                      Main.this,
-                      R.string.query_replace_import,
-                      new Runnable() {
-                        public void run() {
-                          LaunchImportPicker();
-                        }
-                      }
-                   ).show();
-              }
-            } /*run*/
-          }
-       );
-    OptionsMenu.put
-       (
-          TheMenu.add(R.string.export_data),
-          new Runnable() {
-            public void run() {
-              final Runnable DoIt =
-                 new Runnable() {
-                   public void run() {
-                     ExportAppend = false;
-                     ExportNumbersOnly = true;
-                     LaunchExportPicker();
-                   } /*run*/
-                 };
-              if (!Global.Export.IsOpen()) {
-                DoIt.run();
-              } else {
-                new ReplaceConfirm
-                   (
-                      Main.this,
-                      R.string.query_replace_export,
-                      DoIt
-                   ).show();
-              }
-            } /*run*/
-          }
-       );
-    ThisItem = TheMenu.add(R.string.show_overlay);
-    OptionsMenu.put
-        (
-            ThisItem,
-            new Runnable() {
-              public void run() {
-                Global.Buttons.OverlayVisible = !Global.Buttons.OverlayVisible;
-                Global.Buttons.invalidate();
-                /* ToggleOverlayItem.setChecked(Global.Buttons.OverlayVisible); */
-                /* apparently can't do this in initial part of options menu */
-              } /*run*/
-            }
-        );
-    OptionsMenu.put
-        (
-            TheMenu.add(R.string.opt_feedback),
-            new Runnable() {
-              public void run() {
-                new FeedbackDialog(Main.this).show();
-              } /*run*/
-            }
-        );
-    OptionsMenu.put
-       (
-          TheMenu.add(R.string.about_me),
-          new Runnable() {
-            public void run() {
-              String VersionName;
-              try {
-                VersionName =
-                   getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-              } catch (android.content.pm.PackageManager.NameNotFoundException CantFindMe) {
-                VersionName = "Xperimental";
-              }
-              Date today = new Date();
-              Calendar cal = Calendar.getInstance();
-              cal.setTime(today);
-              String YearStr = String.valueOf(cal.get(Calendar.YEAR));
-              ShowHelp("help/about.html",
-                 new String[]{VersionName, YearStr, YearStr});
-            } /*run*/
-          }
-       );
-    OptionsMenu.put
-       (
-          TheMenu.add(R.string.turn_off),
-          new Runnable() {
-            public void run() {
-              /* In TI-59 we should clear the state when the calculator is turned off, but
-                 in TI-58 the state was persistent. Let's emulate the TI-58 here and after
-                 all this is more user's friendly
+        final String DataDir =
+            new java.io.File(getExternalFilesDir(null), Persistent.DataDir)
+                .getAbsolutePath();
 
-                 ShuttingDown = true;
-                 Persistent.ResetState(Main.this); */
-              finish(); /* start afresh next time */
-            } /*run*/
-          }
-       );
-    return true;
+        if (new java.io.File(ProgramsDir).exists()) {
+          CalcDirs.add(Persistent.ProgramsDir);
+        }
+        if (new java.io.File(DataDir).exists()) {
+          CalcDirs.add(Persistent.DataDir);
+        }
+
+        Picker.Launch
+            (
+                Main.this,
+                getString(R.string.load),
+                LoadProgramRequest,
+                PickerExtra,
+                CalcDirs.toArray(new String[0]),
+                AltLists
+            );
+        return true;
+
+      case R.id.save_program_as:
+        SaveAs.Launch
+            (
+                Main.this,
+                SaveProgramRequest,
+                getString(R.string.program),
+                Persistent.ProgramsDir,
+                null,
+                Persistent.ProgExt
+            );
+        return true;
+
+      case R.id.import_data:
+        LaunchImportPicker();
+        return true;
+
+      case R.id.export_data:
+        ExportAppend = false;
+        ExportNumbersOnly = true;
+        LaunchExportPicker();
+        return true;
+
+      case R.id.show_overlay:
+        Global.Buttons.OverlayVisible = !Global.Buttons.OverlayVisible;
+        Global.Buttons.invalidate();
+        return true;
+
+      case R.id.about_me:
+        String VersionName;
+        try {
+          VersionName =
+              getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (android.content.pm.PackageManager.NameNotFoundException CantFindMe) {
+          VersionName = "Xperimental";
+        }
+        Date today = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(today);
+        String YearStr = String.valueOf(cal.get(Calendar.YEAR));
+        ShowHelp("help/about.html",
+            new String[]{VersionName, YearStr, YearStr});
+        return true;
+
+      case R.id.turn_off:
+        finish(); /* start afresh next time */
+        return true;
+
+      default:
+        return super.onOptionsItemSelected(item);
+    }
   }
 
   @Override
@@ -1103,20 +1030,6 @@ public class Main extends android.app.Activity {
             } /*Run*/
           }
        );
-  }
-
-  @Override
-  public boolean onOptionsItemSelected
-     (
-        android.view.MenuItem TheItem
-     ) {
-    boolean Handled = false;
-    final Runnable Action = OptionsMenu.get(TheItem);
-    if (Action != null) {
-      Action.run();
-      Handled = true;
-    }
-    return Handled;
   }
 
   @Override
