@@ -1,0 +1,104 @@
+
+; Example page 6-10 OK
+
+lbl A
+   gto 048
+
+lbl B
+   gto 053
+
+lbl C
+   gto 065
+
+lbl D
+   gto 127
+
+lbl E
+   gto 133
+
+lbl A'
+   (
+   rcl 21
+   ×
+   rcl 22
+   )
+   inv sbr
+
+lbl B'
+   sbr 027
+   (
+   ce
+   ×
+   rcl 23
+   )
+   √x
+   inv sbr
+   int
+   |x|
+   sto 21
+   inv sbr
+   (
+   sto 22
+   +/-
+   +
+   1
+   )
+   sto 23
+   rcl 22
+   inv sbr
+   cp
+   inv x≥t 143
+   x⇌t
+   sto 24
+   1
+   +/-
+   sto 25
+   (
+   rcl 23
+   y**x
+   rcl 21
+   )
+   sto 26
+   sum 24
+   1
+   sum 25
+   rcl 25
+   x≥t 124
+   (
+   rcl 26
+   ×
+   rcl 22
+   ×
+   (
+   rcl 21
+   -
+   rcl 25
+   )
+   ÷
+   (
+   rcl 25
+   +
+   1
+   )
+   ÷
+   rcl 23
+   )
+   gto 084
+   rcl 26
+   inv sbr
+   sbr 065
+   rcl 24
+   inv sbr
+   sbr 065
+   (
+   1
+   -
+   rcl 24
+   )
+   inv sbr
+   (
+   rcl 21
+   +
+   1
+   )
+   gto 065

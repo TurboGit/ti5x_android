@@ -1,0 +1,6 @@
+<carddef style="system">
+<label slot="titleleft">STATISTICS LIBRARY DIAGNOSTIC</label>
+<label slot="titleright">ST-01</label>
+<label slot="primecenter">DIAGNOSTIC: <button>SBR</button> <button>=</button></label>
+<label slot="basecenter">LINEAR REGRESSION INITIALIZATION: <button>SBR</button> <button>CLR</button></label>
+</carddef>

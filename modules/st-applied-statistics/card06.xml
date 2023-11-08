@@ -1,0 +1,14 @@
+<carddef style="system">
+<label slot="titleleft">ANALYSIS OF VARIANCE DATA</label>
+<label slot="titleright">ST-06</label>
+<label slot="a">x</label>
+<label slot="b">R</label>
+<label slot="c">C</label>
+<label slot="d">Pointer</label>
+<label slot="e">Init 2-Way</label>
+<label slot="aprime">Delete x</label>
+<label slot="bprime"><bar>x</bar></label>
+<label slot="cprime">s<sup>2</sup></label>
+<label slot="dprime">Compile</label>
+<label slot="eprime">Init 1-Way</label>
+</carddef>

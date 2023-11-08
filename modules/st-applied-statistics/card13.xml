@@ -1,0 +1,9 @@
+<carddef style="system">
+<label slot="titleleft">t - STATISTIC EVALUATION</label>
+<label slot="titleright">ST-13</label>
+<label slot="a"><ArrowR/> t</label>
+<label slot="b"><ArrowR/> <nu/></label>
+<label slot="c"><ArrowR/> mean(<Delta/>)</label>
+<label slot="d"><ArrowR/> s <Delta/></label>
+<label slot="aprime"><Delta/> <ArrowR/> t</label>
+</carddef>

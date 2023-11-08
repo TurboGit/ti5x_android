@@ -1,0 +1,14 @@
+<carddef style="system">
+<label slot="titleleft">UNIVARIATE DATA</label>
+<label slot="titleright">ST-03</label>
+<label slot="a">x</label>
+<label slot="b">f</label>
+<label slot="c">Pointer (UG)</label>
+<label slot="d">Compile UG</label>
+<label slot="e">Init UG</label>
+<label slot="aprime">Delete x</label>
+<label slot="bprime">Delete f</label>
+<label slot="cprime">Pointer (G)</label>
+<label slot="dprime">Compile G</label>
+<label slot="eprime">Init G</label>
+</carddef>

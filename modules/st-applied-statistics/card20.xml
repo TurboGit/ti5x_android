@@ -1,0 +1,11 @@
+<carddef style="system">
+<label slot="titleleft">BINOMIAL DISTRIBUTION</label>
+<label slot="titleright">ST-20</label>
+<label slot="a">n</label>
+<label slot="b">p</label>
+<label slot="c">k <ArrowR/> f(k)</label>
+<label slot="d">k <ArrowR/> P(k)</label>
+<label slot="e">k <ArrowR/> Q(k)</label>
+<label slot="aprime"><ArrowR/> <mu/></label>
+<label slot="bprime"><ArrowR/> <sigma/></label>
+</carddef>

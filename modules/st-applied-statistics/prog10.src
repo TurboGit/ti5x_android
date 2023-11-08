@@ -1,0 +1,154 @@
+
+lbl E
+   d'
+   b
+   sto 29
+   6
+   sto 18
+   0
+   sto 20
+   sto 00
+   adv
+   inv sbr
+
+lbl E'
+   d'
+   b'
+   gto 004
+
+lbl D'
+   (
+   rcl 01
+   sto 04
+   +
+   rcl 02
+   ×
+   rcl 19
+   )
+   sto 05
+   inv sbr
+
+lbl A
+   d
+   b
+   (
+   ce
+   ÷
+   rcl 29
+   ×
+   rcl 03
+   )
+   c'
+   prt
+   inv sbr
+
+lbl A'
+   d
+   b'
+   gto 044
+   (
+   rcl 01
+   +
+   rcl 00
+   ×
+   rcl 02
+   )
+   inv sbr
+
+lbl D
+   sbr 063
+   sto 04
+   op 20
+   sbr 063
+   sto 05
+   inv sbr
+
+lbl B
+   .2
+   sto 27
+   (
+   (
+   rcl 05
+   -
+   rcl 04
+   )
+   prd 27
+   ×
+   5
+   sto 05
+   (
+   rcl 04
+   pgm 00
+   a'
+   +
+   rcl 27
+   sum 04
+   2
+   ×
+   dsz 5 110
+   rcl 04
+   pgm 00
+   a'
+   ÷
+   2
+   )
+   )
+   inv sbr
+
+lbl B'
+   (
+   rcl 05
+   -
+   rcl 04
+   )
+   sto 05
+   (
+   rcl 04
+   pgm 00
+   a'
+   +
+   op 24
+   rcl 04
+   dsz 5 150
+   0
+   )
+   inv sbr
+
+lbl C'
+   (
+   (
+   sto 28
+   -
+   rc* 18
+   )
+   x²
+   ÷
+   rcl 28
+   )
+   sum 20
+   1
+   sum 18
+   rcl 28
+   inv sbr
+
+lbl C
+   rcl 20
+   sto 14
+   (
+   rcl 19
+   -
+   1
+   )
+   pgm 21
+   a
+   rcl 14
+   pgm 21
+   c
+   (
+   +/-
+   +
+   1
+   )
+   adv
+   prt
+   inv sbr

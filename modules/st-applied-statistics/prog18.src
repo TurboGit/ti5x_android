@@ -1,0 +1,197 @@
+
+lbl A
+   inv stflg 7
+   (
+   rcl 03
+   ×
+   rcl 05
+   -
+   rcl 04
+   x²
+   )
+   (
+   sto 14
+   ×
+   (
+   rcl 03
+   ×
+   rcl 02
+   -
+   rcl 01
+   x²
+   )
+   sto 15
+   -
+   (
+   rcl 03
+   ×
+   rcl 06
+   -
+   rcl 04
+   ×
+   rcl 01
+   )
+   sto 16
+   x²
+   )
+   1/x
+   op 19
+   ifflg 7 266
+   sto 22
+   (
+   rcl 03
+   ×
+   rcl 11
+   -
+   rcl 04
+   ×
+   rcl 07
+   )
+   sto 17
+   (
+   rcl 22
+   ×
+   (
+   rcl 14
+   ×
+   (
+   rcl 03
+   ×
+   rcl 12
+   -
+   rcl 01
+   ×
+   rcl 07
+   )
+   sto 18
+   -
+   (
+   rcl 16
+   ×
+   rcl 17
+   )
+   )
+   )
+   sto 21
+   (
+   (
+   ce
+   ×
+   rcl 16
+   +/-
+   +
+   rcl 17
+   )
+   ÷
+   rcl 14
+   )
+   sto 20
+   (
+   (
+   ce
+   ×
+   rcl 04
+   +/-
+   +
+   rcl 07
+   -
+   rcl 21
+   ×
+   rcl 01
+   )
+   ÷
+   rcl 03
+   )
+   sto 19
+   prt
+   inv sbr
+
+lbl B
+   rcl 20
+   prt
+   inv sbr
+
+lbl C
+   rcl 21
+   prt
+   inv sbr
+
+lbl D
+   (
+   rcl 03
+   ×
+   rcl 13
+   -
+   rcl 07
+   x²
+   )
+   sto 23
+   (
+   (
+   rcl 17
+   x²
+   ÷
+   rcl 14
+   ÷
+   rcl 23
+   -
+   2
+   ×
+   rcl 17
+   ×
+   rcl 18
+   ×
+   rcl 16
+   ÷
+   rcl 23
+   ÷
+   rcl 14
+   ÷
+   rcl 15
+   +
+   rcl 18
+   x²
+   ÷
+   rcl 23
+   ÷
+   rcl 15
+   )
+   ÷
+   (
+   1
+   -
+   rcl 16
+   x²
+   ÷
+   rcl 14
+   ÷
+   rcl 15
+   )
+   )
+   adv
+   prt
+   inv sbr
+
+lbl A'
+   sto 09
+   adv
+   prt
+   inv sbr
+
+lbl B'
+   prt
+   (
+   ce
+   ×
+   rcl 21
+   +
+   rcl 09
+   ×
+   rcl 20
+   +
+   rcl 19
+   )
+   prt
+   inv sbr
+   0
+   inv sbr

@@ -1,0 +1,9 @@
+<carddef style="system">
+<label slot="titleleft">UNIVARIATE DATA TRANSFORMS</label>
+<label slot="titleright">ST-11</label>
+<label slot="a">x</label>
+<label slot="aprime">Exp</label>
+<label slot="bprime">Ln</label>
+<label slot="cprime">User</label>
+<label slot="eprime">Initialize</label>
+</carddef>

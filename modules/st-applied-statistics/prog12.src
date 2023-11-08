@@ -1,0 +1,114 @@
+
+lbl A
+   gto 050
+
+lbl B
+   gto 076
+
+lbl D
+   gto 095
+
+lbl E
+   gto 139
+
+lbl A'
+   inv stflg 1
+   inv stflg 2
+   inv stflg 3
+   inv sbr
+
+lbl B'
+   a'
+   stflg 1
+   inv sbr
+
+lbl C'
+   a'
+   stflg 2
+   inv sbr
+
+lbl D'
+   a'
+   stflg 3
+   inv sbr
+   ifflg 3 070
+   ifflg 2 066
+   ifflg 1 066
+   pgm 04
+   a
+   inv sbr
+   lnx
+   gto 062
+   pgm 00
+   a'
+   gto 062
+   ifflg 3 089
+   ifflg 2 085
+   lnx
+   pgm 04
+   b
+   inv sbr
+   pgm 00
+   b'
+   gto 085
+   ifflg 3 138
+   ifflg 2 135
+   ifflg 1 123
+   (
+   ce
+   ×
+   op 12
+   x⇌t
+   )
+   (
+   inv lnx
+   ×
+   x⇌t
+   inv lnx
+   )
+   inv sbr
+   (
+   ce
+   y**x
+   op 12
+   x⇌t
+   ×
+   x⇌t
+   inv lnx
+   )
+   inv sbr
+   lnx
+   op 14
+   inv sbr
+   ifflg 3 168
+   ifflg 2 169
+   (
+   lnx
+   -
+   op 12
+   nop
+   )
+   (
+   ce
+   ÷
+   op 12
+   x⇌t
+   )
+   inv ifflg 1 168
+   inv lnx
+   inv sbr
+   op 15
+   inv lnx
+   inv sbr
+
+lbl E'
+   pgm 04
+   e'
+   inv sbr
+
+lbl C
+   op 12
+   ifflg 2 194
+   ifflg 3 194
+   inv lnx
+   inv sbr

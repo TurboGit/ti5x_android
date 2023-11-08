@@ -1,0 +1,168 @@
+
+lbl A
+   sto 09
+   (
+   rc* 32
+   +
+   2
+   )
+   sto 14
+   rcl 14
+   op 18
+   ifflg 7 023
+   rcl 09
+   inv sbr
+   inv stflg 7
+   rcl 09
+   adv
+   prt
+   st* 32
+   sum 04
+   x²
+   sum 05
+   1
+   sum 03
+   sum 29
+   sum 32
+   rcl 29
+   inv sbr
+
+lbl B
+   prt
+   st* 32
+   sto 10
+   sum 01
+   x²
+   sum 02
+   (
+   rcl 09
+   ×
+   rcl 10
+   )
+   sum 06
+   1
+   sum 28
+   sum 32
+   rcl 28
+   inv sbr
+
+lbl C
+   prt
+   st* 32
+   sto 08
+   sum 07
+   x²
+   sum 13
+   (
+   rcl 09
+   ×
+   rcl 08
+   )
+   sum 11
+   (
+   rcl 10
+   ×
+   rcl 08
+   )
+   sum 12
+   1
+   sum 27
+   sum 32
+   rcl 27
+   inv sbr
+
+lbl E'
+   d
+   pgm 04
+   sbr exc
+   inv sbr
+
+lbl A'
+   sto 09
+   inv sbr
+
+lbl B'
+   sto 10
+   inv sbr
+
+lbl C'
+   sto 08
+   x⇌t
+   (
+   rcl 32
+   -
+   35
+   sto 26
+   )
+   sto 00
+   rcl 08
+   x⇌t
+   rc* 26
+   x=t 166
+   3
+   sum 26
+   dsz 0 148
+   0
+   1/x
+   inv sbr
+   1
+   inv sum 26
+   rcl 10
+   x⇌t
+   rc* 26
+   x=t 184
+   1
+   sum 26
+   gto 156
+   1
+   inv sum 26
+   rcl 09
+   x⇌t
+   rc* 26
+   x=t 202
+   2
+   sum 26
+   gto 156
+   3
+   inv sum 32
+   rcl 32
+   x⇌t
+   (
+   rcl 26
+   +
+   3
+   )
+   sto 00
+   rcl 26
+   x=t 232
+   rc* 00
+   st* 26
+   1
+   sum 26
+   gto 209
+   1
+   inv sum 27
+   inv sum 28
+   inv sum 29
+   rcl 08
+   inv sbr
+
+lbl D'
+   rc* 32
+   a
+   rc* 32
+   b
+   rc* 32
+   c
+   rcl 32
+   x=t 263
+   gto d'
+   rcl 29
+   inv sbr
+
+lbl D
+   rcl 32
+   x⇌t
+   33
+   sto 32
+   inv sbr

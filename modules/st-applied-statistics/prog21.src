@@ -1,0 +1,257 @@
+
+; Example page 6-13 & 6-16 OK
+
+lbl E
+   gto 209
+
+lbl D
+   gto 176
+
+lbl C
+   gto 123
+
+lbl B
+   gto 097
+
+lbl A
+   (
+   sto 15
+   ÷
+   2
+   +
+   sto 20
+   sto 17
+   .5
+   )
+   sto 21
+   cp
+   inv int
+   x=t 057
+   (
+   π
+   √x
+   ÷
+   2
+   )
+   sto 18
+   1
+   sto 19
+   gto 064
+   π
+   √x
+   sto 19
+   1
+   sto 18
+   1
+   x⇌t
+   rcl 20
+   x=t 092
+   inv x≥t 092
+   1
+   +/-
+   sum 20
+   sum 21
+   rcl 20
+   prd 19
+   rcl 21
+   prd 18
+   gto 066
+   rcl 19
+   prd 17
+   inv sbr
+   (
+   (
+   sto 16
+   ÷
+   2
+   )
+   y**x
+   rcl 15
+   ÷
+   rcl 16
+   inv lnx
+   )
+   (
+   √x
+   ÷
+   rcl 16
+   ÷
+   rcl 19
+   )
+   inv sbr
+   sbr 097
+   (
+   ce
+   ×
+   2
+   ÷
+   rcl 15
+   sto 20
+   ×
+   rcl 16
+   )
+   sto 23
+   1
+   sto 21
+   sto 22
+   x⇌t
+   (
+   rcl 16
+   ÷
+   2
+   sum 20
+   rcl 20
+   )
+   prd 21
+   rcl 21
+   sum 22
+   rcl 22
+   inv x=t 146
+   (
+   ce
+   ×
+   rcl 23
+   )
+   inv sbr
+   (
+   (
+   x²
+   ÷
+   rcl 15
+   +
+   1
+   )
+   y**x
+   (
+   rcl 15
+   +
+   1
+   )
+   ×
+   rcl 15
+   ×
+   π
+   )
+   (
+   √x
+   ×
+   rcl 19
+   ÷
+   rcl 18
+   )
+   1/x
+   inv sbr
+   (
+   ce
+   ÷
+   rcl 15
+   √x
+   )
+   rad
+   inv tan
+   sto 16
+   cos
+   sto 20
+   sto 23
+   x²
+   sto 21
+   (
+   rcl 15
+   ÷
+   2
+   )
+   inv int
+   cp
+   x=t 319
+   1
+   x⇌t
+   rcl 15
+   x=t 314
+   (
+   rcl 15
+   -
+   2
+   )
+   x⇌t
+   sto 22
+   sto 24
+   x=t 295
+   (
+   rcl 21
+   ×
+   1
+   sum 22
+   rcl 22
+   ÷
+   1
+   sum 22
+   rcl 22
+   )
+   (
+   prd 24
+   rcl 24
+   ×
+   rcl 20
+   )
+   sum 23
+   rcl 22
+   inv x=t 262
+   (
+   rcl 16
+   +
+   sin
+   ×
+   rcl 23
+   )
+   (
+   ce
+   ×
+   2
+   ÷
+   π
+   )
+   gto 372
+   rcl 16
+   gto 304
+   (
+   rcl 15
+   -
+   2
+   )
+   x⇌t
+   1
+   sto 20
+   sto 22
+   0
+   sto 23
+   rcl 23
+   x=t 364
+   (
+   rcl 21
+   ×
+   1
+   sum 23
+   rcl 23
+   ÷
+   1
+   sum 23
+   rcl 23
+   )
+   prd 22
+   rcl 22
+   sum 20
+   gto 334
+   (
+   rcl 20
+   ×
+   rcl 16
+   sin
+   )
+   (
+   ce
+   ÷
+   2
+   +
+   .5
+   )
+   inv sbr

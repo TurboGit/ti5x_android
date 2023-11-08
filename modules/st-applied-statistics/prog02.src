@@ -1,0 +1,102 @@
+
+lbl d.ms
+   (
+   (
+   24298
+   ×
+   rcl 09
+   +
+   99991
+   )
+   ÷
+   199017
+   sto 10
+   )
+   (
+   (
+   (
+   inv int
+   ×
+   rcl 10
+   )
+   sto 09
+   ÷
+   rcl 10
+   ×
+   5
+   inv log
+   )
+   int
+   ÷
+   5
+   inv log
+   )
+   inv sbr
+
+lbl C
+   sbr d.ms
+   (
+   ce
+   ×
+   (
+   rcl 13
+   -
+   rcl 12
+   )
+   +
+   rcl 12
+   )
+   sto 10
+   prt
+   ∑+
+   rcl 10
+   inv sbr
+
+lbl D
+   rad
+   sbr d.ms
+   sto 11
+   sbr d.ms
+   (
+   (
+   ce
+   ×
+   2
+   ×
+   π
+   )
+   cos
+   ×
+   (
+   rcl 11
+   lnx
+   ×
+   2
+   +/-
+   )
+   √x
+   ×
+   rcl 13
+   gto 069
+
+lbl E'
+   pgm 01
+   sbr clr
+   adv
+   inv sbr
+
+lbl E
+   sto 09
+   prt
+   inv sbr
+
+lbl A
+   sto 12
+   prt
+   inv sbr
+
+lbl B
+   sto 13
+   prt
+   prt
+   inv sbr

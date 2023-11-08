@@ -1,0 +1,11 @@
+<carddef style="system">
+<label slot="titleleft">RANK SUM TESTS</label>
+<label slot="titleright">ST-17</label>
+<label slot="a">Rank Data</label>
+<label slot="b"><ArrowR/> T<sub>x</sub></label>
+<label slot="c"><ArrowR/> w</label>
+<label slot="d"><ArrowR/> z</label>
+<label slot="e"><ArrowR/> <bar>w</bar></label>
+<label slot="bprime"><ArrowR/> T<sub>y</sub></label>
+<label slot="eprime"><ArrowR/> S<sub>w</sub><sup>2</sup></label>
+</carddef>

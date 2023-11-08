@@ -1,0 +1,31 @@
+
+lbl A
+   ifflg 2 016
+   ifflg 1 011
+   inv lnx
+   pgm 03
+   a
+   inv sbr
+   pgm 00
+   a'
+   gto 012
+
+lbl A'
+   inv stflg 1
+   inv stflg 2
+   inv sbr
+
+lbl B'
+   a'
+   stflg 1
+   inv sbr
+
+lbl C'
+   a'
+   stflg 2
+   inv sbr
+
+lbl E'
+   pgm 03
+   e
+   inv sbr

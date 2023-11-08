@@ -1,0 +1,124 @@
+
+lbl B
+   cp
+   12
+   sto 29
+   (
+   rc* 29
+   ÷
+   rcl 01
+   -
+   rcl 06
+   )
+   x²
+   sum 09
+   sbr 037
+   x≥t 029
+   gto 007
+   rcl 01
+   prd 09
+   rcl 09
+   prt
+   inv sbr
+   1
+   sum 29
+   (
+   rcl 29
+   -
+   12
+   -
+   rcl 02
+   )
+   inv sbr
+
+lbl B'
+   (
+   rc* 29
+   ÷
+   rcl 02
+   -
+   rcl 06
+   )
+   x²
+   sum 10
+   sbr 037
+   (
+   ce
+   -
+   rcl 01
+   )
+   x≥t 080
+   gto b'
+   rcl 02
+   prd 10
+   rcl 10
+   prt
+   adv
+   inv sbr
+   (
+   (
+   rcl 01
+   -
+   1
+   )
+   ×
+   rcl 09
+   ×
+   (
+   rcl 08
+   -
+   rcl 09
+   -
+   rcl 10
+   )
+   1/x
+   )
+   prt
+   inv sbr
+
+lbl C
+   sbr 089
+   inv sbr
+
+lbl C'
+   rcl 09
+   exc 10
+   sto 09
+   rcl 01
+   exc 02
+   sto 01
+   rcl 11
+   sbr 089
+   inv sbr
+
+lbl D
+   (
+   rcl 02
+   -
+   1
+   )
+   prt
+   inv sbr
+   (
+   ce
+   ×
+   (
+   rcl 01
+   -
+   1
+   )
+   )
+   sto 11
+   prt
+   adv
+   inv sbr
+
+lbl A
+   (
+   rcl 07
+   ×
+   rcl 03
+   )
+   sto 08
+   prt
+   inv sbr

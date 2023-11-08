@@ -1,0 +1,10 @@
+<carddef style="system">
+<label slot="titleleft">MEANS AND MOMENTS</label>
+<label slot="titleright">ST-08</label>
+<label slot="a"><ArrowR/> <bar>x</bar></label>
+<label slot="b"><ArrowR/> g</label>
+<label slot="c"><ArrowR/> h</label>
+<label slot="d"><ArrowR/> Kurtosis</label>
+<label slot="e"><ArrowR/> Skewness</label>
+<label slot="aprime"><ArrowR/> m<sub>2</sub>;m<sub>3</sub>;m<sub>4</sub></label>
+</carddef>

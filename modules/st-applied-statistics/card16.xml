@@ -1,0 +1,10 @@
+<carddef style="system">
+<label slot="titleleft">2-WAY ANALYSIS OF VARIANCE</label>
+<label slot="titleright">ST-16</label>
+<label slot="a"><ArrowR/> SS</label>
+<label slot="b"><ArrowR/> CSS</label>
+<label slot="c"><ArrowR/> F<sub>C</sub></label>
+<label slot="d"><ArrowR/> <nu/><sub>1</sub>;<nu/><sub>2</sub></label>
+<label slot="bprime"><ArrowR/> RSS</label>
+<label slot="cprime"><ArrowR/> F<sub>R</sub></label>
+</carddef>

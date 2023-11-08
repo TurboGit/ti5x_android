@@ -55,6 +55,7 @@
     <string name="leisure_library">Leisure Library</string>
     <string name="mathutil_library">Math Utilities Library</string>
     <string name="electrical_library">Electrical Engineering</string>
+    <string name="applied_statistics">Applied Statistics</string>
     <string name="contribution_library">Contribution Library</string>
     <string name="civil_engineering_library">Civil Engineering Library</string>
     <string name="import_prompt">Data to load:</string>

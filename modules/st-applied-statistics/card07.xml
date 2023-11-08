@@ -1,0 +1,12 @@
+<carddef style="system">
+<label slot="titleleft">HISTOGRAM DATA</label>
+<label slot="titleright">ST-07</label>
+<label slot="a">x</label>
+<label slot="b">Cells</label>
+<label slot="c">Width</label>
+<label slot="d">Pointer</label>
+<label slot="aprime">Delete x</label>
+<label slot="bprime">x<sub>min</sub></label>
+<label slot="dprime">Compile</label>
+<label slot="eprime">Initialize</label>
+</carddef>

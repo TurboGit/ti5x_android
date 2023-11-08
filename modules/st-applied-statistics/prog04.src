@@ -1,0 +1,170 @@
+
+lbl A
+   sto 09
+   sto 10
+   rc* 31
+   op 19
+   ifflg 7 276
+   1
+   sto 10
+   rcl 09
+   prt
+   st* 31
+   pgm 03
+   sbr ×
+   1
+   sum 15
+   sum 29
+   sum 31
+   rcl 29
+   inv sbr
+
+lbl B
+   sto 10
+   rc* 31
+   op 19
+   ifflg 7 276
+   rcl 10
+   prt
+   st* 31
+   sum 01
+   (
+   rcl 10
+   x²
+   ×
+   sum 02
+   rcl 10
+   ×
+   sum 16
+   rcl 10
+   )
+   sum 17
+   (
+   rcl 09
+   ×
+   rcl 10
+   ×
+   sum 06
+   rcl 09
+   )
+   sum 11
+   (
+   rcl 09
+   -
+   rcl 10
+   )
+   sum 12
+   x²
+   sum 13
+   (
+   ce
+   ÷
+   rcl 10
+   )
+   op 19
+   ifflg 7 122
+   sum 14
+   1
+   sum 03
+   sum 28
+   sum 31
+   rcl 28
+   inv sbr
+   ce
+   0
+   inv stflg 7
+   gto 112
+
+lbl E'
+   d
+
+lbl exc
+   3
+   op 17
+   rcl 00
+   cms
+   sto 00
+   6
+   op 17
+   adv
+   0
+   inv sbr
+
+lbl A'
+   sto 09
+   inv sbr
+
+lbl B'
+   sto 10
+
+lbl lnx
+   x⇌t
+   (
+   rcl 31
+   -
+   33
+   sto 26
+   )
+   sto 00
+   rcl 10
+   x⇌t
+   rc* 26
+   x=t 190
+   2
+   sum 26
+   dsz 0 172
+   0
+   1/x
+   inv sbr
+   1
+   inv sum 26
+   rcl 09
+   x⇌t
+   rc* 26
+   x=t 208
+   1
+   sum 26
+   gto 180
+   2
+   inv sum 31
+   rcl 31
+   x⇌t
+   (
+   rcl 26
+   +
+   2
+   )
+   sto 00
+   rcl 26
+   x=t 238
+   rc* 00
+   st* 26
+   1
+   sum 26
+   gto 215
+   1
+   inv sum 28
+   inv sum 29
+   rcl 10
+   inv sbr
+
+lbl D'
+   rc* 31
+   a
+   rc* 31
+   b
+   rcl 31
+   x=t 263
+   gto d'
+   rcl 29
+   inv sbr
+
+lbl D
+   rcl 31
+   x⇌t
+   32
+   sto 31
+   inv sbr
+   rcl 10
+   inv stflg 7
+   inv sbr

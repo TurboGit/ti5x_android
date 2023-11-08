@@ -1,0 +1,57 @@
+
+lbl ce
+   0
+   sto 09
+   deg
+   fix 9
+
+lbl clr
+   cp
+   6
+   sto 01
+   0
+   st* 01
+   dsz 1 015
+   inv sbr
+
+lbl =
+   sbr ce
+   inv eng
+   5
+   x⇌t
+   30
+   p→r
+   ∑+
+   inv p→r
+   ∑+
+   op 12
+   d.ms
+   ∑+
+   op 11
+   inv d.ms
+   inv ∑+
+   op 14
+   (
+   ce
+   -
+   pgm 02 sbr d.ms
+   )
+   ee
+   inv ee
+   x⇌t
+   377.258095
+   x=t write
+   0
+   1/x
+
+lbl write
+   fix 9
+   op 00
+   3637133724
+   op 03
+   3637241536
+   op 04
+   op 05
+   2
+   prt
+   inv sbr

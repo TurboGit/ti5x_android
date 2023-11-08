@@ -1,0 +1,10 @@
+<carddef style="system">
+<label slot="titleleft">MULTIPLE LINEAR REGRESSION</label>
+<label slot="titleright">ST-18</label>
+<label slot="a"><ArrowR/> a<sub>0</sub></label>
+<label slot="b"><ArrowR/> a<sub>1</sub></label>
+<label slot="c"><ArrowR/> a<sub>2</sub></label>
+<label slot="d"><ArrowR/> R<sup>2</sup></label>
+<label slot="aprime">x</label>
+<label slot="eprime">y <ArrowR/> z'</label>
+</carddef>

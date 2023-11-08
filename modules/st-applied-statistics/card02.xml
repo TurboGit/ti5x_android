@@ -1,0 +1,10 @@
+<carddef style="system">
+<label slot="titleleft">RANDOM NUMBER GENERATOR</label>
+<label slot="titleright">ST-02</label>
+<label slot="a">x<sub>min</sub>/<mu/></label>
+<label slot="b">x<sub>max</sub>/<sigma/></label>
+<label slot="c"><ArrowR/> Uniform</label>
+<label slot="d"><ArrowR/> Normal</label>
+<label slot="e">Seed</label>
+<label slot="eprime">Initialize</label>
+</carddef>

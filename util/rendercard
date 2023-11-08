@@ -346,29 +346,47 @@ def defsymbol(name, psstr) :
 # ref: http://www.vigyan.com/desl/TH000000.HTM
 symbols = \
     { # based on symbol font
-        "angle" : defsymbol("angle", "(\\320)"),
+        # Upper-case greek characters
         "Delta" : defsymbol("Delta", "(\\104)"),
-        "div": defsymbol("div", "(\\270)"),
-        "sqrt": defsymbol("sqrt", "(\\326)"),
-        "epsilon": defsymbol("epsilon", "(\\145)"),
+        "Phi" : defsymbol("Phi", "(\\106)"),
+        "Gamma" : defsymbol("Gamma", "(\\107)"),
+        "Sigma" : defsymbol("Sigma", "(\\123)"),
+        "Omega" : defsymbol("Omega", "(\\127)"),
+        "Zeta" : defsymbol("Zeta", "(\\132)"),
+
+        # Lower-case greek characters
         "alpha" : defsymbol("alpha", "(\\141)"),
         "beta" : defsymbol("beta", "(\\142)"),
-        "Gamma" : defsymbol("Gamma", "(\\107)"),
+        "epsilon": defsymbol("epsilon", "(\\145)"),
         "gamma" : defsymbol("gamma", "(\\147)"),
-        "integral" : defsymbol("integral", "(\\362)"),
+        "eta" : defsymbol("eta", "(\\150)"),
+        "iota" : defsymbol("iota", "(\\151)"),
+        "phi" : defsymbol("phi", "(\\152)"),
+        "kappa" : defsymbol("kappa", "(\\153)"),
         "lambda" : defsymbol("lambda", "(\\154)"),
+        "mu" : defsymbol("mu", "(\\155)"),
+        "nu" : defsymbol("nu", "(\\156)"),
+        "omicron" : defsymbol("omicron", "(\\157)"),
+        "pi" : defsymbol("pi", "(\\160)"),
+        "theta" : defsymbol("theta", "(\\161)"),
+        "rho"   : defsymbol("rho", "(\\162)"),
+        "sigma" : defsymbol("sigma", "(\\163)"),
+        "tau"   : defsymbol("tau", "(\\164)"),
+        "omega" : defsymbol("omega", "(\\167)"),
+        "xi" : defsymbol("xi", "(\\170)"),
+        "khi" : defsymbol("khi", "(\\170)"),
+        "psi" : defsymbol("psi", "(\\171)"),
+        "zeta" : defsymbol("zeta", "(\\172)"),
+
+        # Various symbols
+        "and" : defsymbol("and", "(\\046)"),
+        "angle" : defsymbol("angle", "(\\320)"),
+        "div": defsymbol("div", "(\\270)"),
+        "sqrt": defsymbol("sqrt", "(\\326)"),
+        "integral" : defsymbol("integral", "(\\362)"),
         "mul": defsymbol("mul", "(\\264)"),
         "uarrow" : defsymbol("uarrow", "(\\255)"),
         "darrow" : defsymbol("darrow", "(\\257)"),
-        "sigma" : defsymbol("sigma", "(\\163)"),
-        "theta" : defsymbol("theta", "(\\161)"),
-        "Omega" : defsymbol("Omega", "(\\127)"),
-        "omaga" : defsymbol("omega", "(\\167)"),
-        "Zeta" : defsymbol("Zeta", "(\\132)"),
-        "zeta" : defsymbol("zeta", "(\\172)"),
-        "Sigma" : defsymbol("Sigma", "(\\123)"),
-        "rho"   : defsymbol("rho", "(\\162)"),
-        "nu" : defsymbol("nu", "(\\156)"),
         "empty" : defsymbol("empty", "(\\306)"),     # circle with a bar
         "intersect" : defsymbol("intersect", "(\\307)"), # half-circle down
     }

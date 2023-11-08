@@ -1,0 +1,9 @@
+<carddef style="system">
+<label slot="titleleft">CHI-SQUARE <and/> STUDENT'S-t DISTRIBITION</label>
+<label slot="titleright">ST-21</label>
+<label slot="a"><nu/> <ArrowR/> <Gamma/>(<nu/>/2)</label>
+<label slot="b">x<sup>2</sup> <ArrowR/> f(x<sup>2</sup>)</label>
+<label slot="c">x<sup>2</sup> <ArrowR/> P(x<sup>2</sup>)</label>
+<label slot="d">t <ArrowR/> f(t)</label>
+<label slot="e">t <ArrowR/> P(t)</label>
+</carddef>

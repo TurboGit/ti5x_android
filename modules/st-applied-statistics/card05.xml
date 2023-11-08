@@ -1,0 +1,13 @@
+<carddef style="system">
+<label slot="titleleft">TRIVARIATE DATA</label>
+<label slot="titleright">ST-05</label>
+<label slot="a">x</label>
+<label slot="b">y</label>
+<label slot="c">z</label>
+<label slot="d">Pointer</label>
+<label slot="aprime">Delete x</label>
+<label slot="bprime">Delete y</label>
+<label slot="cprime">Delete z</label>
+<label slot="dprime">Compile</label>
+<label slot="eprime">Initialize</label>
+</carddef>

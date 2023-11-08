@@ -1,0 +1,130 @@
+
+lbl A
+   adv
+   mean(x)
+   x⇌t
+   prt
+   inv sbr
+
+lbl B
+   (
+   rcl 11
+   inv y**x
+   rcl 03
+   )
+   prt
+   inv sbr
+
+lbl C
+   (
+   rcl 03
+   ÷
+   rcl 17
+   )
+   prt
+   inv sbr
+
+lbl D
+   adv
+   (
+   rcl 21
+   x²
+   1/x
+   ×
+   rcl 19
+   )
+   prt
+   inv sbr
+
+lbl E
+   (
+   (
+   rcl 21
+   ×
+   x²
+   )
+   √x
+   )
+   (
+   1/x
+   ×
+   rcl 20
+   )
+   prt
+   inv sbr
+
+lbl A'
+   adv
+   (
+   mean(x)
+   x⇌t
+   x²
+   +/-
+   +
+   (
+   rcl 05
+   ÷
+   rcl 03
+   )
+   )
+   sto 21
+   prt
+   inv sbr
+   (
+   rcl 07
+   ÷
+   rcl 03
+   -
+   3
+   ×
+   mean(x)
+   x⇌t
+   ×
+   rcl 05
+   ÷
+   rcl 03
+   +
+   mean(x)
+   x⇌t
+   ×
+   x²
+   ×
+   2
+   )
+   sto 20
+   prt
+   inv sbr
+   (
+   rcl 08
+   ÷
+   rcl 03
+   -
+   4
+   ×
+   mean(x)
+   x⇌t
+   ×
+   rcl 07
+   ÷
+   rcl 03
+   +
+   6
+   ×
+   mean(x)
+   x⇌t
+   x²
+   ×
+   rcl 05
+   ÷
+   rcl 03
+   -
+   3
+   ×
+   mean(x)
+   x⇌t
+   x²
+   x²
+   )
+   sto 19
+   prt
+   inv sbr

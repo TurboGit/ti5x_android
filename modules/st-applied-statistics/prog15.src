@@ -1,0 +1,84 @@
+
+lbl A
+   (
+   (
+   rcl 01
+   x²
+   ÷
+   rcl 09
+   )
+   +/-
+   sto 11
+   +
+   rcl 02
+   )
+   sto 12
+   (
+   rcl 11
+   +
+   rcl 10
+   )
+   (
+   sto 08
+   +/-
+   +
+   rcl 12
+   )
+   sto 13
+   (
+   rcl 28
+   -
+   1
+   )
+   sto 14
+   (
+   rcl 08
+   ÷
+   rcl 14
+   )
+   sto 15
+   (
+   rcl 09
+   -
+   rcl 28
+   )
+   sto 16
+   (
+   rcl 13
+   ÷
+   rcl 16
+   )
+   sto 17
+   (
+   1/x
+   ×
+   rcl 15
+   )
+   prt
+   inv sbr
+
+lbl B
+   rcl 14
+   prt
+   inv sbr
+
+lbl B'
+   rcl 16
+   prt
+   inv sbr
+
+lbl C
+   rcl 13
+   adv
+   prt
+   inv sbr
+
+lbl D
+   rcl 08
+   prt
+   inv sbr
+
+lbl E
+   rcl 12
+   prt
+   inv sbr

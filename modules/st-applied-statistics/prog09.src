@@ -1,0 +1,61 @@
+
+lbl fix
+   cp
+   1
+   sum 00
+   sum 20
+   (
+   rcl 19
+   -
+   rcl 00
+   )
+   x≥t 021
+   1
+   sto 00
+   rc* 20
+   sum 21
+   inv sbr
+
+lbl int
+   (
+   rcl 02
+   ×
+   rcl 00
+   +
+   rcl 01
+   )
+   inv sbr
+
+lbl A
+   mean(x)
+   x⇌t
+   prt
+   inv sbr
+
+lbl A'
+   inv mean(x)
+   ce
+   x⇌t
+   prt
+   adv
+   inv sbr
+
+lbl B
+   sbr fix
+   prt
+   inv sbr
+
+lbl C
+   sbr int
+   prt
+   adv
+   inv sbr
+
+lbl E'
+   5
+   sto 20
+   0
+   sto 00
+   sto 21
+   adv
+   inv sbr

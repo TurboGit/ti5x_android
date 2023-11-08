@@ -1,0 +1,14 @@
+<carddef style="system">
+<label slot="titleleft">BIVARIATE DATA TRANSFORMS</label>
+<label slot="titleright">ST-12</label>
+<label slot="a">x</label>
+<label slot="b">y</label>
+<label slot="c"><ArrowR/> b;m(Pgm)</label>
+<label slot="d">x<ArrowR/>y'(Pgm)</label>
+<label slot="e">y<ArrowR/>x'(Pgm)</label>
+<label slot="aprime">Exp (x,ln y)</label>
+<label slot="bprime">Pwr(ln x, ln y)</label>
+<label slot="cprime">Ln (ln x, y)</label>
+<label slot="dprime">User</label>
+<label slot="eprime">Initialize</label>
+</carddef>

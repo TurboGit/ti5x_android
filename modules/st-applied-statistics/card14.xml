@@ -1,0 +1,11 @@
+<carddef style="system">
+<label slot="titleleft">CONTINGENCY TABLE ANALYSIS</label>
+<label slot="titleright">ST-14</label>
+<label slot="a">x</label>
+<label slot="b"><ArrowR/> X<sup>2</sup></label>
+<label slot="c"><ArrowR/> <nu/></label>
+<label slot="d">R</label>
+<label slot="e">C</label>
+<label slot="bprime"><ArrowR/> P(X<sup>2</sup>)</label>
+<label slot="eprime">Initialize</label>
+</carddef>

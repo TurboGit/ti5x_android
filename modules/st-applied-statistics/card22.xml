@@ -1,0 +1,7 @@
+<carddef style="system">
+<label slot="titleleft">F DISTRIBUTION</label>
+<label slot="titleright">ST-22</label>
+<label slot="a"><nu/><sub>1</sub></label>
+<label slot="b"><nu/><sub>2</sub></label>
+<label slot="c">F <ArrowR/> Q(F)</label>
+</carddef>

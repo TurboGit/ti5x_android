@@ -1,0 +1,8 @@
+<carddef style="system">
+<label slot="titleleft">NORMAL REGRESSION</label>
+<label slot="titleright">ST-19</label>
+<label slot="a">z <ArrowR/> <Phi/><sub>(z)</sub></label>
+<label slot="b">z <ArrowR/> P<sub>(z)</sub></label>
+<label slot="c">z <ArrowR/> Q<sub>(z)</sub></label>
+<label slot="d">z <ArrowR/> A<sub>(z)</sub></label>
+</carddef>

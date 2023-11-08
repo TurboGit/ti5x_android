@@ -1,0 +1,117 @@
+
+lbl A
+   (
+   rcl 12
+   ÷
+   rcl 03
+   )
+   sto 26
+   (
+   (
+   rcl 13
+   -
+   rcl 12
+   x²
+   ÷
+   rcl 03
+   )
+   ÷
+   (
+   rcl 03
+   -
+   1
+   )
+   sto 25
+   )
+   √x
+   sto 27
+   (
+   rcl 03
+   √x
+   ×
+   rcl 26
+   ÷
+   rcl 27
+   )
+   adv
+   prt
+   inv sbr
+   (
+   rcl 04
+   ÷
+   rcl 15
+   )
+   inv sbr
+
+lbl A'
+   sto 24
+   (
+   rcl 15
+   +
+   rcl 03
+   -
+   2
+   )
+   sto 25
+   (
+   (
+   rcl 05
+   -
+   rcl 15
+   ×
+   sbr 050
+   x²
+   +
+   rcl 02
+   -
+   rcl 03
+   ×
+   mean(x)
+   x²
+   )
+   ÷
+   rcl 25
+   )
+   √x
+   sto 23
+   (
+   (
+   rcl 15
+   1/x
+   +
+   rcl 03
+   1/x
+   )
+   √x
+   ×
+   rcl 23
+   )
+   (
+   1/x
+   ×
+   (
+   sbr 050
+   -
+   mean(x)
+   -
+   rcl 24
+   )
+   )
+   adv
+   prt
+   inv sbr
+
+lbl B
+   rcl 25
+   prt
+   inv sbr
+
+lbl C
+   rcl 26
+   prt
+   inv sbr
+
+lbl D
+   rcl 27
+   prt
+   inv sbr

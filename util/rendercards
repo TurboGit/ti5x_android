@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Render all cards in the local directory
+
+BINARY=$(realpath $0)
+DIR=$(dirname $BINARY)
+
+ls *.xml | while read file; do
+    echo "=================== $file"
+    F=$(basename $file .xml)
+    cat $file | $DIR/rendercard > $F.png
+done

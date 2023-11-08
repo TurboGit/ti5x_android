@@ -1,0 +1,162 @@
+
+lbl A
+   x⇌t
+   rc* 30
+   op 18
+   ifflg 7 013
+   x⇌t
+   inv sbr
+   inv stflg 7
+   x⇌t
+   ifflg 0 041
+   prt
+   st* 30
+   sum 04
+   sto 08
+   x²
+   sum 05
+   1
+   sum 03
+   sum 29
+   sum 30
+   rcl 29
+   inv sbr
+   cp
+   sbr 021
+   (
+   ce
+   -
+   1
+   +
+   12
+   )
+   exc 08
+   sm* 08
+   exc 08
+   (
+   rcl 28
+   +
+   rcl 02
+   +
+   12
+   )
+   exc 08
+   sm* 08
+   (
+   rcl 29
+   -
+   rcl 02
+   )
+   x≥t 086
+   rcl 29
+   inv sbr
+   adv
+   1
+   sum 28
+   (
+   rcl 28
+   -
+   rcl 01
+   )
+   inv x≥t 104
+   rcl 29
+   inv sbr
+   rcl 29
+   x⇌t
+   sto 29
+   x⇌t
+   inv sbr
+   mean(x)
+   x⇌t
+   sto 06
+   op 11
+   x⇌t
+   sto 07
+   rcl 06
+   prt
+   inv sbr
+
+lbl B'
+   ifflg 0 111
+   adv
+   1
+   sum 28
+   rcl 03
+   sum 09
+   rcl 04
+   sum 01
+   rcl 05
+   sum 02
+   mean(x)
+   x⇌t
+   sto 06
+   (
+   x²
+   ×
+   rcl 03
+   )
+   sum 10
+   op 11
+   x⇌t
+   sto 07
+   0
+   sto 03
+   sto 04
+   sto 05
+   sto 29
+   rcl 06
+   prt
+   inv sbr
+
+lbl C'
+   rcl 07
+   prt
+   adv
+   inv sbr
+
+lbl B
+   sto 01
+   prt
+   inv sbr
+
+lbl C
+   sto 02
+   prt
+   inv sbr
+
+lbl E'
+   pgm 07
+   sbr tan
+   inv stflg 0
+   inv sbr
+
+lbl E
+   e'
+   stflg 0
+   inv sbr
+
+lbl A'
+   sto 09
+   pgm 03
+   sbr log
+   inv sbr
+
+lbl D'
+   x⇌t
+   sto 11
+   rc* 30
+   a
+   rcl 11
+   x⇌t
+   rcl 30
+   x=t 242
+   x⇌t
+   sto 11
+   gto 225
+   rcl 29
+   inv sbr
+
+lbl D
+   pgm 07
+   d
+   inv sbr

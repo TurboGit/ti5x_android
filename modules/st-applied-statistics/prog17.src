@@ -1,0 +1,214 @@
+
+lbl A
+   adv
+   cp
+   32
+   sto 27
+   rcl 15
+   sto 30
+   sbr 035
+   rcl 15
+   sum 27
+   rcl 03
+   x=t 337
+   sto 30
+   sbr 035
+   0
+   sto 25
+   sto 26
+   inv sbr
+   rcl 27
+   sto 25
+   sum 30
+   gto 089
+   (
+   rcl 25
+   +
+   1
+   )
+   sto 26
+   (
+   rc* 26
+   -
+   rc* 25
+   )
+   x≥t 068
+   rc* 26
+   exc ind 25
+   st* 26
+   1
+   sum 26
+   (
+   rcl 26
+   -
+   rcl 30
+   )
+   inv x≥t 052
+   rc* 25
+   pause
+   prt
+   1
+   sum 25
+   (
+   rcl 25
+   -
+   rcl 30
+   +
+   1
+   )
+   inv x≥t 044
+   rc* 25
+   pause
+   prt
+   adv
+   inv sbr
+
+lbl B
+   (
+   rcl 15
+   +
+   32
+   sto 23
+   )
+   sto 24
+   rc* 23
+   sto 27
+   1
+   sto 30
+   (
+   rc* 24
+   -
+   rcl 27
+   )
+   inv x≥t 170
+   sbr 196
+   rc* 23
+   sto 27
+   (
+   rcl 23
+   -
+   32
+   -
+   rcl 15
+   )
+   inv x≥t 128
+   sbr 206
+   inv x≥t 160
+   gto 229
+   sbr 206
+   inv x≥t 128
+   (
+   rcl 23
+   -
+   32
+   -
+   rcl 15
+   )
+   x≥t 229
+   sbr 196
+   gto 177
+   rcl 30
+   sum 25
+   1
+   sum 30
+   sum 23
+   inv sbr
+   rcl 30
+   sum 26
+   1
+   sum 30
+   sum 24
+   (
+   rcl 24
+   -
+   32
+   -
+   rcl 15
+   -
+   rcl 03
+   )
+   inv sbr
+   (
+   (
+   rcl 15
+   ×
+   rcl 03
+   ÷
+   2
+   )
+   sto 23
+   ÷
+   6
+   ×
+   (
+   rcl 15
+   +
+   rcl 03
+   +
+   1
+   )
+   )
+   sto 24
+   rcl 25
+   prt
+   inv sbr
+   (
+   rcl 15
+   ×
+   rcl 03
+   -
+   rcl 25
+   +
+   rcl 15
+   x²
+   ÷
+   2
+   +
+   rcl 15
+   ÷
+   2
+   )
+   inv sbr
+
+lbl C
+   sbr 260
+   prt
+   inv sbr
+
+lbl D
+   (
+   (
+   sbr 260
+   -
+   rcl 23
+   )
+   ÷
+   rcl 24
+   √x
+   )
+   prt
+   adv
+   inv sbr
+
+lbl B'
+   rcl 26
+   sto 25
+   rcl 15
+   exc 03
+   sto 15
+   rcl 25
+   prt
+   inv sbr
+
+lbl E
+   rcl 23
+   prt
+   inv sbr
+
+lbl E'
+   rcl 24
+   prt
+   adv
+   inv sbr
+   0
+   inv sbr

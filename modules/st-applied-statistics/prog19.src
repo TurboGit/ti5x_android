@@ -1,0 +1,83 @@
+
+lbl A
+   (
+   x²
+   inv lnx
+   ×
+   2
+   ×
+   π
+   )
+   √x
+   1/x
+   inv sbr
+   (
+   |x|
+   ×
+   .2316419
+   +
+   1
+   )
+   1/x
+   (
+   sto 25
+   prd 25
+   sto 26
+   ×
+   .31938153
+   -
+   .356563782
+   ×
+   rcl 25
+   prd 26
+   +
+   1.781477937
+   ×
+   rcl 26
+   -
+   1.821255978
+   ×
+   rcl 25
+   prd 25
+   x²
+   +
+   1.330274429
+   ×
+   rcl 26
+   )
+   inv sbr
+
+lbl B
+   cp
+   x≥t 137
+   sto 25
+   a
+   (
+   ce
+   ×
+   rcl 25
+   sbr 014
+   )
+   inv sbr
+
+lbl C
+   cp
+   x≥t 118
+   sbr 118
+   (
+   +/-
+   +
+   1
+   )
+   inv sbr
+
+lbl D
+   sbr 118
+   (
+   +/-
+   ×
+   2
+   +
+   1
+   )
+   inv sbr

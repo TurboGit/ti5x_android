@@ -1,0 +1,25 @@
+#!/bin/bash
+
+ls -1 ST-02/ST* | while read file; do
+    BN=$(basename $file)
+    N=$(echo $BN | cut -c3-4)
+    prog=prog$N.src
+
+    rm -f tmp
+    touch tmp
+
+    cat $file | while read N CODE op; do
+        if [[ $N =~ [0-9][0-9][0-9] ]]; then
+            echo "$CODE" >> tmp
+        fi
+    done
+
+    cat tmp | ../../util/disassemble > $prog
+    ../../util/beautify ${prog}
+done
+rm -f tmp
+
+exit 0
+
+for K in {1..22}; do
+    V=$(printf "%2d" K)

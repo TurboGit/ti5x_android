@@ -1,0 +1,161 @@
+
+lbl A
+   gto 062
+
+lbl B
+   gto 123
+
+lbl C
+   gto 046
+
+lbl D
+   gto 041
+
+lbl E
+   gto 036
+
+lbl E'
+   30
+   sto 29
+   0
+   sto 57
+   1
+   inv sbr
+   prt
+   sto 59
+   adv
+   inv sbr
+   prt
+   sto 58
+   adv
+   inv sbr
+   (
+   (
+   rcl 58
+   -
+   1
+   )
+   ×
+   (
+   rcl 59
+   -
+   1
+   )
+   )
+   inv sbr
+   prt
+   st* 29
+   sum 57
+   1
+   sum 29
+   (
+   (
+   rcl 29
+   -
+   29
+   )
+   ÷
+   rcl 59
+   )
+   (
+   inv int
+   ×
+   rcl 59
+   )
+   ee
+   inv ee
+   cp
+   x=t 097
+   inv sbr
+   rcl 59
+   inv sbr
+   (
+   rcl 29
+   -
+   29
+   -
+   rcl 58
+   ×
+   rcl 59
+   )
+   inv sbr
+   rcl 59
+   sto 27
+   29
+   sto 29
+   inv sbr
+   (
+   rcl 58
+   +
+   rcl 59
+   )
+   sto 28
+   0
+   st* 28
+   1
+   inv sum 28
+   rcl 28
+   cp
+   inv x=t 132
+   sbr 114
+   1
+   sum 27
+   0
+   sto 28
+   1
+   sum 28
+   sum 29
+   rc* 29
+   sm* 28
+   sm* 27
+   (
+   rcl 28
+   -
+   rcl 59
+   )
+   inv x=t 155
+   sbr 100
+   inv x=t 149
+   1
+   +/-
+   sto 26
+   sbr 114
+   1
+   sum 27
+   0
+   sto 28
+   1
+   sum 28
+   sum 29
+   (
+   rc* 29
+   x²
+   ÷
+   rc* 28
+   ÷
+   rc* 27
+   )
+   sum 26
+   (
+   rcl 28
+   -
+   rcl 59
+   )
+   inv x=t 197
+   sbr 100
+   inv x=t 191
+   (
+   rcl 26
+   ×
+   rcl 57
+   )
+   inv sbr
+
+lbl B'
+   sbr 046
+   pgm 21
+   a
+   sbr 233
+   pgm 21
+   c
+   inv sbr
