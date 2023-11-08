@@ -34,21 +34,20 @@ lbl =
    (
    ce
    -
-   pgm 11
-   sbr nop
+   pgm 11 sbr nop
    )
    ce
    ee
    inv ee
    x⇌t
-   ; the java implementation rx=tuires a different checksum
+   ; the java implementation requires a different checksum
    ; 381.6123651
-   381.6123323
-   x=t 2nd r/s
+   381.612333
+   x=t write
    0
    1/x
 
-lbl 2nd r/s
+lbl write
    fix 9
    op 00
    3113422422
