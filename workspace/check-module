@@ -1,0 +1,64 @@
+#!/bin/bash
+
+function check1()
+{
+    DUMP_DIR=$PWD/ST-02
+    MOD_DIR=$PWD/../modules/sy
+
+    for file in $DUMP_DIR/*.v59; do
+        F1=$(basename $file)
+        N=$(echo $F1 | cut -c3-4)
+        F2=$MOD_DIR/prog$N.src
+
+        printf "Compare %-40s %s\n" $F1 $(basename $F2)
+
+        n=0
+
+        cat $F2 |
+            ../util/assemble |
+            tr ' ' '\n' |
+            while read c; do
+                printf "%03d %s\n" $n $c
+                (( n++ ))
+            done > f2.lst
+
+        cat $file |
+            grep '^    ' |
+            sed 's/     //g' |
+            cut -c1-7 > f1.lst
+
+        diff -c f1.lst f2.lst
+    done
+}
+
+
+function check2()
+{
+    DUMP_DIR=$PWD/SY
+    MOD_DIR=$PWD/../modules/sy
+
+    for file in $DUMP_DIR/*/*.LST; do
+        F1=$(basename $file)
+        N=$(echo $F1 | cut -c4-5)
+        F2=$MOD_DIR/prog$N.src
+
+        printf "Compare %-40s %s\n" $F1 $(basename $F2)
+
+        n=0
+
+        cat $F2 |
+            ../util/assemble |
+            tr ' ' '\n' |
+            while read c; do
+                printf "%03d %s\n" $n $c
+                (( n++ ))
+            done > f2.lst
+
+        cat $file |
+            cut -c1-6 > f1.lst
+
+        diff -c f1.lst f2.lst
+    done
+}
+
+check2
