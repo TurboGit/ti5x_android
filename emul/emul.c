@@ -1157,7 +1157,7 @@ int main (int argc, char *argv[]) {
   }
   if (!ROM[0]) {
     printf ("Usage: %s ROM_dump.txt [options]\n", argv[0]);
-    printf ("options:\n-dbg <value> set debug output level\n-help print help\n-mode <value>\n-in <file> set card input file name\n-out <file> set card output file name\n-log <file> set log file name\n");
+    printf ("options:\n-dbg <value> set debug output level\n-help print help\n-mode <value>\n-in <file> set card input file name\n-out <file> set card output file name\n-log <file> set log file name\n-lst <file> load a program\n");
     return 0;
   }
   // check if card input file is entered for TI-58
