@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ROOT=$(dirname $(realpath $0))
+
+# Convert a module program to an .lst compatible with the emulator
+
+[[ ! -f $1 ]] &&
+    echo "usage $0 <prog>" &&
+    exit 1
+
+FILE=$1
+
+cat $FILE |
+    $ROOT/../util/assemble |
+    tr ' ' '\n' |
+    while read c; do
+        printf "%03d %s\n" $n $c
+        (( n++ ))
+    done > $(basename $FILE .src).lst
