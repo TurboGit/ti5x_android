@@ -3018,6 +3018,12 @@ class State {
     }
   }
 
+  void MinMax() {
+    if (X.compareTo(T) > 0) {
+        SwapT();
+    }
+  }
+
   void Return() {
     /* returns to the last-saved location on the return stack. */
     boolean OK = false;
@@ -3444,7 +3450,11 @@ class State {
             MemoryOp(MEMOP_ADD, GetProg(true), true);
             break;
           case 75:
-            Operator(STACKOP_SUB);
+            if (InvState) /* extension! */ {
+              MinMax();
+            } else {
+              Operator(STACKOP_SUB);
+            }
             break;
           case 76: /*Lbl*/
             GetProg(true); /* just skip label, assume Labels already filled in */

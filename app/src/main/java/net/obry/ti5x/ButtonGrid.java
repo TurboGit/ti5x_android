@@ -1323,7 +1323,11 @@ class ButtonGrid extends android.view.View {
               Calc.Digit('6');
               break;
             case 75:
-              Calc.Operator(State.STACKOP_SUB);
+              if (Calc.InvState) /* extension! */ {
+                Calc.MinMax();
+              } else {
+                Calc.Operator(State.STACKOP_SUB);
+              }
               break;
             case 76:
               break;
