@@ -3019,8 +3019,9 @@ class State {
   }
 
   void MinMax() {
+    Enter(75);
     if (X.compareTo(T) > 0) {
-        SwapT();
+      SwapT();
     }
   }
 
@@ -3452,6 +3453,7 @@ class State {
           case 75:
             if (InvState) /* extension! */ {
               MinMax();
+              KeepModifier = true;
             } else {
               Operator(STACKOP_SUB);
             }
@@ -3637,7 +3639,14 @@ class State {
         InvState = false;
       }
     }
-    PreviousOp = Op;
+    // For extension INV - we need to clear the PreviousOp
+    // indeed this operator doesn't expect any other operand.
+    if (Op == 75 && InvState == true) {
+      PreviousOp = -1;
+      InvState = false;
+    } else {
+      PreviousOp = Op;
+    }
   }
 
   void FillInLabels

@@ -1298,6 +1298,38 @@ class Tester {
 
     return true;
   }
+  private boolean Test_38() {
+    // Check for MinMax extension on [INV] [-}
+    Clear();
+
+    Calc.Digit('2');
+    Calc.SwapT();
+    Calc.Digit('3');
+    Calc.Operator(State.STACKOP_ADD);
+    Calc.Digit('1');
+    Calc.Digit('0');
+    Calc.Digit('0');
+    Calc.MinMax();
+    Calc.Equals();
+
+    if (!check("5.", false))
+      return false;
+
+    Calc.Digit('2');
+    Calc.SwapT();
+    Calc.Digit('1');
+    Calc.Digit('0');
+    Calc.Digit('0');
+    Calc.MinMax();
+    Calc.Operator(State.STACKOP_ADD);
+    Calc.Digit('4');
+    Calc.Equals();
+
+    if (!check("6.", false))
+      return false;
+
+    return true;
+  }
 
   int Run() {
     Calc = Global.Calc;
@@ -1376,6 +1408,8 @@ class Tester {
     if (!Test_36()) return -36;
     Total++;
     if (!Test_37()) return -37;
+    Total++;
+    if (!Test_38()) return -38;
     Total++;
     Clear();
 
