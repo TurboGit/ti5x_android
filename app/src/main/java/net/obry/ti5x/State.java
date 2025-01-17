@@ -160,12 +160,11 @@ class State {
 
   boolean ProgMode; /* true for program-entry mode, false for calculation mode */
   final int MaxMemories = 100; /* maximum addressable */
-  final int MaxProgramSteps = 960; /* absolute max on original model */
+
+  final int MaxProgramSteps = 1500; /* absolute max supported by emulator (original was 960) */
 
   final int MaxCardProgramSteps = 1500;
-  /* a SSSM have 5000 steps and a single program can have more than 1000 steps.
-     In such a case the program cannot be copied into the user's program memory.
-   */
+  /* a SSSM have 5000 steps and a single program can have more than 1000 steps. */
 
   final int MaxBanks = 100;
   final int BankNumber = 4;
