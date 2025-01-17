@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.Arrays;
 
 public class Picker extends android.app.Activity {
 
@@ -322,6 +323,8 @@ public class Picker extends android.app.Activity {
            * withing the folder context.
            */
           File ourFiles[] = ThisDir.listFiles();
+          Arrays.sort(ourFiles);
+
           for (java.io.File Item : ourFiles) {
             boolean MatchesExt;
             String DisplayName = "";
