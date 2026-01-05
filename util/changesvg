@@ -73,10 +73,10 @@ for c in content:
 
             if os.path.exists(svgfile):
                 is_img = True
-                os.system("inkscape --export-area-drawing --batch-process --export-width=%d --export-filename=/tmp/art.png %s" % (WIDTH, svgfile))
+                os.system("inkscape --export-area-drawing --batch-process --export-width=%d --export-type=png --export-filename=/tmp/art.png %s" % (WIDTH, svgfile))
                 set_new_width("/tmp/art.png")
                 if(WIDTH != 350):
-                    os.system("inkscape --export-area-drawing --batch-process --export-width=%d --export-filename=/tmp/art.png %s" % (WIDTH, svgfile))
+                    os.system("inkscape --export-area-drawing --batch-process --export-width=%d --export-type=png --export-filename=/tmp/art.png %s" % (WIDTH, svgfile))
 
                 os.system("zopflipng -y --iterations=20 --filters=01234mep --lossy_8bit --lossy_transparent /tmp/art.png /tmp/artc.png")
                 initial_data = open('/tmp/artc.png', 'rb').read()
