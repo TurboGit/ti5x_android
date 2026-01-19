@@ -181,6 +181,11 @@ class Display extends android.view.View {
     invalidate();
   }
 
+  public void SetStateShowing()
+  {
+    invalidate();
+  }
+
   class Flashing implements Runnable {
     public void run() {
       final int[] SwapShowing = Showing;
@@ -237,6 +242,7 @@ class Display extends android.view.View {
   private static void RenderSegments
      (
         android.graphics.Canvas Draw,
+        android.graphics.Paint UsePaint,
         int Segments,
         float XOrigin,
         float YOrigin,
@@ -245,8 +251,6 @@ class Display extends android.view.View {
      ) {
     /* renders the specified combination of LED segments and dots at the specified
        size and position, in the specified colour, into the specified canvas. */
-    final android.graphics.Paint UsePaint = GraphicsUseful.FillWithColor(Color);
-    UsePaint.setAntiAlias(true);
     XOrigin += Size * SegmentHalfWidth; /* so there is no overhang to the left */
     YOrigin -= Size * SegmentHalfWidth; /* so there is no overhang below */
     final PointF[] ControlPoint = new PointF[]
@@ -324,17 +328,53 @@ class Display extends android.view.View {
     super.onDraw(Draw);
     final android.graphics.RectF DisplayBounds =
        new android.graphics.RectF(0, 0, getWidth(), getHeight());
+    final android.graphics.Paint UsePaint = GraphicsUseful.FillWithColor(ShowingColor);
+    UsePaint.setTextSize(DisplayBounds.bottom * 0.2f);      // Set text size
+    UsePaint.setAntiAlias(true);
     Draw.drawRect(DisplayBounds, GraphicsUseful.FillWithColor(LEDOff));
     for (int i = 0; i < Showing.length; ++i) {
       RenderSegments
          (
             Draw,
+            UsePaint,
             Showing[i],
             i * DisplayBounds.right / NrDigits,
-            DisplayBounds.bottom * 0.8f,
+            DisplayBounds.bottom * 0.75f,
             DisplayBounds.bottom * 0.6f,
             ShowingColor
          );
     }
+
+    //  Draw states [DGR][2][I]
+    float sx = 10;
+    final float sy = DisplayBounds.bottom * 0.95f;
+    String StatStr = "";
+    switch (Global.Calc.CurAng) {
+      case State.ANG_GRAD:
+        StatStr = "G";
+        break;
+      case State.ANG_RAD:
+        StatStr = "R";
+        break;
+      case State.ANG_DEG:
+        StatStr = " ";
+      default: // Degrees
+        StatStr = " ";
+        break;
+    }
+
+    if (Global.Buttons.AltState) {
+      StatStr = StatStr + "2";
+    }
+    else {
+      StatStr = StatStr + " ";
+    }
+    if (Global.Calc.InvState) {
+      StatStr = StatStr + "I";
+    }
+    else {
+      StatStr = StatStr + " ";
+    }
+    Draw.drawText(StatStr, sx, sy, UsePaint);
   }
 }

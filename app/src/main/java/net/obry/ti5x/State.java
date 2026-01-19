@@ -940,6 +940,7 @@ class State {
         int NewMode
      ) {
     CurAng = NewMode;
+    Global.Disp.SetStateShowing();
   }
 
   void Square() {

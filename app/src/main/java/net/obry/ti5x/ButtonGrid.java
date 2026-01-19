@@ -1175,11 +1175,13 @@ class ButtonGrid extends android.view.View {
             case 26:
               AltState = !AltState;
               WasModifier = true;
+              Global.Disp.SetStateShowing();
               break;
             case 22:
             case 27:
               Calc.InvState = !Calc.InvState;
               WasModifier = true;
+              Global.Disp.SetStateShowing();
               break;
             case 23:
               Calc.Ln();
