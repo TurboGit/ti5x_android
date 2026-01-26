@@ -1418,6 +1418,7 @@ class ButtonGrid extends android.view.View {
               }
               break;
           }
+
           // For extension INV - we need to clear the PreviousOp
           // indeed this operator doesn't expect any other operand.
           if(ButtonCode == 75 && Calc.InvState == true) {
@@ -1438,5 +1439,6 @@ class ButtonGrid extends android.view.View {
         Calc.InvState = false;
       }
     }
+    Global.setStatusDisplay();
   }
 }

@@ -438,6 +438,8 @@ public class Main extends AppCompatActivity {
   public boolean onCreateOptionsMenu(android.view.Menu menu) {
       MenuInflater inflater = getMenuInflater();
       inflater.inflate(R.menu.ti5x_menu, menu);
+      // Record reference to menu status item
+      Global.Status = menu.findItem(R.id.menu_status);
       return super.onCreateOptionsMenu(menu);
   }
 
