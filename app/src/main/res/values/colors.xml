@@ -17,8 +17,8 @@
     <color name="alt_button_color">#cca141</color>
 
     <!-- printer -->
-    <color name="paper">#ffffffff</color>
-    <color name="ink">#ff656565</color> <!-- not fully black -->
+    <color name="paper">#00000000</color>
+    <color name="ink">#FF000000</color> <!-- not fully black -->
 
     <color name="title_bar">#d4af61</color>
 </resources>

@@ -24,19 +24,15 @@ import java.util.ArrayList;
 
 import android.Manifest;
 import android.app.Notification;
-import android.content.ContentProviderClient;
 import android.content.Intent;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
-import android.widget.Toast;
 import android.content.DialogInterface;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.widget.Toolbar;
 
 public class Main extends AppCompatActivity {
   android.text.ClipboardManager Clipboard;
@@ -553,14 +549,6 @@ public class Main extends AppCompatActivity {
         finish(); /* start afresh next time */
         break;
 
-     case R.id.action_print:
-        startActivity
-          (
-            new Intent(Intent.ACTION_VIEW)
-            .setClass(Main.this, PrinterView.class)
-          );
-        break;
-
       case R.id.action_help:
         ShowHelp("help/index.html", null);
         break;
@@ -578,6 +566,10 @@ public class Main extends AppCompatActivity {
               Snackbar.LENGTH_LONG
           ).show();
         }
+        break;
+      case R.id.menu_printer:
+        final Intent prt = new Intent(Main.this, PrinterActivity.class);
+        startActivity(prt);
         break;
     }
     return super.onOptionsItemSelected(item);

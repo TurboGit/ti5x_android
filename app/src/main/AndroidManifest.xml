@@ -63,7 +63,9 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".Main"></activity>
+            android:parentActivityName=".Main"/>
+        <activity
+            android:name=".PrinterActivity" />
     </application>
 
 </manifest>

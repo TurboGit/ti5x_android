@@ -22,26 +22,18 @@ package net.obry.ti5x;
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.os.Environment;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 class Printer {
-  android.graphics.Bitmap Paper;
-  /* the idea is that this is low-resolution but will be displayed scaled up
-     to make matrix dots more visible */
 
-  interface Notifier {
-    void PaperChanged();
-  }
-
-  Notifier PrintListener; /* to notify when content of Paper changes */
-  private android.graphics.Canvas PaperDraw;
+  ArrayList<byte[]> Content = new ArrayList<>();
   private android.content.Context PrtContext;
 
   private final static int DotSize = 2;
@@ -50,93 +42,89 @@ class Printer {
   private final static int CharHeight = 7;
   private final static int CharHorGap = 1;
   private final static int CharVertGap = 1;
-  private final static int PaddingWidth = 10;
-  private final static int PaddingHeight = 10;
-
+  public final static int PaddingWidth = 10;
   final static int CharColumns = 20;
   private final static int CharLines = 125; /* make this configurable? */
 
-  private final int LineHeight = (CharHeight + CharVertGap) * (DotSize + DotGap);
+  public final int LineHeight = (CharHeight + CharVertGap) * (DotSize + DotGap);
   private final int ColumnWidth = (CharWidth + CharHorGap) * (DotSize + DotGap);
 
-  private final int PaperHeight = LineHeight * CharLines + (PaddingHeight * 2);
-  private final int PaperWidth = ColumnWidth * CharColumns + (PaddingWidth * 2);
+  public final int PaperWidth = ColumnWidth * CharColumns + (PaddingWidth * 2);
 
   private final int PaperColor;
   private final int InkColor;
-  private       int IXCurLine = 0;  /* Current Line Counter */
 
   private static final int[][] Chars =
-     {
-        {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, /*00*/
-        {0x0e, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e}, /*01*/
-        {0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x0e}, /*02*/
-        {0x0e, 0x11, 0x10, 0x0c, 0x02, 0x01, 0x1f}, /*03*/
-        {0x0e, 0x11, 0x10, 0x0c, 0x10, 0x11, 0x0e}, /*04*/
-        {0x08, 0x0c, 0x0a, 0x09, 0x1f, 0x08, 0x08}, /*05*/
-        {0x1f, 0x01, 0x0f, 0x10, 0x10, 0x11, 0x0e}, /*06*/
-        {0x0c, 0x02, 0x01, 0x0f, 0x11, 0x11, 0x0e}, /*07*/
-        {0x1f, 0x10, 0x08, 0x04, 0x02, 0x02, 0x02}, /*10*/
-        {0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e}, /*11*/
-        {0x0e, 0x11, 0x11, 0x1e, 0x10, 0x08, 0x06}, /*12*/
-        {0x0e, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11}, /*13*/
-        {0x0f, 0x11, 0x11, 0x0f, 0x11, 0x11, 0x0f}, /*14*/
-        {0x0e, 0x11, 0x01, 0x01, 0x01, 0x11, 0x0e}, /*15*/
-        {0x0f, 0x12, 0x12, 0x12, 0x12, 0x12, 0x0f}, /*16*/
-        {0x1f, 0x01, 0x01, 0x0f, 0x01, 0x01, 0x1f}, /*17*/
-        {0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00}, /*20*/
-        {0x1f, 0x01, 0x01, 0x0f, 0x01, 0x01, 0x01}, /*21*/
-        {0x0e, 0x11, 0x01, 0x01, 0x19, 0x11, 0x1e}, /*22*/
-        {0x11, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11}, /*23*/
-        {0x0e, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0e}, /*24*/
-        {0x10, 0x10, 0x10, 0x10, 0x10, 0x11, 0x0e}, /*25*/
-        {0x11, 0x09, 0x05, 0x03, 0x05, 0x09, 0x11}, /*26*/
-        {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x1f}, /*27*/
-        {0x11, 0x1b, 0x15, 0x15, 0x11, 0x11, 0x11}, /*30*/
-        {0x11, 0x11, 0x13, 0x15, 0x19, 0x11, 0x11}, /*31*/
-        {0x1f, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1f}, /*32*/
-        {0x0f, 0x11, 0x11, 0x0f, 0x01, 0x01, 0x01}, /*33*/
-        {0x0e, 0x11, 0x11, 0x11, 0x15, 0x19, 0x1e}, /*34*/
-        {0x0f, 0x11, 0x11, 0x0f, 0x05, 0x09, 0x11}, /*35*/
-        {0x0e, 0x11, 0x01, 0x0e, 0x10, 0x11, 0x0e}, /*36*/
-        {0x1f, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04}, /*37*/
-        {0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x06}, /*40*/
-        {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e}, /*41*/
-        {0x11, 0x11, 0x11, 0x0a, 0x0a, 0x04, 0x04}, /*42*/
-        {0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x0a}, /*43*/
-        {0x11, 0x11, 0x0a, 0x04, 0x0a, 0x11, 0x11}, /*44*/
-        {0x11, 0x11, 0x0a, 0x04, 0x04, 0x04, 0x04}, /*45*/
-        {0x1f, 0x10, 0x08, 0x04, 0x02, 0x01, 0x1f}, /*46*/
-        {0x00, 0x04, 0x04, 0x1f, 0x04, 0x04, 0x00}, /*47*/
-        {0x00, 0x11, 0x0a, 0x04, 0x0a, 0x11, 0x00}, /*50*/
-        {0x00, 0x0a, 0x04, 0x1f, 0x04, 0x0a, 0x00}, /*51*/
-        {0x1e, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02}, /*52*/
-        {0x00, 0x10, 0x0e, 0x0b, 0x0a, 0x0a, 0x0a}, /*53*/
-        {0x00, 0x00, 0x0e, 0x11, 0x1f, 0x01, 0x0e}, /*54*/
-        {0x10, 0x08, 0x04, 0x04, 0x04, 0x08, 0x10}, /*55*/
-        {0x01, 0x02, 0x04, 0x04, 0x04, 0x02, 0x01}, /*56*/
-        {0x00, 0x00, 0x00, 0x03, 0x03, 0x02, 0x01}, /*57*/
-        {0x04, 0x0e, 0x15, 0x04, 0x04, 0x04, 0x04}, /*60*/
-        {0x03, 0x13, 0x08, 0x04, 0x02, 0x19, 0x18}, /*61*/
-        {0x04, 0x0c, 0x04, 0x00, 0x04, 0x06, 0x04}, /*62*/
-        {0x00, 0x10, 0x08, 0x04, 0x02, 0x01, 0x00}, /*63*/
-        {0x00, 0x00, 0x1f, 0x00, 0x1f, 0x00, 0x00}, /*64*/
-        {0x0c, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x00}, /*65*/
-        {0x11, 0x0a, 0x04, 0x0a, 0x11, 0x00, 0x00}, /*66*/
-        {0x1f, 0x00, 0x11, 0x0a, 0x04, 0x0a, 0x11}, /*67*/
-        {0x07, 0x08, 0x06, 0x01, 0x0f, 0x00, 0x00}, /*70*/
-        {0x0e, 0x11, 0x11, 0x08, 0x04, 0x00, 0x04}, /*71*/
-        {0x00, 0x04, 0x00, 0x1f, 0x00, 0x04, 0x00}, /*72*/
-        {0x04, 0x0a, 0x0a, 0x0a, 0x04, 0x00, 0x04}, /*73*/
-        {0x1f, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x1f}, /*74*/
-        {0x00, 0x00, 0x00, 0x00, 0x04, 0x0a, 0x15}, /*75*/
-        {0x1f, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a}, /*76*/
-        {0x1f, 0x02, 0x04, 0x08, 0x04, 0x02, 0x1f}, /*77*/
-     };
+      {
+          {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, /*00*/
+          {0x0e, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e}, /*01*/
+          {0x04, 0x06, 0x04, 0x04, 0x04, 0x04, 0x0e}, /*02*/
+          {0x0e, 0x11, 0x10, 0x0c, 0x02, 0x01, 0x1f}, /*03*/
+          {0x0e, 0x11, 0x10, 0x0c, 0x10, 0x11, 0x0e}, /*04*/
+          {0x08, 0x0c, 0x0a, 0x09, 0x1f, 0x08, 0x08}, /*05*/
+          {0x1f, 0x01, 0x0f, 0x10, 0x10, 0x11, 0x0e}, /*06*/
+          {0x0c, 0x02, 0x01, 0x0f, 0x11, 0x11, 0x0e}, /*07*/
+          {0x1f, 0x10, 0x08, 0x04, 0x02, 0x02, 0x02}, /*10*/
+          {0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e}, /*11*/
+          {0x0e, 0x11, 0x11, 0x1e, 0x10, 0x08, 0x06}, /*12*/
+          {0x0e, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11}, /*13*/
+          {0x0f, 0x11, 0x11, 0x0f, 0x11, 0x11, 0x0f}, /*14*/
+          {0x0e, 0x11, 0x01, 0x01, 0x01, 0x11, 0x0e}, /*15*/
+          {0x0f, 0x12, 0x12, 0x12, 0x12, 0x12, 0x0f}, /*16*/
+          {0x1f, 0x01, 0x01, 0x0f, 0x01, 0x01, 0x1f}, /*17*/
+          {0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00}, /*20*/
+          {0x1f, 0x01, 0x01, 0x0f, 0x01, 0x01, 0x01}, /*21*/
+          {0x0e, 0x11, 0x01, 0x01, 0x19, 0x11, 0x1e}, /*22*/
+          {0x11, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11}, /*23*/
+          {0x0e, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0e}, /*24*/
+          {0x10, 0x10, 0x10, 0x10, 0x10, 0x11, 0x0e}, /*25*/
+          {0x11, 0x09, 0x05, 0x03, 0x05, 0x09, 0x11}, /*26*/
+          {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x1f}, /*27*/
+          {0x11, 0x1b, 0x15, 0x15, 0x11, 0x11, 0x11}, /*30*/
+          {0x11, 0x11, 0x13, 0x15, 0x19, 0x11, 0x11}, /*31*/
+          {0x1f, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1f}, /*32*/
+          {0x0f, 0x11, 0x11, 0x0f, 0x01, 0x01, 0x01}, /*33*/
+          {0x0e, 0x11, 0x11, 0x11, 0x15, 0x19, 0x1e}, /*34*/
+          {0x0f, 0x11, 0x11, 0x0f, 0x05, 0x09, 0x11}, /*35*/
+          {0x0e, 0x11, 0x01, 0x0e, 0x10, 0x11, 0x0e}, /*36*/
+          {0x1f, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04}, /*37*/
+          {0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x06}, /*40*/
+          {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e}, /*41*/
+          {0x11, 0x11, 0x11, 0x0a, 0x0a, 0x04, 0x04}, /*42*/
+          {0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x0a}, /*43*/
+          {0x11, 0x11, 0x0a, 0x04, 0x0a, 0x11, 0x11}, /*44*/
+          {0x11, 0x11, 0x0a, 0x04, 0x04, 0x04, 0x04}, /*45*/
+          {0x1f, 0x10, 0x08, 0x04, 0x02, 0x01, 0x1f}, /*46*/
+          {0x00, 0x04, 0x04, 0x1f, 0x04, 0x04, 0x00}, /*47*/
+          {0x00, 0x11, 0x0a, 0x04, 0x0a, 0x11, 0x00}, /*50*/
+          {0x00, 0x0a, 0x04, 0x1f, 0x04, 0x0a, 0x00}, /*51*/
+          {0x1e, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02}, /*52*/
+          {0x00, 0x10, 0x0e, 0x0b, 0x0a, 0x0a, 0x0a}, /*53*/
+          {0x00, 0x00, 0x0e, 0x11, 0x1f, 0x01, 0x0e}, /*54*/
+          {0x10, 0x08, 0x04, 0x04, 0x04, 0x08, 0x10}, /*55*/
+          {0x01, 0x02, 0x04, 0x04, 0x04, 0x02, 0x01}, /*56*/
+          {0x00, 0x00, 0x00, 0x03, 0x03, 0x02, 0x01}, /*57*/
+          {0x04, 0x0e, 0x15, 0x04, 0x04, 0x04, 0x04}, /*60*/
+          {0x03, 0x13, 0x08, 0x04, 0x02, 0x19, 0x18}, /*61*/
+          {0x04, 0x0c, 0x04, 0x00, 0x04, 0x06, 0x04}, /*62*/
+          {0x00, 0x10, 0x08, 0x04, 0x02, 0x01, 0x00}, /*63*/
+          {0x00, 0x00, 0x1f, 0x00, 0x1f, 0x00, 0x00}, /*64*/
+          {0x0c, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x00}, /*65*/
+          {0x11, 0x0a, 0x04, 0x0a, 0x11, 0x00, 0x00}, /*66*/
+          {0x1f, 0x00, 0x11, 0x0a, 0x04, 0x0a, 0x11}, /*67*/
+          {0x07, 0x08, 0x06, 0x01, 0x0f, 0x00, 0x00}, /*70*/
+          {0x0e, 0x11, 0x11, 0x08, 0x04, 0x00, 0x04}, /*71*/
+          {0x00, 0x04, 0x00, 0x1f, 0x00, 0x04, 0x00}, /*72*/
+          {0x04, 0x0a, 0x0a, 0x0a, 0x04, 0x00, 0x04}, /*73*/
+          {0x1f, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x1f}, /*74*/
+          {0x00, 0x00, 0x00, 0x00, 0x04, 0x0a, 0x15}, /*75*/
+          {0x1f, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a}, /*76*/
+          {0x1f, 0x02, 0x04, 0x08, 0x04, 0x02, 0x1f}, /*77*/
+      };
 
   private static final String[] PrintMnemonics =
-     {
-        /* all are 3 characters */
+      {
+          /* all are 3 characters */
           /*01*/ " 01",
           /*02*/ " 02",
           /*03*/ " 03",
@@ -147,7 +135,7 @@ class Printer {
           /*08*/ " 08",
           /*09*/ " 09",
           /*00*/ " 00",
-        /* note ones above need to be treated specially */
+          /* note ones above need to be treated specially */
           /*11*/ " A ",
           /*12*/ " B ",
           /*13*/ " C ",
@@ -238,45 +226,39 @@ class Printer {
           /*98*/ "ADV",
           /*99*/ "PRT",
           /*90*/ "LST",
-     };
+      };
 
   static String KeyCodeSym
-     (
-        int KeyCode
-     ) {
+      (
+          int KeyCode
+      ) {
     /* returns the PrintMnemonics symbol for the specified keycode (assumed in [00 .. 99]). */
     final int CodeIndex =
-       KeyCode / 10 * 10
-          +
-          (KeyCode % 10 == 0 ? 9 : KeyCode % 10 - 1);
+        KeyCode / 10 * 10
+            +
+            (KeyCode % 10 == 0 ? 9 : KeyCode % 10 - 1);
     return PrintMnemonics[CodeIndex];
   }
 
   public Printer
-     (
-        android.content.Context ctx
-     ) {
+      (
+          android.content.Context ctx
+      ) {
     final android.content.res.Resources Res = ctx.getResources();
     //  This context is needed so we can call SavePaper (and other functions) properly
     PrtContext = ctx;
     PaperColor = Res.getColor(R.color.paper);
     InkColor = Res.getColor(R.color.ink);
-    Paper = android.graphics.Bitmap.createBitmap
-       (
-          PaperWidth,
-          PaperHeight,
-          android.graphics.Bitmap.Config.RGB_565
-       );
-    PaperDraw = new android.graphics.Canvas(Paper);
-    PaperDraw.drawPaint(GraphicsUseful.FillWithColor(PaperColor));
-    Paper.prepareToDraw();
+    // skip first line
+    Content.add(new byte[0]);
   }
 
-  void SavePaper(android.content.Context ctx) {
-    // Clears and re-initializes the Paper Tape
+  boolean SavePaper(Bitmap Paper, StringBuilder mes) {
 
-    String extStorageDirectory;
-    extStorageDirectory = Environment.getExternalStorageState();
+    // Clear message
+    mes.setLength(0);
+
+    String extStorageDirectory = Environment.getExternalStorageState();
 
     if (Environment.MEDIA_MOUNTED.equals(extStorageDirectory)) {
       extStorageDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
@@ -286,98 +268,46 @@ class Printer {
 
     OutputStream outputStream = null;
     @SuppressLint("SimpleDateFormat") /* we want a specific format without slash as separator */
-    String outString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss.SSS").format(new Date());
-    File file = new File(extStorageDirectory + "/ti5x " + outString + ".png");
+        String outString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss.SSS").format(new Date());
+    File file = new File(extStorageDirectory, "ti5x " + outString + ".png");
 
     try {
       outputStream = new FileOutputStream(file);
-      Paper.compress(Bitmap.CompressFormat.PNG, 80, outputStream);
+      boolean ok = Paper.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
     } catch (FileNotFoundException ex) {
       //exception handling code
       ex.printStackTrace();
-      Toast.makeText(ctx, "Can't Create. " + extStorageDirectory +
-         "/ti5x " + outString + ".png !", Toast.LENGTH_LONG).show();
+      mes.append("Can't Create. " + extStorageDirectory +
+          "/ti5x " + outString + ".png");
+      return false;
     } finally {
       try {
         if (outputStream != null) {
+          outputStream.flush();
           outputStream.close();
-          Toast.makeText(ctx, "Saved to " + extStorageDirectory +
-             "/ti5x " + outString + ".png !", Toast.LENGTH_SHORT).show();
+          mes.append("Saved to " + extStorageDirectory +
+              "/ti5x " + outString + ".png");
+          return true;
         }
       } catch (java.io.IOException ex) {
         ex.printStackTrace();
-        Toast.makeText(ctx, "Error Occurred.", Toast.LENGTH_LONG).show();
+        mes.append("Error Occurred.");
+        return false;
       }
     }
-  }
-
-  void ClearPaper(android.content.Context ctx) {
-    // Clears and re-initializes the Paper Tape
-    Paper = android.graphics.Bitmap.createBitmap
-       (
-          PaperWidth,
-          PaperHeight,
-          android.graphics.Bitmap.Config.RGB_565
-       );
-    PaperDraw = new android.graphics.Canvas(Paper);
-    PaperDraw.drawPaint(GraphicsUseful.FillWithColor(PaperColor));
-    Paper.prepareToDraw();
-    Toast.makeText(ctx, "Paper Reloaded!", Toast.LENGTH_SHORT).show();
-  }
-
-  private void StartNewLine() {
-    // advances the paper to the next line.
-    // source rectangle, skip top line.
-    if (IXCurLine >= this.CharLines)
-    {
-      SavePaper(PrtContext);
-      IXCurLine = 0;
-    }
-    IXCurLine += 1;
-
-    android.graphics.Rect srcRect = new android.graphics.Rect
-       (PaddingWidth,
-        LineHeight + PaddingHeight,
-        PaperWidth - PaddingWidth,
-        PaperHeight - PaddingHeight);
-
-    // destination rect, one line up
-    android.graphics.Rect destRect = new android.graphics.Rect(srcRect);
-    destRect.offset(0, -LineHeight);
-
-    PaperDraw.drawBitmap(Paper, srcRect, destRect, null);
-
-    PaperDraw.drawRect /* fill in newly-scrolled-in area */
-       (
-          new android.graphics.Rect
-            (PaddingWidth,
-             PaperHeight - LineHeight - PaddingHeight,
-             PaperWidth - PaddingWidth,
-             PaperHeight),
-          GraphicsUseful.FillWithColor(PaperColor)
-       );
-    Paper.prepareToDraw();
-    if (PrintListener != null) {
-      PrintListener.PaperChanged();
-    }
+    return false;
   }
 
   void Advance() {
     // advances the paper to the next line.
-    StartNewLine();
+    Content.add(new byte[0]);
+
     if (Global.Export != null && !Global.Export.NumbersOnly) {
       Global.Export.WriteLine("");
     }
   }
 
-  void Render
-     (
-        byte[] PrintReg
-     ) {
-    if (Global.Export != null && !Global.Export.NumbersOnly) {
-      Global.Export.WriteLine(BackToText(PrintReg));
-    }
-    StartNewLine();
+  int[] renderLine(byte[] PrintReg) {
     final int[] Line = new int[PaperWidth * LineHeight];
     for (int i = 0; i < Line.length; ++i) {
       /* initialize background */
@@ -391,19 +321,19 @@ class Printer {
         for (int Row = 0; Row < CharHeight; ++Row) {
           for (int PixCol = 0; PixCol < CharWidth; ++PixCol) {
             if ((1 << PixCol & Glyph[Row]) != 0) {
-                          /* place a dot */
+              /* place a dot */
               final int Origin =
-                 (
-                    CharCol * (CharWidth + CharHorGap)
-                       +
-                       CharHorGap
-                       +
-                       PixCol
-                       +
-                       Row * PaperWidth
-                 )
-                    *
-                    (DotSize + DotGap);
+                  (
+                      CharCol * (CharWidth + CharHorGap)
+                          +
+                          CharHorGap
+                          +
+                          PixCol
+                          +
+                          Row * PaperWidth
+                  )
+                      *
+                      (DotSize + DotGap);
               for (int i = 0; i < DotSize; ++i) {
                 for (int j = 0; j < DotSize; ++j) {
                   Line[Origin + i * PaperWidth + j] = InkColor;
@@ -414,19 +344,26 @@ class Printer {
         }
       }
     }
-    Paper.setPixels
-       (
-          Line,
-          0,
-          PaperWidth,
-          PaddingWidth,
-          PaperHeight - LineHeight - PaddingHeight,
-          PaperWidth - PaddingWidth,
-          LineHeight
-       );
-    if (PrintListener != null) {
-      PrintListener.PaperChanged();
+    return Line;
+  }
+  public int[] getLineContent(int line)
+  {
+    if(Content.size() > line) {
+      return renderLine(Content.get(line));
     }
+    else {
+      return new int[0];
+    }
+  }
+
+  void Render
+     (
+        byte[] PrintReg
+     ) {
+    if (Global.Export != null && !Global.Export.NumbersOnly) {
+      Global.Export.WriteLine(BackToText(PrintReg));
+    }
+    Content.add(PrintReg.clone());
   }
 
   void Translate

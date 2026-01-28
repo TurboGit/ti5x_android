@@ -15,7 +15,7 @@
         android:icon="@drawable/ic_module_help_black_24dp"
         android:showAsAction="never"
         app:showAsAction="always"/>
-    <item android:id="@+id/action_print"
+    <item android:id="@+id/menu_printer"
         android:icon="@drawable/ic_print_black_24dp"
         android:showAsAction="never"
         app:showAsAction="always"/>

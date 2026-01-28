@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Printer output -->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/printerRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"/>
+
+    <!-- Bottom buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/btnTop"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:drawableTop="@drawable/ic_arrow_up"
+            android:scaleType="center"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:padding="6dp"/>
+
+        <Button
+            android:id="@+id/btnClear"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:drawableTop="@drawable/ic_delete"
+            android:scaleType="center"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:padding="6dp"/>
+
+        <Button
+            android:id="@+id/btnTearOff"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:drawableTop="@drawable/ic_tearoff"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:padding="6dp"
+            android:textAllCaps="false"/>
+
+        <ToggleButton
+            android:id="@+id/btnTrace"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textOff="@string/trace_print_off"
+            android:textOn="@string/trace_print_on"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:padding="6dp"
+            android:textAllCaps="false"/>
+
+        <Button
+            android:id="@+id/btnBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:drawableTop="@drawable/ic_arrow_down"
+            android:scaleType="center"
+            android:gravity="center"
+            android:minWidth="0dp"
+            android:padding="6dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
