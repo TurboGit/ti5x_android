@@ -18,6 +18,7 @@
 package net.obry.ti5x;
 
 import android.graphics.RectF;
+import android.support.design.widget.Snackbar;
 
 class LabelCard extends android.view.View {
   private android.graphics.Bitmap CardImage, NewCardImage;
@@ -59,11 +60,10 @@ class LabelCard extends android.view.View {
                       ShowHelp.setClass(ctx, Help.class);
                       ctx.startActivity(ShowHelp);
                     } else {
-                      android.widget.Toast.makeText
-                         (
-                            ctx,
+                      Snackbar.make(
+                            findViewById(android.R.id.content),
                             ctx.getString(R.string.no_prog_help),
-                            android.widget.Toast.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT
                          ).show();
                     }
                     Handled = true;
