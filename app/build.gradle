@@ -29,7 +29,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
     }
@@ -50,16 +50,15 @@ dependencies {
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    //implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:recyclerview-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'
     implementation 'androidx.core:core:1.17.0'
-    implementation 'androidx.collection:collection:1.0.0'
-    implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime:2.0.0'
-    implementation 'androidx.lifecycle:lifecycle-common:2.0.0'
-    implementation 'androidx.versionedparcelable:versionedparcelable:1.1.0'
-    implementation 'androidx.arch.core:core-common:2.0.0'
-    implementation 'com.google.android.material:material'
-    implementation 'androidx.activity:activity:1.12.2'
+    implementation 'androidx.collection:collection:1.5.0'
+    implementation 'androidx.annotation:annotation:1.9.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-common:2.10.0'
+    implementation 'androidx.versionedparcelable:versionedparcelable:1.2.1'
+    implementation 'androidx.arch.core:core-common:2.2.0'
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'androidx.activity:activity:1.12.3'
 }

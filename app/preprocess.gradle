@@ -2,98 +2,66 @@ import groovy.io.FileType
 
 def resRaw = 'src/main/res/raw'
 
-configurations {
-}
-
-dependencies {
-}
-
-android {
-}
-
 task preprocess {
     doLast {
-        def processModule = {
-            println "generate resources for ${it.name}"
+        def moduleDir = project.file("${project.projectDir}/../modules")
+        if (moduleDir.isDirectory()) {
+            moduleDir.eachFileRecurse(FileType.DIRECTORIES) { file ->
+                println "generate resources for ${file.name}"
+                def (modcode, modname) = file.name.tokenize('-')
 
-            def moddata = "${it.canonicalPath}"
-            def module = "${it.name}"
-
-            //noinspection GroovyUnusedAssignment
-            def (modcode, modname) = "$module".tokenize('-')
-
-            exec {
-                executable '../util/libmake'
-                args "--rom", "$moddata", "$resRaw", "$modcode"
-            }
-        }
-
-        def processProgram = {
-            println "generate resources for ${it.name}"
-
-            def progdata = "${it.canonicalPath}"
-            def module = "${it.name}"
-
-            if(it.name == "demo_card_store")
-            {
-                exec {
-                    executable '../util/makeprog'
-                    args "${resRaw}/${module}.ti5p",
-                            "help00=$progdata/help",
-                            "cardsrc00=$progdata/card",
-                            "progsrc00=$progdata/prog",
-                            "banksrc9004=$progdata/bank900",
-                            "banksrc9014=$progdata/bank901",
-                            "banksrc9022=$progdata/bank902",
-                            "banksrc9052=$progdata/bank905",
-                            "mem9033=$progdata/mem903",
-                            "mem9043=$progdata/mem904",
-                            "mem9052=$progdata/mem905"
-                }
-            }
-            else {
-                exec {
-                    executable '../util/makeprog'
-                    args "${resRaw}/${module}.ti5p",
-                            "help00=$progdata/help",
-                            "cardsrc00=$progdata/card",
-                            "progsrc00=$progdata/prog"
+                ant.exec(executable: '../util/libmake', failonerror: true) {
+                    arg value: '--rom'
+                    arg value: file.canonicalPath
+                    arg value: resRaw
+                    arg value: modcode
                 }
             }
         }
 
-        // handle modules
+        def programDir = project.file("${project.projectDir}/../programs")
+        if (programDir.isDirectory()) {
+            programDir.eachFileRecurse(FileType.DIRECTORIES) { file ->
+                println "generate resources for ${file.name}"
 
-        def moduleDir = "${projectDir}/../modules"
-        def mDir = new File(moduleDir)
+                def commonArgs = [
+                    "${resRaw}/${file.name}.ti5p",
+                    "help00=${file.canonicalPath}/help",
+                    "cardsrc00=${file.canonicalPath}/card",
+                    "progsrc00=${file.canonicalPath}/prog"
+                ]
 
-        mDir.eachFileRecurse(FileType.DIRECTORIES) {
-            file -> processModule file
-        }
+                def extraArgs = []
+                if (file.name == "demo_card_store") {
+                    extraArgs = [
+                        "banksrc9004=${file.canonicalPath}/bank900",
+                        "banksrc9014=${file.canonicalPath}/bank901",
+                        "banksrc9022=${file.canonicalPath}/bank902",
+                        "banksrc9052=${file.canonicalPath}/bank905",
+                        "mem9033=${file.canonicalPath}/mem903",
+                        "mem9043=${file.canonicalPath}/mem904",
+                        "mem9052=${file.canonicalPath}/mem905"
+                    ]
+                }
 
-        // handle programs
-
-        def programDir = "${projectDir}/../programs"
-        def pDir = new File(programDir)
-
-        pDir.eachFileRecurse(FileType.DIRECTORIES) {
-            file -> processProgram file
+                ant.exec(executable: '../util/makeprog', failonerror: true) {
+                    (commonArgs + extraArgs).each { arg value: it }
+                }
+            }
         }
     }
 }
 
-task customClean(type: Delete) {
+task customClean {
     doLast {
-        def mDir = new File("${projectDir}/$resRaw")
-
-        def deleteModule = {
-            if (it.name.endsWith('.ti5l') || it.name.endsWith('.ti5p')) {
-                project.delete "${it.canonicalPath}"
+        def rawDir = project.file("${project.projectDir}/$resRaw")
+        if (rawDir.isDirectory()) {
+            ant.delete(includeEmptyDirs: false) {
+                fileset(dir: rawDir) {
+                    include(name: '**/*.ti5l')
+                    include(name: '**/*.ti5p')
+                }
             }
-        }
-
-        mDir.eachFileRecurse(FileType.FILES) {
-            file -> deleteModule file
         }
     }
 }
