@@ -18,13 +18,17 @@
 
 package net.obry.ti5x;
 
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
+// import android.support.annotation.NonNull;
+// import android.support.design.widget.Snackbar;
+import android.app.AlertDialog;
+
+import com.google.android.material.snackbar.Snackbar;
+import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.util.Arrays;
 
-public class Picker extends android.app.Activity {
+public class Picker extends BaseActivity {
 
   // index for the selection either prog or libraries in the menu
   public static final String AltIndexID = "net.obry.ti5x.PickedIndex";
@@ -40,6 +44,12 @@ public class Picker extends android.app.Activity {
 
   private static boolean Reentered = false; /* sanity check */
   public static Picker Current = null;
+
+  @Override
+  protected int getLayoutResId() { return R.layout.picker; }
+
+  @Override
+  protected int getRootViewId() { return R.id.keyboard_main_layout; }
 
   static class PickerAltList {
     /* defining alternative lists of files for picker to display */
@@ -409,8 +419,7 @@ public class Picker extends android.app.Activity {
      ) {
     super.onCreate(savedInstanceState);
     Picker.Current = this;
-    MainViewGroup = (android.view.ViewGroup) getLayoutInflater().inflate(R.layout.picker, null);
-    setContentView(MainViewGroup);
+    MainViewGroup = (android.view.ViewGroup) findViewById(R.id.keyboard_main_layout);
     /* ExtraViewGroup = (android.view.ViewGroup)MainViewGroup.findViewById(R.id.picker_extra); */
     /* doesn't work -- things added here don't show up */
     PromptView = (android.widget.TextView) findViewById(R.id.picker_prompt);

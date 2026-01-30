@@ -3,12 +3,15 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:id="@+id/details_root"
+    android:theme="@style/AppTheme.Light"
 >
     <TextView
         android:id="@+id/save_as_prompt"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text=""
+        android:textColor="#212121"/>
     />
     <EditText
         android:id="@+id/save_as_text"

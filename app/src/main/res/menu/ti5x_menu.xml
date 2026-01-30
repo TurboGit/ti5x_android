@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:popupTheme="@style/Theme.AppCompat.Light">
     <item
         android:id="@+id/menu_status"
         android:title=""
@@ -8,15 +9,15 @@
         android:textAllCaps="false"
         app:showAsAction="always"/>
     <item android:id="@+id/action_help"
-        android:icon="@drawable/ic_help_black_24dp"
+        android:icon="@drawable/ic_help"
         android:showAsAction="never"
         app:showAsAction="always"/>
     <item android:id="@+id/action_helpmod"
-        android:icon="@drawable/ic_module_help_black_24dp"
+        android:icon="@drawable/ic_module_help"
         android:showAsAction="never"
         app:showAsAction="always"/>
     <item android:id="@+id/menu_printer"
-        android:icon="@drawable/ic_print_black_24dp"
+        android:icon="@drawable/ic_print"
         android:showAsAction="never"
         app:showAsAction="always"/>
     <item android:id="@+id/load_prog"
@@ -48,5 +49,5 @@
         app:showAsAction="never"/>
     <item android:id="@+id/turn_off"
         android:title="@string/turn_off"
-        app:showAsAction="never" />
+        app:showAsAction="never"/>
 </menu>

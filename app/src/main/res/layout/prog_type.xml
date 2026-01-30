@@ -3,6 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:theme="@style/AppTheme.Light"
 >
     <RadioButton
         android:id="@+id/select_saved"
@@ -16,6 +17,5 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/libraries"
-        android:textColor="#212121"
     />
 </RadioGroup>

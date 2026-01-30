@@ -1,7 +1,8 @@
 /*
     Let the user enter a name for saving a new program file.
 
-    Copyright 2011 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+    Copyright 2011      Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+    Copyright 2015-2026 Pascal Obry <pascal@obry.net>.
 
     This program is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free Software
@@ -18,9 +19,9 @@
 package net.obry.ti5x;
 
 import android.os.Environment;
-import android.support.design.widget.Snackbar;
+import com.google.android.material.snackbar.Snackbar;
 
-public class SaveAs extends android.app.Activity {
+public class SaveAs extends BaseActivity {
   private static android.view.View Extra = null;
   private static String SaveWhat = null;
   private static String SaveWhere = null;
@@ -32,7 +33,11 @@ public class SaveAs extends android.app.Activity {
   private android.view.ViewGroup MainViewGroup;
   private android.widget.EditText SaveAsText;
   private String TheCleanedText;
+  @Override
+  protected int getLayoutResId() { return R.layout.save_as; }
 
+  @Override
+  protected int getRootViewId() { return R.id.details_root; }
   class OverwriteConfirm
      extends android.app.AlertDialog
      implements android.content.DialogInterface.OnClickListener {
@@ -91,12 +96,12 @@ public class SaveAs extends android.app.Activity {
      (
         android.os.Bundle savedInstanceState
      ) {
-    super.onCreate(savedInstanceState);
     SaveAs.Current = this;
     if (Environment.getExternalStorageState().intern().equals(Environment.MEDIA_MOUNTED)) {
       MainViewGroup =
          (android.view.ViewGroup) getLayoutInflater().inflate(R.layout.save_as, null);
       setContentView(MainViewGroup);
+      super.onCreate(savedInstanceState);
       final android.widget.TextView SaveAsPrompt = (android.widget.TextView) findViewById(R.id.save_as_prompt);
       SaveAsPrompt.setText
          (

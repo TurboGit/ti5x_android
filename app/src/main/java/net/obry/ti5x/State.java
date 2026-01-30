@@ -20,7 +20,6 @@ package net.obry.ti5x;
 
 import android.app.AlertDialog;
 import android.util.SparseIntArray;
-import android.support.design.widget.Snackbar;
 
 class State {
   /* the calculator state, number entry and programs */

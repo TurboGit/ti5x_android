@@ -17,20 +17,25 @@
 
 package net.obry.ti5x;
 
-public class Help extends android.app.Activity {
+public class Help extends BaseActivity {
   public static String ContentID = "net.obry.ti5x.HelpContent";
   android.webkit.WebView HelpView;
   /* for remembering scroll position of last page displayed: */
   static String LastContent;
   static android.graphics.Point LastScroll = null;
+  @Override
+  protected int getLayoutResId() { return R.layout.help; }
+
+  @Override
+  protected int getRootViewId() { return R.id.help_activity; }
 
   @Override
   public void onCreate
      (
         android.os.Bundle savedInstanceState
      ) {
-    super.onCreate(savedInstanceState);
     setContentView(R.layout.help);
+    super.onCreate(savedInstanceState);
     HelpView = (android.webkit.WebView) findViewById(R.id.help_view);
     final android.content.Intent MyIntent = getIntent();
     final String NewContent = new String(MyIntent.getByteArrayExtra(ContentID));

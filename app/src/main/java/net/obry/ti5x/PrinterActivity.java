@@ -1,3 +1,20 @@
+/*
+    Printer view.
+
+    Copyright 2026 Pascal Obry <pascal@obry.net>.
+
+    This program is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free Software
+    Foundation, either version 3 of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+    A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package net.obry.ti5x;
 
 import android.app.AlertDialog;
@@ -5,13 +22,13 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.widget.Button;
 import android.widget.ToggleButton;
-import android.support.design.widget.Snackbar;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
-public class PrinterActivity extends android.app.Activity {
+public class PrinterActivity extends BaseActivity {
 
   private PrinterLineAdapter adapter;
   private Button btnTop;
@@ -21,7 +38,11 @@ public class PrinterActivity extends android.app.Activity {
   private Button btnBottom;
   private RecyclerView recycler;
   private static int savedScrollPosition = -1;
+  @Override
+  protected int getLayoutResId() { return R.layout.activity_printer; }
 
+  @Override
+  protected int getRootViewId() { return R.id.printer_activity; }
   private void clearPrinterView() {
     adapter.setLineCount(0);
     updatePrinterView(false);
@@ -108,8 +129,8 @@ public class PrinterActivity extends android.app.Activity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_printer);
+    super.onCreate(savedInstanceState);
 
     recycler = findViewById(R.id.printerRecycler);
     recycler.setLayoutManager(new LinearLayoutManager(this));

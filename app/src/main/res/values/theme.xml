@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="TiTheme" parent="@style/Theme.AppCompat.DayNight">
+        <item name="android:forceDarkAllowed">true</item>
+        <item name="android:colorBackground">@android:color/black</item>
         <item name="android:windowActionBar">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="colorPrimary">@color/title_bar</item>
@@ -8,8 +10,20 @@
         <item name="android:textColorTertiary">@color/dark</item>
         <item name="android:actionBarSize">30dip</item>
         <item name="android:textColorPrimary">@color/dark</item>
-        <item name="android:colorBackground">@color/grey</item>
         <item name="android:colorPrimaryDark">@color/dark</item>
         <item name="textAllCaps">false</item>
     </style>
+
+    <style name="AppTheme.Dark" parent="@style/Theme.AppCompat">
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="AppTheme.Light" parent="@style/Theme.AppCompat.Light">
+        <item name="android:colorBackground">@android:color/white</item>
+        <item name="android:textColor">#212121</item>
+    </style>
+
+    <style name="AppTheme.Popup.Light" parent="@style/Theme.AppCompat.Light">
+    </style>>
 </resources>
