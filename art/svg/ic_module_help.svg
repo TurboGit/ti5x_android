@@ -24,22 +24,60 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="10.125"
-     inkscape:cx="72"
-     inkscape:cy="48"
+     inkscape:zoom="7.482622"
+     inkscape:cx="30.33696"
+     inkscape:cy="64.28228"
      inkscape:window-width="2560"
      inkscape:window-height="1403"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g1" />
+     inkscape:current-layer="g1"
+     showguides="true">
+    <sodipodi:guide
+       position="56.93617,76.344028"
+       orientation="1,0"
+       id="guide24"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
   <g
      inkscape:groupmode="layer"
      inkscape:label="Image"
      id="g1">
     <path
        style="fill:#020202;stroke:none"
-       d="M 11.432099,5.8518519 V 25.851852 h 20 V 5.8518519 h -20 m 22,0 V 25.851852 h 20 V 5.8518519 h -20 m 22,0 V 25.851852 h 5 v 1 h -5 l -1,16 h -1 v -16 h -20 v 20 h 20 v 1 h -20 v 20 h 20 v -16 h 1 l 1,16 h 4 v 1 h -4 v 20 h 20 v -5 c 11.81337,3.86001 23.2981,5.44307 35.000001,0.0316 C 147.14455,66.906 135.71506,13.398714 97.432099,8.3100219 c -7.695259,-1.02288 -14.767281,1.177834 -22,3.5418401 V 5.8518619 h -20 m 17,3 V 22.851862 h -14 V 8.8518519 h 14 m 25,51.0000001 h -8 c 0.240479,-10.17482 9.31675,-14.064407 10.813461,-22.991726 0.79733,-4.755756 -4.102691,-9.083431 -8.717117,-7.65543 C 85.569108,31.048904 84.547814,35.7415 77.432099,35.851852 78.858178,19.070068 102.88234,13.133499 108.628,30.8526 112.33943,42.298309 99.784936,49.523349 97.432099,59.851852 m -86,-33 v 20 h 20 v -20 h -20 m 61,3 v 14 h -14 v -14 h 14 m -61,18 v 20 h 20 v -20 h -20 m 17,3 v 14 h -14 v -14 h 14 m 22,0 v 14 h -14 v -14 h 14 m 22,0 v 14 h -14 v -14 h 14 m 25,17 v 8 h -8 v -8 h 8 m -86,1 v 20 h 20 v -20 h -20 m 22,0 v 20 h 20 v -20 h -20 m -5,3 v 14 h -14 v -14 h 14 m 22,0 v 14 h -14 v -14 h 14 m 22,0 v 14 h -14 v -14 z"
-       id="path1" />
+       d="m 33.432099,68.851852 v 20 h 20 v -20 h -20 m 17,3 v 14 h -14 v -14 h 14"
+       id="path7"
+       sodipodi:nodetypes="cccccccccc" />
+    <path
+       style="fill:#020202;stroke:none"
+       d="m 11.432099,68.851852 v 20 h 20 v -20 h -20 m 17,3 v 14 h -14 v -14 h 14"
+       id="path6"
+       sodipodi:nodetypes="cccccccccc" />
+    <path
+       style="fill:#020202;stroke:none"
+       d="m 11.432099,47.851852 v 20 h 20 v -20 h -20 m 17,3 v 14 h -14 v -14 h 14"
+       id="path5"
+       sodipodi:nodetypes="cccccccccc" />
+    <path
+       style="fill:#020202;stroke:none"
+       d="m 11.432099,26.851852 v 20 h 20 v -20 h -20"
+       id="path4"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       style="fill:#020202;stroke:none"
+       d="M 55.432099,5.8518519 V 25.851852 h 5 v 1 h -5 l 0.0018,12.238743 -0.0035,7.51752 1.505771,-0.01884 v 1.270873 l -1.468372,0.01583 -2.035733,-0.02412 -0.03341,-5.534572 0.03341,-15.465428 h -20 v 20 l 18.521637,-0.03341 1.471725,-0.06643 0.0066,1.099838 h -20 v 20 h 20 v -20 l 2.035733,0.02412 -0.03573,19.975877 h 4 v 1 h -4 v 20 h 20 v -5 c 11.81337,3.86001 23.2981,5.44307 35,0.0316 C 147.14455,66.906 135.71506,13.398714 97.432099,8.3100219 c -7.695259,-1.02288 -14.767281,1.177834 -22,3.5418401 V 5.8518619 h -20 m 17,3 V 22.851862 h -14 V 8.8518519 h 14 m 25,51.0000001 h -8 c 0.240479,-10.17482 9.31675,-14.064407 10.813461,-22.991726 0.79733,-4.755756 -4.102691,-9.083431 -8.717117,-7.65543 C 85.569108,31.048904 84.547814,35.7415 77.432099,35.851852 78.858178,19.070068 102.88234,13.133499 108.628,30.8526 112.33943,42.298309 99.784936,49.523349 97.432099,59.851852 m -25,-30 v 14 h -14 v -14 h 14 m -22,21 v 14 h -14 v -14 h 14 m 22,0 v 14 h -14 v -14 h 14 m 25,17 v 8 h -8 v -8 h 8 m -25,4 v 14 h -14 v -14 z"
+       id="path3"
+       sodipodi:nodetypes="ccccccccccccccccccccccccccccccssccccccccccsscscccccccccccccccccccccccccc" />
+    <path
+       style="fill:#020202;stroke:none"
+       d="M 33.432099,5.8518519 V 25.851852 h 20 V 5.8518519 h -20"
+       id="path2"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       style="fill:#020202;stroke:none"
+       d="M 11.432099,5.8518519 V 25.851852 h 20 V 5.8518519 h -20"
+       id="path1"
+       sodipodi:nodetypes="ccccc" />
   </g>
 </svg>

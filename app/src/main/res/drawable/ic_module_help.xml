@@ -1,5 +1,17 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24dp" android:viewportHeight="96" android:viewportWidth="144" android:width="36dp">
       
-    <path android:fillColor="#BBBBBB" android:pathData="M11.43,5.85V25.85h20V5.85h-20m22,0V25.85h20V5.85h-20m22,0V25.85h5v1h-5l-1,16h-1v-16h-20v20h20v1h-20v20h20v-16h1l1,16h4v1h-4v20h20v-5c11.81,3.86 23.3,5.44 35,0.03C147.14,66.91 135.72,13.4 97.43,8.31c-7.7,-1.02 -14.77,1.18 -22,3.54V5.85h-20m17,3V22.85h-14V8.85h14m25,51h-8c0.24,-10.17 9.32,-14.06 10.81,-22.99 0.8,-4.76 -4.1,-9.08 -8.72,-7.66C85.57,31.05 84.55,35.74 77.43,35.85 78.86,19.07 102.88,13.13 108.63,30.85 112.34,42.3 99.78,49.52 97.43,59.85m-86,-33v20h20v-20h-20m61,3v14h-14v-14h14m-61,18v20h20v-20h-20m17,3v14h-14v-14h14m22,0v14h-14v-14h14m22,0v14h-14v-14h14m25,17v8h-8v-8h8m-86,1v20h20v-20h-20m22,0v20h20v-20h-20m-5,3v14h-14v-14h14m22,0v14h-14v-14h14m22,0v14h-14v-14z" android:strokeColor="#00000000"/>
+    <path android:fillColor="#BBBBBB" android:pathData="m33.43,68.85v20h20v-20h-20m17,3v14h-14v-14h14" android:strokeColor="#00000000"/>
+      
+    <path android:fillColor="#BBBBBB" android:pathData="m11.43,68.85v20h20v-20h-20m17,3v14h-14v-14h14" android:strokeColor="#00000000"/>
+      
+    <path android:fillColor="#BBBBBB" android:pathData="m11.43,47.85v20h20v-20h-20m17,3v14h-14v-14h14" android:strokeColor="#00000000"/>
+      
+    <path android:fillColor="#BBBBBB" android:pathData="m11.43,26.85v20h20v-20h-20" android:strokeColor="#00000000"/>
+      
+    <path android:fillColor="#BBBBBB" android:pathData="M55.43,5.85V25.85h5v1h-5l0,12.24 -0,7.52 1.51,-0.02v1.27l-1.47,0.02 -2.04,-0.02 -0.03,-5.53 0.03,-15.47h-20v20l18.52,-0.03 1.47,-0.07 0.01,1.1h-20v20h20v-20l2.04,0.02 -0.04,19.98h4v1h-4v20h20v-5c11.81,3.86 23.3,5.44 35,0.03C147.14,66.91 135.72,13.4 97.43,8.31c-7.7,-1.02 -14.77,1.18 -22,3.54V5.85h-20m17,3V22.85h-14V8.85h14m25,51h-8c0.24,-10.17 9.32,-14.06 10.81,-22.99 0.8,-4.76 -4.1,-9.08 -8.72,-7.66C85.57,31.05 84.55,35.74 77.43,35.85 78.86,19.07 102.88,13.13 108.63,30.85 112.34,42.3 99.78,49.52 97.43,59.85m-25,-30v14h-14v-14h14m-22,21v14h-14v-14h14m22,0v14h-14v-14h14m25,17v8h-8v-8h8m-25,4v14h-14v-14z" android:strokeColor="#00000000"/>
+      
+    <path android:fillColor="#BBBBBB" android:pathData="M33.43,5.85V25.85h20V5.85h-20" android:strokeColor="#00000000"/>
+      
+    <path android:fillColor="#BBBBBB" android:pathData="M11.43,5.85V25.85h20V5.85h-20" android:strokeColor="#00000000"/>
     
 </vector>
