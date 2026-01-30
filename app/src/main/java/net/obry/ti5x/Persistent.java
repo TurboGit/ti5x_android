@@ -1476,6 +1476,8 @@ public class Persistent {
           }
           Buttons.invalidate();
         }
+        // And reset status to current one
+        Global.setStatusDisplay();
       }
     }
   }

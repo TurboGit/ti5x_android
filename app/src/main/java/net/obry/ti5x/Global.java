@@ -18,6 +18,8 @@
 
 package net.obry.ti5x;
 
+import android.view.MenuItem;
+
 final class Global {
   static Display Disp;
   static LabelCard Label;
@@ -28,6 +30,8 @@ final class Global {
   static Printer Print;
   static Tester Test;
 
+  static MenuItem Status;
+
   static final int NrSigFigures = 16;
   /* for formatting reals */
   static final java.util.Locale StdLocale = java.util.Locale.US;
@@ -37,6 +41,37 @@ final class Global {
   static android.widget.TextView ProgressMessage;
   static android.os.Handler UIRun;
 
+  static public void setStatusDisplay() {
+    final String SP = " ";
+    String StatStr = "";
+    switch (Global.Calc.CurAng) {
+      case State.ANG_GRAD:
+        StatStr = "Grad";
+        break;
+      case State.ANG_RAD:
+        StatStr = "Rad ";
+        break;
+      default: // Degrees, do not display
+        break;
+    }
+
+    StatStr = StatStr + " ";
+
+    if (Global.Buttons.AltState) {
+      StatStr = StatStr + "2nd";
+    } else {
+      StatStr = StatStr + SP.repeat(3);
+    }
+    StatStr = StatStr + " ";
+
+    if (Global.Calc.InvState) {
+      StatStr = StatStr + "Inv";
+    }
+
+    if (Status != null) {
+      Status.setTitle(StatStr);
+    }
+  }
   static class Task {
     int TaskStatus = 0;
     Throwable TaskFailure = null;
