@@ -18,6 +18,8 @@
 
 package net.obry.ti5x;
 
+import android.app.AlertDialog;
+
 public class Exporter {
   private final android.content.Context ctx;
   private java.io.OutputStream Out;
@@ -65,17 +67,15 @@ public class Exporter {
         }
         Out.flush();
       } catch (java.io.IOException WriteErr) {
-        android.widget.Toast.makeText
-           (
-              ctx,
-              String.format
+        new AlertDialog.Builder(ctx)
+            .setMessage(String.format
                  (
                     Global.StdLocale,
                     ctx.getString(R.string.export_error),
                     WriteErr.toString()
-                 ),
-              android.widget.Toast.LENGTH_LONG
-           ).show();
+                 ))
+            .setPositiveButton("OK", null)
+            .show();
         PrintOut = null;
         Out = null;
       }
@@ -92,17 +92,15 @@ public class Exporter {
         Out.flush();
         Out.close();
       } catch (java.io.IOException WriteErr) {
-        android.widget.Toast.makeText
-           (
-              ctx,
-              String.format
+        new AlertDialog.Builder(ctx)
+            .setMessage(String.format
                  (
                     Global.StdLocale,
                     ctx.getString(R.string.export_error),
                     WriteErr.toString()
-                 ),
-              android.widget.Toast.LENGTH_LONG
-           ).show();
+                 ))
+            .setPositiveButton("OK", null)
+            .show();
       }
       PrintOut = null;
       Out = null;
@@ -119,17 +117,15 @@ public class Exporter {
         Out.write(Line.getBytes());
         Out.write("\n".getBytes());
       } catch (java.io.IOException WriteErr) {
-        android.widget.Toast.makeText
-           (
-              ctx,
-              String.format
+        new AlertDialog.Builder(ctx)
+            .setMessage(String.format
                  (
                     Global.StdLocale,
                     ctx.getString(R.string.export_error),
                     WriteErr.toString()
-                 ),
-              android.widget.Toast.LENGTH_LONG
-           ).show();
+                 ))
+            .setPositiveButton("OK", null)
+            .show();
         Out = null;
       }
     }

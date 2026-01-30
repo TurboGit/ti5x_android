@@ -18,6 +18,7 @@
 package net.obry.ti5x;
 
 import android.os.Environment;
+import android.support.design.widget.Snackbar;
 
 public class SaveAs extends android.app.Activity {
   private static android.view.View Extra = null;
@@ -140,16 +141,15 @@ public class SaveAs extends android.app.Activity {
                       ReturnResult();
                     }
                   } else {
-                    android.widget.Toast.makeText
-                       (
-                          SaveAs.this,
+                    Snackbar.make(
+                          findViewById(android.R.id.content),
                           String.format
                              (
                                 Global.StdLocale,
                                 getString(R.string.please_enter_name),
                                 SaveWhat
                              ),
-                          android.widget.Toast.LENGTH_SHORT
+                          Snackbar.LENGTH_SHORT
                        ).show();
                   }
                 } else {
@@ -160,11 +160,10 @@ public class SaveAs extends android.app.Activity {
             }
          );
     } else {
-      android.widget.Toast.makeText
-         (
-            this,
+      Snackbar.make(
+            findViewById(android.R.id.content),
             getString(R.string.no_external_storage),
-            android.widget.Toast.LENGTH_SHORT
+            Snackbar.LENGTH_SHORT
          ).show();
       setResult(android.app.Activity.RESULT_CANCELED);
       finish();

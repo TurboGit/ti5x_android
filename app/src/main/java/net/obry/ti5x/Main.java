@@ -26,6 +26,7 @@ import android.Manifest;
 import android.app.Notification;
 import android.content.ContentProviderClient;
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuInflater;
@@ -571,12 +572,11 @@ public class Main extends AppCompatActivity {
           ShowHelp.setClass(Main.this, Help.class);
           startActivity(ShowHelp);
         } else {
-          Toast.makeText
-              (
-                  Main.this,
-                  getString(R.string.no_module_help),
-                  Toast.LENGTH_SHORT
-              ).show();
+          Snackbar.make(
+              findViewById(android.R.id.content),
+              getString(R.string.no_module_help),
+              Snackbar.LENGTH_LONG
+          ).show();
         }
         break;
     }
@@ -705,12 +705,11 @@ public class Main extends AppCompatActivity {
                 }
                 while (false);
                 if (!OK) {
-                  Toast.makeText
-                     (
-                        Main.this,
-                        getString(R.string.paste_nan),
-                        Toast.LENGTH_SHORT
-                     ).show();
+                  Snackbar.make(
+                      findViewById(android.R.id.content),
+                      getString(R.string.paste_nan),
+                      Snackbar.LENGTH_LONG
+                  ).show();
                 }
               } /*run*/
             }
@@ -839,9 +838,8 @@ public class Main extends AppCompatActivity {
                       case LOAD_BUILTIN_LIBRARY:
                       case LOAD_PROG:
                         if (TaskFailure == null) {
-                          Toast.makeText
-                             (
-                                Main.this,
+                          Snackbar.make(
+                              findViewById(android.R.id.content),
                                 String.format
                                    (
                                       Global.StdLocale,
@@ -857,7 +855,7 @@ public class Main extends AppCompatActivity {
                                          :
                                          new java.io.File(ProgName).getName()
                                    ),
-                                Toast.LENGTH_SHORT
+                                Snackbar.LENGTH_SHORT
                              ).show();
                           Global.StartBGTask
                              (
@@ -870,16 +868,15 @@ public class Main extends AppCompatActivity {
                                 getString(R.string.saving)
                              );
                         } else {
-                          Toast.makeText
-                             (
-                                Main.this,
+                          Snackbar.make(
+                                findViewById(android.R.id.content),
                                 String.format
                                    (
                                       Global.StdLocale,
                                       getString(R.string.file_load_error),
                                       TaskFailure.toString()
                                    ),
-                                Toast.LENGTH_LONG
+                                Snackbar.LENGTH_LONG
                              ).show();
                         }
                         if (Step == LOAD_PROG) {
@@ -937,28 +934,26 @@ public class Main extends AppCompatActivity {
                       @Override
                       public void PostRun() {
                         if (TaskStatus == 0) {
-                          Toast.makeText
-                             (
-                                Main.this,
+                          Snackbar.make(
+                                findViewById(android.R.id.content),
                                 String.format
                                    (
                                       Global.StdLocale,
                                       getString(R.string.program_saved),
                                       TheName
                                    ),
-                                Toast.LENGTH_SHORT
+                                Snackbar.LENGTH_SHORT
                              ).show();
                         } else {
-                          Toast.makeText
-                             (
-                                Main.this,
+                          Snackbar.make(
+                                findViewById(android.R.id.content),
                                 String.format
                                    (
                                       Global.StdLocale,
                                       getString(R.string.program_save_error),
                                       TaskFailure.toString()
                                    ),
-                                Toast.LENGTH_LONG
+                                Snackbar.LENGTH_LONG
                              ).show();
                         }
                       }
@@ -983,29 +978,27 @@ public class Main extends AppCompatActivity {
                 Global.Import.ImportData(FileName);
                 final String BaseName =
                     FileName.substring(FileName.lastIndexOf("/") + 1, FileName.length());
-                Toast.makeText
-                   (
-                      Main.this,
+                Snackbar.make(
+                      findViewById(android.R.id.content),
                       String.format
                          (
                             Global.StdLocale,
                             getString(R.string.import_started),
                              BaseName
                          ),
-                      Toast.LENGTH_SHORT
+                      Snackbar.LENGTH_SHORT
                    ).show();
 
               } catch (Persistent.DataFormatException Failed) {
-                Toast.makeText
-                   (
-                      Main.this,
+                Snackbar.make(
+                      findViewById(android.R.id.content),
                       String.format
                          (
                             Global.StdLocale,
                             getString(R.string.file_load_error),
                             Failed.toString()
                          ),
-                      Toast.LENGTH_LONG
+                      Snackbar.LENGTH_LONG
                    ).show();
               }
             } /*Run*/
@@ -1035,28 +1028,26 @@ public class Main extends AppCompatActivity {
                     final String SaveFile =
                         Persistent.EnsureDirExists(getApplicationContext(), Persistent.DataDir, FileName);
                     Global.Export.Open(SaveFile, ExportAppend, ExportNumbersOnly);
-                    Toast.makeText
-                       (
-                          Main.this,
+                    Snackbar.make(
+                          findViewById(android.R.id.content),
                           String.format
                              (
                                 Global.StdLocale,
                                 getString(R.string.export_started),
                                 FileName
                              ),
-                          Toast.LENGTH_SHORT
+                          Snackbar.LENGTH_SHORT
                        ).show();
                   } catch (RuntimeException Failed) {
-                    Toast.makeText
-                       (
-                          Main.this,
+                    Snackbar.make(
+                         findViewById(android.R.id.content),
                           String.format
                              (
                                 Global.StdLocale,
                                 getString(R.string.export_error),
                                 Failed.toString()
                              ),
-                          Toast.LENGTH_LONG
+                          Snackbar.LENGTH_LONG
                        ).show();
                   }
                   break;
@@ -1298,11 +1289,10 @@ public class Main extends AppCompatActivity {
     try {
       startActivityForResult(chooserIntent, CHOOSE_FILE_RESULT);
     } catch (android.content.ActivityNotFoundException ex) {
-      Toast.makeText
-         (
-            getApplicationContext(),
+      Snackbar.make(
+            findViewById(android.R.id.content),
             "No suitable File Manager was found.",
-            Toast.LENGTH_SHORT
+            Snackbar.LENGTH_SHORT
          ).show();
     }
   }

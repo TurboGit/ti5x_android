@@ -19,7 +19,7 @@
 package net.obry.ti5x;
 
 import android.support.annotation.NonNull;
-import android.widget.Toast;
+import android.support.design.widget.Snackbar;
 
 import java.io.File;
 import java.util.Arrays;
@@ -150,30 +150,28 @@ public class Picker extends android.app.Activity {
           new java.io.File(TheFile.FullPath).delete();
           Deleted = true;
         } catch (SecurityException AccessDenied) {
-          android.widget.Toast.makeText
-             (
-                Picker.this,
+          Snackbar.make(
+               findViewById(android.R.id.content),
                 String.format
                    (
                       Global.StdLocale,
                       getString(R.string.file_delete_error),
                       AccessDenied.toString()
                    ),
-                android.widget.Toast.LENGTH_LONG
+                Snackbar.LENGTH_LONG
              ).show();
           Deleted = false;
         }
         if (Deleted) {
-          android.widget.Toast.makeText
-             (
-                Picker.this,
+          Snackbar.make(
+               findViewById(android.R.id.content),
                 String.format
                    (
                       Global.StdLocale,
                       getString(R.string.file_deleted),
                       TheFile.toString()
                    ),
-                android.widget.Toast.LENGTH_SHORT
+                Snackbar.LENGTH_SHORT
              ).show();
           PopulatePickerList(SelectedAlt);
         }
@@ -379,29 +377,27 @@ public class Picker extends android.app.Activity {
          );
       PickerList.notifyDataSetChanged();
     } catch (RuntimeException Failed) {
-      Toast.makeText
-         (
-            Picker.this,
+      Snackbar.make(
+            findViewById(android.R.id.content),
             String.format
                (
                   Global.StdLocale,
                   getString(R.string.application_error),
                   Failed.toString()
                ),
-            Toast.LENGTH_LONG
+            Snackbar.LENGTH_LONG
          ).show();
     }
     if (InaccessibleFolders.length() > 0) {
-      android.widget.Toast.makeText
-         (
-            Picker.this,
+      Snackbar.make(
+            findViewById(android.R.id.content),
             String.format
                (
                   Global.StdLocale,
                   getString(R.string.folder_unreadable),
                   InaccessibleFolders
                ),
-            Toast.LENGTH_SHORT
+            Snackbar.LENGTH_SHORT
          ).show();
     }
   }
