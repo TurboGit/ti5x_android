@@ -20,7 +20,7 @@ android {
         applicationId "net.obry.ti5x"
         minSdkVersion 23
         targetSdkVersion 35
-        versionCode 202
+        versionCode 204
         versionName "10.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
