@@ -18,7 +18,7 @@
 
     <!-- Activity themes -->
 
-    <style name="Theme.Base" parent="android:Theme.Light" />
+    <style name="Theme.Base" parent="android:ThemeOverlay.Material.Dark" />
 
     <style name="Theme.Sample" parent="Theme.Base" />
 

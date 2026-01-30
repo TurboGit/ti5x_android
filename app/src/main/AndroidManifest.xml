@@ -23,7 +23,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/TiTheme"
+        android:theme="@style/AppTheme.Dark"
         xmlns:app="http://schemas.android.com/apk/res-auto">
         <meta-data
             android:name="com.google.android.actions"
@@ -36,7 +36,7 @@
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
-            android:theme="@style/TiTheme">
+            android:theme="@style/AppTheme.Dark">
 
             <!-- launchMode = singleTask needed to avoid relaunching when user responds to notification -->
             <intent-filter>
@@ -45,7 +45,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity> <!-- MAIN -->
-        <activity android:name=".PrinterView" /> <!-- PrinterView -->
         <activity
             android:name=".Help"
             android:launchMode="singleTask" /> <!-- Help -->
@@ -56,14 +55,19 @@
         -->
         <activity
             android:name=".Picker"
-            android:screenOrientation="portrait" /> <!-- Picker -->
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Light" /> <!-- Picker -->
         <activity
             android:name=".SaveAs"
-            android:windowSoftInputMode="stateVisible" /> <!-- SaveAs -->
+            android:windowSoftInputMode="stateVisible"
+            android:theme="@style/AppTheme.Light" /> <!-- SaveAs -->
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".Main"></activity>
+            android:parentActivityName=".Main"/>
+        <activity
+            android:name=".PrinterActivity"
+            android:theme="@style/AppTheme.Light" />
     </application>
 
 </manifest>

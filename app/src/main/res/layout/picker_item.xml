@@ -3,6 +3,7 @@
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="#F0F0F0"
 >
     <TextView
         android:id="@+id/select_file_name"
@@ -11,6 +12,7 @@
         android:padding="10dp"
         android:textSize="16sp"
         android:layout_weight="100"
+        android:textColor="#212121"
     />
     <RadioButton
         android:id="@+id/file_item_checked"

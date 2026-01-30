@@ -3,6 +3,7 @@
     discretionary/dynamic permissions.
 
     Copyright 2017-2018  Steven Zoppi <about-ti5x@zoppi.org>.
+    Copyright 2015-2026  Pascal Obry <pascal@obry.net>.
 
     This program is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free Software
@@ -21,8 +22,7 @@ package net.obry.ti5x;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 
 /**
  * Utility class that wraps access to the runtime permissions API and provides basic helper

@@ -1,7 +1,8 @@
 /*
     Label-card display area
 
-    Copyright 2011 Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+    Copyright 2011      Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+    Copyright 2015-2026 Pascal Obry <pascal@obry.net>.
 
     This program is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free Software
@@ -18,6 +19,7 @@
 package net.obry.ti5x;
 
 import android.graphics.RectF;
+import com.google.android.material.snackbar.Snackbar;
 
 class LabelCard extends android.view.View {
   private android.graphics.Bitmap CardImage, NewCardImage;
@@ -59,11 +61,10 @@ class LabelCard extends android.view.View {
                       ShowHelp.setClass(ctx, Help.class);
                       ctx.startActivity(ShowHelp);
                     } else {
-                      android.widget.Toast.makeText
-                         (
-                            ctx,
+                      Snackbar.make(
+                            TheView,
                             ctx.getString(R.string.no_prog_help),
-                            android.widget.Toast.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT
                          ).show();
                     }
                     Handled = true;

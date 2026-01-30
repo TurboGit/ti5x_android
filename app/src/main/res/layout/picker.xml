@@ -2,16 +2,18 @@
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="#F0F0F0"
     android:stretchColumns="0"
+    android:id="@+id/keyboard_main_layout"
+    android:theme="@style/AppTheme.Light"
 >
     <TableRow>
-
         <TextView
             android:id="@+id/picker_prompt"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:textAlignment="center" />
+            android:textAlignment="center"/>
     </TableRow>
     <TableRow>
         <ListView

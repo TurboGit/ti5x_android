@@ -3,17 +3,20 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:theme="@style/AppTheme.Light"
 >
     <RadioButton
         android:id="@+id/select_likely_files"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/likely_files"
+        android:textColor="#212121"/>
     />
     <RadioButton
         android:id="@+id/select_all_files"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/all_files"
+        android:textColor="#212121"/>
     />
 </RadioGroup>

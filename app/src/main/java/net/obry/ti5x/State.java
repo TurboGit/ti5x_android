@@ -18,6 +18,7 @@
 
 package net.obry.ti5x;
 
+import android.app.AlertDialog;
 import android.util.SparseIntArray;
 
 class State {
@@ -2205,17 +2206,15 @@ class State {
         Import.End();
         break;
       } catch (Persistent.DataFormatException Bad) {
-        android.widget.Toast.makeText
-           (
-              ctx,
-              String.format
+          new AlertDialog.Builder(ctx)
+              .setMessage(String.format
                  (
                     Global.StdLocale,
                     ctx.getString(R.string.import_error),
                     Bad.toString()
-                 ),
-              android.widget.Toast.LENGTH_LONG
-           ).show();
+                 ))
+              .setPositiveButton("OK", null)
+              .show();
         OK = false;
         Import.End();
         break;
