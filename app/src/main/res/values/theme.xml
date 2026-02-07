@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="TiTheme" parent="@style/Theme.AppCompat.DayNight">
+    <style name="TiTheme" parent="@style/Theme.MaterialComponents.DayNight">
         <item name="android:forceDarkAllowed">true</item>
         <item name="android:colorBackground">@android:color/black</item>
         <item name="android:windowActionBar">true</item>
@@ -12,18 +12,33 @@
         <item name="android:textColorPrimary">@color/dark</item>
         <item name="android:colorPrimaryDark">@color/dark</item>
         <item name="textAllCaps">false</item>
+        <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
     </style>
 
-    <style name="AppTheme.Dark" parent="@style/Theme.AppCompat">
+    <style name="Widget.App.Snackbar" parent="Widget.MaterialComponents.Snackbar">
+        <item name="materialThemeOverlay">@null</item>
+        <item name="backgroundTint">#424242</item>
+    </style>
+
+    <style name="Widget.App.Snackbar.TextView" parent="Widget.MaterialComponents.Snackbar.TextView">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="AppTheme.Dark" parent="@style/Theme.MaterialComponents">
         <item name="android:colorBackground">@android:color/black</item>
         <item name="textAllCaps">false</item>
+        <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
     </style>
 
-    <style name="AppTheme.Light" parent="@style/Theme.AppCompat.Light">
+    <style name="AppTheme.Light" parent="@style/Theme.MaterialComponents.Light">
         <item name="android:colorBackground">@android:color/white</item>
         <item name="android:textColor">#212121</item>
+        <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
     </style>
 
-    <style name="AppTheme.Popup.Light" parent="@style/Theme.AppCompat.Light">
-    </style>>
+    <style name="AppTheme.Popup.Light" parent="@style/Theme.MaterialComponents.Light">
+    </style>
 </resources>
