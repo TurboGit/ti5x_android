@@ -44,6 +44,7 @@ public class PrinterActivity extends BaseActivity {
   @Override
   protected int getRootViewId() { return R.id.printer_activity; }
   private void clearPrinterView() {
+    Global.Print.Content.clear();
     adapter.setLineCount(0);
     updatePrinterView(false);
   }
