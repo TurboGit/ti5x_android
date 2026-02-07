@@ -46,6 +46,7 @@ public class PrinterActivity extends BaseActivity {
   private void clearPrinterView() {
     Global.Print.Content.clear();
     adapter.setLineCount(0);
+    Global.Print.Content.add(new byte[0]);
     updatePrinterView(false);
   }
   private void savePaperPart(int fromLine, int toLine)
@@ -88,7 +89,7 @@ public class PrinterActivity extends BaseActivity {
   }
   private void tearOffPaper() {
     int lineCount = adapter.getItemCount();
-    if (lineCount == 0) return;
+    if (lineCount == 1) return;
 
     final int maxLine = 200;
     // tear off paper of 200 lines each
@@ -112,7 +113,8 @@ public class PrinterActivity extends BaseActivity {
 
     adapter.notifyDataSetChanged();
 
-    boolean hasData = lineCount > 0;
+    // first line is empty
+    final boolean hasData = lineCount > 1;
     btnTop.setEnabled(hasData);
     btnBottom.setEnabled(hasData);
     btnClear.setEnabled(hasData);
@@ -164,7 +166,7 @@ public class PrinterActivity extends BaseActivity {
 
     btnBottom.setOnClickListener(v -> {
         final int count = adapter.getItemCount();
-        if (count > 0) {
+        if (count > 1) {
             recycler.scrollToPosition(count - 1);
         }
     });
@@ -181,7 +183,7 @@ public class PrinterActivity extends BaseActivity {
     if (lm == null) return true;
     final int lastVisible = lm.findLastCompletelyVisibleItemPosition();
     final int itemCount = adapter.getItemCount();
-    return itemCount == 0 || lastVisible >= itemCount - 1;
+    return itemCount <= 1 || lastVisible >= itemCount - 1;
   }
   @Override
   public void onPause() {
