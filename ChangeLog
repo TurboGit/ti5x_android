@@ -1,5 +1,12 @@
 Feature highlights:
 
+v10.2, 2026 February 7th:
+   Make the printer state persistent
+   Fix clearing the paper
+
+v10.1, 2026 January 30th:
+   Fix layout on tablets
+
 v10.0, 2026 January 30th:
    Calc status in topbar (Angle/2nd/Inv)
    Large UI revamp.
