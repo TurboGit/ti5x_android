@@ -33,6 +33,8 @@ final class Global {
   static MenuItem Status;
 
   static final int NrSigFigures = 16;
+  static final int MaxPrinterLineSaved = 10000;
+
   /* for formatting reals */
   static final java.util.Locale StdLocale = java.util.Locale.US;
   /* for all those places I don't want formatting to be locale-specific */

@@ -450,7 +450,7 @@ class Printer {
     }
   }
 
-  private String BackToText
+  String BackToText
      (
         byte[] PrintReg
      ) {

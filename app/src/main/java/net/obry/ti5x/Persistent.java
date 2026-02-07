@@ -742,6 +742,20 @@ public class Persistent {
           POut.println("\n        </printreg>");
         }
         POut.println("    </calc>");
+
+        //  Save printer status
+        POut.println("    <printer>");
+        int LineStart = 0;
+        final int LineEnd = Global.Print.Content.size();
+        if(LineEnd > Global.MaxPrinterLineSaved) {
+          LineStart = LineEnd - Global.MaxPrinterLineSaved;
+        }
+        for(int i = LineStart; i < LineEnd; i++) {
+          final byte[] line = Global.Print.Content.get(i);
+          POut.printf("      <line>%s</line>", Global.Print.BackToText(line));
+        }
+        POut.println("    </printer>");
+
         POut.println("</state>");
         POut.flush();
         StateOut.close();
@@ -820,6 +834,7 @@ public class Persistent {
     private final int DoingEmptyTag = 19;
     private final int DoingBankProg = 20;
     private final int DoingBankMem = 21;
+    private final int DoingPrinter = 22;
     private int ParseState = AtTopLevel;
     private boolean DoneState = false;
     private boolean AllowContent;
@@ -870,6 +885,9 @@ public class Persistent {
           Handled = true;
         } else if (localName.equals("calc")) {
           ParseState = DoingCalc;
+          Handled = true;
+        } else if (localName.equals("printer")) {
+          ParseState = DoingPrinter;
           Handled = true;
         }
       } else if (ParseState == DoingButtons) {
@@ -1093,6 +1111,11 @@ public class Persistent {
              );
           Handled = true;
         }
+      } else if (ParseState == DoingPrinter) {
+        if (localName.equals ("line")) {
+          StartContent();
+        }
+        Handled = true;
       }
       if (!Handled) {
         throw new DataFormatException("unexpected XML tag " + localName + " in state " + ParseState);
@@ -1176,6 +1199,14 @@ public class Persistent {
             ParseState = DoingCalc;
           }
           break;
+        case DoingPrinter:
+          if (localName.equals("line")) {
+            byte[] line = new byte[Printer.CharColumns];
+            Global.Print.Translate(ContentStr, line);
+            Global.Print.Content.add(line);
+          } else if (localName.equals("printer")) {
+            ParseState = DoingCalc;
+          }
         case DoingMem:
           if (localName.equals("mem")) {
 
