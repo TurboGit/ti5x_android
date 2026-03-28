@@ -2062,6 +2062,16 @@ class State {
             }
           }
           break;
+          case 54: /* extension! n! */ {
+            if (X.getSignum() == -1) {
+              SetErrorState(false);
+            } else {
+              X.Factorial();
+              SetX(X, true);
+              OK = true;
+            }
+          }
+          break;
           case 96:
             if (InvState) {
               ExportNew(false);

@@ -406,6 +406,14 @@ class Number {
     v = PI.v;
   }
 
+  public void Factorial() {
+    BigDecimal result = BigDecimal.ONE;
+    for (int i = 2; i <= v.intValue(); i++) {
+      result = result.multiply(BigDecimal.valueOf(i));
+    }
+    v = result;
+  };
+
   // cut
 
   public void intPart() {
