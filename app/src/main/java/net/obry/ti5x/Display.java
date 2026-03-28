@@ -21,6 +21,8 @@ package net.obry.ti5x;
 import android.graphics.PointF;
 import android.graphics.Path;
 
+import java.util.Arrays;
+
 class Display extends android.view.View {
   /* rendering parameters */
   private static final float DigitWidth = 0.5f; /* as fraction of size */
@@ -224,9 +226,7 @@ class Display extends android.view.View {
         String ToShow
      ) {
     SetShowing(ToShow);
-    for (int i = 0; i < OtherShowing.length; ++i) {
-      OtherShowing[i] = 0;
-    }
+    Arrays.fill(OtherShowing, 0);
     ShowingColor = LEDLight;
     OtherColor = LEDLight;
     AnimDelay = 0.5f;
