@@ -1,5 +1,8 @@
 Feature highlights:
 
+v10.3, 2026 June 13th:
+   Add Op 54 extension (factorial)
+
 v10.2, 2026 February 7th:
    Make the printer state persistent
    Fix clearing the paper
