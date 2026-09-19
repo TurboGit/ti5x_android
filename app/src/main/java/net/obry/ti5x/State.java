@@ -1813,6 +1813,9 @@ class State {
             OK = true;
             break;
           case 6:
+            if (Global.Export != null && Global.Export.NumbersOnly) {
+              Global.Export.WriteNum(X);
+            }
             PrintDisplay(true, true, "");
             OK = true;
             break;
