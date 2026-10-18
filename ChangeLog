@@ -1,5 +1,8 @@
 Feature highlights:
 
+v10.4, 2026 October 18th:
+   Fix Op 06 not writting to exported data
+
 v10.3, 2026 June 13th:
    Add Op 54 extension (factorial)
 
