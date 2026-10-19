@@ -1404,7 +1404,7 @@ class ButtonGrid extends android.view.View {
                 if (Global.Export != null && Global.Export.NumbersOnly) {
                   Global.Export.WriteNum(Calc.X);
                 }
-                Calc.PrintDisplay(true, false, "");
+                Calc.PrintDisplay(true, false, false, "");
               }
               break;
             case 90: /*List*/

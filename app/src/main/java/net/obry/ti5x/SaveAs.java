@@ -19,6 +19,7 @@
 package net.obry.ti5x;
 
 import android.os.Environment;
+import android.view.ViewGroup;
 import com.google.android.material.snackbar.Snackbar;
 
 public class SaveAs extends BaseActivity {
@@ -33,11 +34,13 @@ public class SaveAs extends BaseActivity {
   private android.view.ViewGroup MainViewGroup;
   private android.widget.EditText SaveAsText;
   private String TheCleanedText;
+
   @Override
   protected int getLayoutResId() { return R.layout.save_as; }
 
   @Override
   protected int getRootViewId() { return R.id.details_root; }
+
   class OverwriteConfirm
      extends android.app.AlertDialog
      implements android.content.DialogInterface.OnClickListener {
@@ -96,12 +99,11 @@ public class SaveAs extends BaseActivity {
      (
         android.os.Bundle savedInstanceState
      ) {
+    super.onCreate(savedInstanceState);
     SaveAs.Current = this;
     if (Environment.getExternalStorageState().intern().equals(Environment.MEDIA_MOUNTED)) {
-      MainViewGroup =
-         (android.view.ViewGroup) getLayoutInflater().inflate(R.layout.save_as, null);
-      setContentView(MainViewGroup);
-      super.onCreate(savedInstanceState);
+      MainViewGroup = (android.view.ViewGroup) findViewById(getRootViewId());
+
       final android.widget.TextView SaveAsPrompt = (android.widget.TextView) findViewById(R.id.save_as_prompt);
       SaveAsPrompt.setText
          (
@@ -184,7 +186,7 @@ public class SaveAs extends BaseActivity {
   @Override
   public void onPause() {
     super.onPause();
-    if (Extra != null) {
+    if (Extra != null && MainViewGroup != null) {
       /* so it can be properly added again should the orientation change */
       MainViewGroup.removeView(Extra);
     }
@@ -193,7 +195,10 @@ public class SaveAs extends BaseActivity {
   @Override
   public void onResume() {
     super.onResume();
-    if (Extra != null) {
+    if (Extra != null && MainViewGroup != null) {
+      if (Extra.getParent() != null) {
+          ((ViewGroup)Extra.getParent()).removeView(Extra);
+      }
       MainViewGroup.addView
          (
             Extra,

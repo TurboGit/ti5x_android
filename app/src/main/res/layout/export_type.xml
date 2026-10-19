@@ -3,23 +3,27 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:theme="@style/AppTheme.Light"
 >
     <RadioGroup
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:theme="@style/AppTheme.Light"
     >
         <RadioButton
             android:id="@+id/select_numbers_only"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/numbers_only"
+            android:textColor="#212121"
         />
         <RadioButton
             android:id="@+id/select_all_printout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/all_printout"
+            android:textColor="#212121"
         />
     </RadioGroup>
 <!-- additional items added should appear to right -->

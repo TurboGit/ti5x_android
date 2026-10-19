@@ -358,9 +358,11 @@ class Printer {
 
   void Render
      (
-        byte[] PrintReg
+        byte[] PrintReg,
+        boolean ForceFullExport
      ) {
-    if (Global.Export != null && !Global.Export.NumbersOnly) {
+    if (ForceFullExport
+        || (Global.Export != null && !Global.Export.NumbersOnly)) {
       Global.Export.WriteLine(BackToText(PrintReg));
     }
     Content.add(PrintReg.clone());

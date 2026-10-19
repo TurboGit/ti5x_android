@@ -1389,13 +1389,14 @@ class State {
        : (Label.length() == 4 ? Label :
        String.format(Global.StdLocale, "%4s", Label)));
     if (TracePrintActivated && Global.Print != null)
-      PrintDisplay(Data, false, L4);
+      PrintDisplay(Data, false, false, L4);
   }
 
   void PrintDisplay
      (
         boolean Data,
         boolean Labelled,
+        boolean ForceFullExport,
         String Label
      ) {
     if (Global.Print != null && CurDisplay != null) {
@@ -1426,7 +1427,7 @@ class State {
               4
            );
       }
-      Global.Print.Render(Translated);
+      Global.Print.Render(Translated, ForceFullExport);
     }
   }
 
@@ -1808,15 +1809,12 @@ class State {
           break;
           case 5:
             if (Global.Print != null) {
-              Global.Print.Render(PrintRegister);
+              Global.Print.Render(PrintRegister, true);
             }
             OK = true;
             break;
           case 6:
-            if (Global.Export != null && Global.Export.NumbersOnly) {
-              Global.Export.WriteNum(X);
-            }
-            PrintDisplay(true, true, "");
+            PrintDisplay(true, true, true,"");
             OK = true;
             break;
           case 7:
@@ -1828,7 +1826,7 @@ class State {
                 for (int i = 0; i < Printer.CharColumns; ++i) {
                   Plot[i] = (byte) (i == PlotX ? 51 : 0);
                 }
-                Global.Print.Render(Plot);
+                Global.Print.Render(Plot, true);
               } else {
                 SetErrorState(false);
               }
@@ -2420,7 +2418,7 @@ class State {
                  ),
               Translated
            );
-        Global.Print.Render(Translated);
+        Global.Print.Render(Translated, false);
         ++Index;
       }
       if (Index == SortedLabels.length) {
@@ -2461,7 +2459,7 @@ class State {
                  ),
               Translated
            );
-        Global.Print.Render(Translated);
+        Global.Print.Render(Translated, false);
         ++CurReg;
       }
       if (Wrapped && CurReg >= EndReg) {
@@ -2608,7 +2606,7 @@ class State {
                  ),
               Translated
            );
-        Global.Print.Render(Translated);
+        Global.Print.Render(Translated, false);
         Expecting = NextExpecting;
         ++ListPC;
       }
@@ -3569,7 +3567,7 @@ class State {
               if (Global.Export != null && Global.Export.NumbersOnly) {
                 Global.Export.WriteNum(X);
               }
-              PrintDisplay(true, false, "");
+              PrintDisplay(true, false, false, "");
             }
             break;
           case 90: /*List*/

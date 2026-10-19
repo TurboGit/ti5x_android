@@ -294,7 +294,10 @@ public class Main extends BaseCompatActivity {
                 null
              ),
        };
-    PickerExtra = (ViewGroup) getLayoutInflater().inflate(R.layout.import_type, null);
+    PickerExtra = (ViewGroup) android.view.LayoutInflater.from
+       (
+          new android.view.ContextThemeWrapper(Main.this, R.style.AppTheme_Light)
+       ).inflate(R.layout.import_type, null);
     Picker.Launch
        (
           Main.this,
@@ -307,7 +310,10 @@ public class Main extends BaseCompatActivity {
   }
 
   void LaunchExportPicker() {
-    final android.view.LayoutInflater Inflater = getLayoutInflater();
+    final android.view.LayoutInflater Inflater = android.view.LayoutInflater.from
+       (
+          new android.view.ContextThemeWrapper(Main.this, R.style.AppTheme_Light)
+       );
     final ViewGroup[] ExportExtra = new ViewGroup[2];
     /* need two copies */
     for (int i = 0; i < 2; ++i) {
@@ -388,7 +394,7 @@ public class Main extends BaseCompatActivity {
     if (ExportAppend) {
       ExportExtra[1].addView
          (
-            getLayoutInflater().inflate(R.layout.import_type, null),
+            Inflater.inflate(R.layout.import_type, null),
             new ViewGroup.LayoutParams
                (
                   ViewGroup.LayoutParams.FILL_PARENT,
@@ -473,7 +479,10 @@ public class Main extends BaseCompatActivity {
                        /* item representing selection of built-in libraries */
                    ),
            };
-       PickerExtra = (ViewGroup) getLayoutInflater().inflate(R.layout.prog_type, null);
+       PickerExtra = (ViewGroup) android.view.LayoutInflater.from
+          (
+             new android.view.ContextThemeWrapper(Main.this, R.style.AppTheme_Light)
+          ).inflate(R.layout.prog_type, null);
 
        // check if directories exists to avoid messages about unreadable location
 
@@ -1015,15 +1024,16 @@ public class Main extends BaseCompatActivity {
                   Global.Export.Close();
                   try {
                     String FileName = Data.getData().getPath();
+                    String SaveFile = FileName;
                     if (!ExportAppend) {
                       if(FileName.indexOf('.') == -1) {
                         // no extension added, use default
                         FileName = FileName.substring(1) + Persistent.DataExt;
                       }
                       /* note FileName will have leading slash */
+                      SaveFile = Persistent.EnsureDirExists(getApplicationContext(), Persistent.DataDir, FileName);
+
                     }
-                    final String SaveFile =
-                        Persistent.EnsureDirExists(getApplicationContext(), Persistent.DataDir, FileName);
                     Global.Export.Open(SaveFile, ExportAppend, ExportNumbersOnly);
                     Snackbar.make(
                           findViewById(android.R.id.content),

@@ -28,6 +28,8 @@
     <style name="AppTheme.Dark" parent="@style/Theme.MaterialComponents">
         <item name="android:colorBackground">@android:color/black</item>
         <item name="textAllCaps">false</item>
+        <item name="colorPrimary">@color/title_bar</item>
+        <item name="colorOnPrimary">@color/dark</item>
         <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
         <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
     </style>
@@ -35,10 +37,14 @@
     <style name="AppTheme.Light" parent="@style/Theme.MaterialComponents.Light">
         <item name="android:colorBackground">@android:color/white</item>
         <item name="android:textColor">#212121</item>
+        <item name="colorPrimary">@color/title_bar</item>
+        <item name="colorOnPrimary">@color/dark</item>
         <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
         <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
     </style>
 
     <style name="AppTheme.Popup.Light" parent="@style/Theme.MaterialComponents.Light">
+        <item name="colorPrimary">@color/title_bar</item>
+        <item name="colorOnPrimary">@color/dark</item>
     </style>
 </resources>
