@@ -1,5 +1,8 @@
 Feature highlights:
 
+v10.5, 2026 October 20th:
+   Fix exported data and append mode
+
 v10.4, 2026 October 18th:
    Fix Op 06 not writting to exported data
 
