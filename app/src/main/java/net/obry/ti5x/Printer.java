@@ -298,11 +298,12 @@ class Printer {
     return false;
   }
 
-  void Advance() {
+  void Advance(boolean ForceFullExport) {
     // advances the paper to the next line.
     Content.add(new byte[0]);
 
-    if (Global.Export != null && !Global.Export.NumbersOnly) {
+    if (ForceFullExport
+        || (Global.Export != null && !Global.Export.NumbersOnly)) {
       Global.Export.WriteLine("");
     }
   }
@@ -361,8 +362,8 @@ class Printer {
         byte[] PrintReg,
         boolean ForceFullExport
      ) {
-    if (ForceFullExport
-        || (Global.Export != null && !Global.Export.NumbersOnly)) {
+    if ((Global.Export != null && ForceFullExport)
+        || !Global.Export.NumbersOnly) {
       Global.Export.WriteLine(BackToText(PrintReg));
     }
     Content.add(PrintReg.clone());

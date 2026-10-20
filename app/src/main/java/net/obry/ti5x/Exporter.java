@@ -130,15 +130,4 @@ public class Exporter {
       }
     }
   }
-
-  void WriteNum
-     (
-        Number Num
-     ) {
-    /* writes a number to the export data file in a standard form that can
-       be read in again by myself or other programs. */
-    if (PrintOut != null) {
-        PrintOut.printf("%s\n", Num.toString());
-    }
-  }
 }

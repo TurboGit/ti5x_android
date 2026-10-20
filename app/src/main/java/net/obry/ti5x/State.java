@@ -24,7 +24,7 @@ import android.util.SparseIntArray;
 class State {
   /* the calculator state, number entry and programs */
 
-  private final android.content.Context ctx;
+  final android.content.Context ctx;
   /* number-entry state */
   final static int EntryState = 0;
   final static int DecimalEntryState = 1;
@@ -3555,7 +3555,7 @@ class State {
               }
             } else {
               if (Global.Print != null) {
-                Global.Print.Advance();
+                Global.Print.Advance(true);
               }
             }
             break;
@@ -3564,10 +3564,7 @@ class State {
             if (InvState) /* extension! */ {
               GetNextImport();
             } else {
-              if (Global.Export != null && Global.Export.NumbersOnly) {
-                Global.Export.WriteNum(X);
-              }
-              PrintDisplay(true, false, false, "");
+              PrintDisplay(true, false, true, "");
             }
             break;
           case 90: /*List*/

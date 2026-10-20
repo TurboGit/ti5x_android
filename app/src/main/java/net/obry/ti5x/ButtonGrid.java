@@ -1392,7 +1392,7 @@ class ButtonGrid extends android.view.View {
                 }
               } else {
                 if (Global.Print != null) {
-                  Global.Print.Advance();
+                  Global.Print.Advance(true);
                 }
               }
               break;
@@ -1401,10 +1401,7 @@ class ButtonGrid extends android.view.View {
               if (Calc.InvState) /* extension! */ {
                 Calc.GetNextImport();
               } else {
-                if (Global.Export != null && Global.Export.NumbersOnly) {
-                  Global.Export.WriteNum(Calc.X);
-                }
-                Calc.PrintDisplay(true, false, false, "");
+                Calc.PrintDisplay(true, false, true, "");
               }
               break;
             case 90: /*List*/

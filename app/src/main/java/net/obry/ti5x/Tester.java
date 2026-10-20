@@ -67,6 +67,36 @@ class Tester {
     return Calc.CurDisplay.equals(display) && inError == error;
   }
 
+  private void deleteExportFile(String filename) {
+    String path = Persistent.EnsureDirExists(Calc.ctx, Persistent.DataDir, filename);
+    java.io.File file = new java.io.File(path);
+    if (file.exists()) {
+      file.delete();
+    }
+  }
+
+  private boolean checkExportFile(String filename, String... expectedLines) {
+    String path = Persistent.EnsureDirExists(Calc.ctx, Persistent.DataDir, filename);
+    java.io.File file = new java.io.File(path);
+    if (!file.exists()) {
+      return false;
+    }
+    try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+      for (String expected : expectedLines) {
+        String line = reader.readLine();
+        if (line == null) {
+          return false;
+        }
+        if (!line.equals(expected) && !line.trim().equals(expected.trim())) {
+          return false;
+        }
+      }
+      return reader.readLine() == null;
+    } catch (java.io.IOException e) {
+      return false;
+    }
+  }
+
   private boolean Test_1() {
     // commit: bccc9bc
     Clear();
@@ -1331,6 +1361,140 @@ class Tester {
     return true;
   }
 
+  private boolean Test_39() {
+    // Check export support (INV OP 96)
+    Clear();
+
+    deleteExportFile("1313.dat");
+
+    Calc.Digit('1');
+    Calc.Digit('3');
+    Calc.Digit('1');
+    Calc.Digit('3');
+
+    Calc.InvState = true;
+    Calc.SpecialOp(96, false);
+
+    Calc.SpecialOp(4, false);
+    Calc.SpecialOp(6, false);
+
+    Calc.InvState = true;
+    Calc.ResetProg();
+
+    boolean ok = checkExportFile("1313.dat",
+        "        1313.     AA");
+    if(ok) deleteExportFile("1313.dat");
+
+    return ok;
+  }
+
+  private boolean Test_40() {
+    // Check export append mode (INV OP 97)
+    Clear();
+
+    deleteExportFile("1313.dat");
+
+    Calc.Digit('1');
+    Calc.Digit('3');
+    Calc.Digit('1');
+    Calc.Digit('3');
+
+    Calc.InvState = true;
+    Calc.SpecialOp(96, false);
+    Calc.SpecialOp(4, false);
+    Calc.SpecialOp(6, false);
+    Calc.InvState = true;
+    Calc.ResetProg();
+
+    Calc.InvState = true;
+    Calc.SpecialOp(97, false);
+    Calc.SpecialOp(6, false);
+    Calc.InvState = true;
+    Calc.ResetProg();
+
+    boolean ok = checkExportFile("1313.dat",
+        "        1313.     AA", "        1313.     AA");
+    if(ok) deleteExportFile("1313.dat");
+
+    return ok;
+  }
+
+  private boolean Test_41() {
+    // Check export with ADV (empty line)
+    Clear();
+
+    deleteExportFile("1313.dat");
+
+    Calc.Digit('1');
+    Calc.Digit('3');
+    Calc.Digit('1');
+    Calc.Digit('3');
+
+    Calc.InvState = true;
+    Calc.SpecialOp(96, false);
+    Calc.SpecialOp(4, false);
+    Calc.SpecialOp(6, false);
+
+    if (Global.Print != null) {
+      Global.Print.Advance(true);
+    }
+
+    SetX(1516);
+    Calc.SpecialOp(4, false);
+    SetX(1312);
+    Calc.SpecialOp(6, false);
+
+    Calc.InvState = true;
+    Calc.ResetProg();
+
+    boolean ok = checkExportFile("1313.dat",
+        "        1313.     AA", "", "        1312.     CD");
+    if(ok) deleteExportFile("1313.dat");
+
+    return ok;
+  }
+
+  private boolean Test_42() {
+    // Check export with ADV (empty line)
+    Clear();
+
+    deleteExportFile("1313.dat");
+
+    Calc.Digit('1');
+    Calc.Digit('3');
+    Calc.Digit('1');
+    Calc.Digit('3');
+
+    Calc.InvState = true;
+    Calc.SpecialOp(96, false);
+    Calc.SpecialOp(4, false);
+    Calc.SpecialOp(6, false);
+
+    if (Global.Print != null) {
+      Global.Print.Advance(true);
+    }
+
+    SetX(19);
+    Calc.PrintDisplay(true, false, true, "");
+
+    SetX(1516);
+    Calc.SpecialOp(4, false);
+    SetX(1312);
+    Calc.SpecialOp(6, false);
+
+    Calc.InvState = true;
+    Calc.ResetProg();
+
+    boolean ok = checkExportFile("1313.dat",
+        "        1313.     AA",
+                      "",
+                     "          19.       ",
+                     "        1312.     CD");
+    if(ok) deleteExportFile("1313.dat");
+
+    return ok;
+  }
+
   int Run() {
     Calc = Global.Calc;
     int Total = 0;
@@ -1410,6 +1574,14 @@ class Tester {
     if (!Test_37()) return -37;
     Total++;
     if (!Test_38()) return -38;
+    Total++;
+    if (!Test_39()) return -39;
+    Total++;
+    if (!Test_40()) return -40;
+    Total++;
+    if (!Test_41()) return -41;
+    Total++;
+    if (!Test_42()) return -42;
     Total++;
     Clear();
 
