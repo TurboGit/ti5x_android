@@ -1,0 +1,14 @@
+<carddef style="user">
+<label slot="titleleft">VOR/DME Navigation</label>
+<label slot="titleright">SB-11</label>
+<label slot="aprime">VOR lat.</label>
+<label slot="bprime">VOR long.</label>
+<label slot="cprime">VOR decl.</label>
+<label slot="dprime">new fix</label>
+<label slot="eprime">new VOR</label>
+<label slot="a">radial</label>
+<label slot="b">DME</label>
+<label slot="c">height</label>
+<label slot="d">new val</label>
+<label slot="e">calc fix</label>
+</carddef>

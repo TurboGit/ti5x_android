@@ -1,0 +1,372 @@
+ ;
+ ; Copyright (C) 2026 by Steffen Beyer
+ ;
+ ; Version: 1.1.0
+ ;
+ ; License:
+ ; GNU General Public License (GPL), GNU Lesser General Public License (LGPL) / GNU Library General Public License (LGPL)
+ ; (Version at your discretion, as usual)
+ ;
+ ; Program for VOR/DME navigation (aviation)
+ ;
+ ; DISCLAIMER:
+ ; This program is designed for experimental navigation calculations over distances and at altitudes typical of general aviation (GA).
+ ; It uses an approximate planar model of the Earth's surface, with corrections for the convergence of meridians towards the poles,
+ ; rather than full spherical or ellipsoidal geometry.
+ ; This approximation introduces systematic position errors that can become substantial over long distances.
+ ; The magnitude of these errors depends on the geographical configuration and generally increases with distance.
+ ; Consequently, the program is not suitable for the extended navigation distances typical of high-altitude airline operations.
+ ; For educational and flight-simulation use only. Not suitable as a primary or safety-critical navigation aid in real aircraft.
+ ;
+ ; Operating conditions:
+ ; The calculator must be in DEG mode, not RAD or GRAD (the initialization functions D D' E' ensure that).
+ ; Southern latitudes and western longitudes are negative.
+ ; Magnetic declination is positive east and negative west.
+ ; Distances are entered in nautical miles and height differences in feet.
+ ; Enter the aircraft's vertical height relative to the DME station antenna, in feet. If using above mean sea level (AMSL) altitudes, subtract the station antenna elevation.
+ ; If no height difference is entered, the measured slant range is used as an approximation of the horizontal distance.
+ ; If the absolute height difference (in feet, converted to nautical miles) is greater than the measured slant range (in nautical miles),
+ ; which is physically impossible in reality (or a severe measurement error), the program will stop with an error (blinking "9.9999999 99" in the display), and t is set to zero.
+ ; Enter the magnetic radial FROM the station, not merely the OBS course selected on the receiver (unless the CDI is centered with a FROM indication).
+ ; Before using the program, press E' to initialize it to a well-defined state.
+ ;
+ ; Interface:
+ ;
+ ; A' = input/output VOR/DME station latitude             (DDDMM.mmmmm)
+ ; B' = input/output VOR/DME station longitude            (DDDMM.mmmmm)
+ ; C' = input/output VOR/DME station magnetic declination (DDD.ddddddd)
+ ;
+ ; A = input/output radial (DDD.ddddddd)
+ ; B = input/output DME in nautical miles (nm)
+ ; C = input/output height above VOR/DME station in feet (ft) - optional, for greater precision
+ ;
+ ; Prepare for new calculation with different radial, DME or height:
+ ; D = switches A B C to input (leaves input values unchanged, useful for changing only selected values)
+ ; D' = erases all input values for radial, DME and height, switches A B C to input
+ ;
+ ; Prepare for new calculation with different VOR/DME station:
+ ; E' = erases all inputs values, switches A' B' C' A B C to input
+ ;
+ ; E = calculate latitude and longitude of the aircraft, switches A' B' C' A B C to output
+ ;
+ ; Output:
+ ; x (current display) = latitude aircraft  (DDDMM.mmmmm)
+ ; t (test register)   = longitude aircraft (DDDMM.mmmmm)
+ ; Register 07         = latitude aircraft  (DDD.ddddddd)
+ ; Register 08         = longitude aircraft (DDD.ddddddd)
+ ; Register 09         = corrected radial   (DDD.ddddddd), converted from magnetic to true radial
+ ;
+ ; Conversion functions DDDMM.mmmmm <=> DDD.ddddddd:
+ ; SBR  .  = DDDMM.mmmmm => DDD.ddddddd (to decimal format)
+ ; SBR +/- = DDD.ddddddd => DDDMM.mmmmm (to cockpit format)
+ ; Output: current display and register 00
+
+ ; Registers:
+ ; 00 Contains the conversion result DDDMM.mmmmm <=> DDD.ddddddd from SBR . and SBR +/-
+ ; 01 VOR latitude      (DDDMM.mmmmm)
+ ; 02 VOR longitude     (DDDMM.mmmmm)
+ ; 03 VOR declination   (DDD.ddddddd)
+ ; 04 Radial            (DDD.ddddddd)
+ ; 05 DME in nm
+ ; 06 Height in ft
+ ; 07 Result latitude   (DDD.ddddddd), intermediate distance / 60 * COS( corrected radial )
+ ; 08 Result longitude  (DDD.ddddddd), intermediate distance / 60 * SIN( corrected radial )
+ ; 09 Corrected radial  (DDD.ddddddd) (converted from magnetic to true radial)
+ ; 10 Scratchpad for conversions
+
+ ; 002 absolute address, convert from DDDMM.mmmmm to decimal DDD.ddddddd
+
+LBL ; mnemonic: convert to decimal format
+ .
+decimal:
+ (  ; DDDMM.mmmmm
+ /
+ 1
+ 0
+ 0
+ )  ; DDD.MMmmmmm
+STO
+ 10 ; DDD.MMmmmmm
+INT ; DDD
+STO
+ 00 ; DDD
+ (
+RCL
+ 10 ; DDD.MMmmmmm
+INV
+INT ; .MMmmmmm
+ /
+ .
+ 6
+ )  ; .ddddddd
+SUM
+ 00 ; DDD.ddddddd
+RCL
+ 00 ; DDD.ddddddd
+RTN
+
+ ; 029 absolute address, convert from decimal DDD.ddddddd to DDDMM.mmmmm
+
+LBL ; convert to cockpit format
++/-
+cockpit:
+STO
+ 10 ; DDD.ddddddd
+INT ; DDD
+STO
+ 00 ; DDD
+ (
+RCL
+ 10 ; DDD.ddddddd
+INV
+INT ; .ddddddd
+ *
+ .
+ 6
+ )  ; .MMmmmmm
+SUM
+ 00 ; DDD.MMmmmmm
+ 1
+ 0
+ 0
+PRD
+ 00 ; DDDMM.mmmmm
+RCL
+ 00 ; DDDMM.mmmmm
+RTN
+
+LBL ; VOR latitude
+A'
+IFF
+ 00
+read_01
+STO
+ 01
+RTN
+read_01:
+RCL
+ 01
+RTN
+
+LBL ; VOR longitude
+B'
+IFF
+ 00
+read_02
+STO
+ 02
+RTN
+read_02:
+RCL
+ 02
+RTN
+
+LBL ; VOR magnetic declination
+C'
+IFF
+ 00
+read_03
+STO
+ 03
+RTN
+read_03:
+RCL
+ 03
+RTN
+
+LBL ; radial
+ A
+IFF
+ 01
+read_04
+STO
+ 04
+RTN
+read_04:
+RCL
+ 04
+RTN
+
+LBL ; DME
+ B
+IFF
+ 01
+read_05
+STO
+ 05
+RTN
+read_05:
+RCL
+ 05
+RTN
+
+LBL ; height (optional)
+ C
+IFF
+ 01
+read_06
+STO
+ 06
+RTN
+read_06:
+RCL
+ 06
+RTN
+
+LBL ; prepare for different VOR/DME station
+E'
+INV
+STF
+ 00
+ 0
+STO
+ 01
+STO
+ 02
+STO
+ 03
+LBL ; prepare for different aircraft position (clean slate)
+ D'
+INV
+STF
+ 01
+ 0
+STO
+ 04
+STO
+ 05
+STO
+ 06
+LBL ; prepare for different aircraft position (input values unchanged)
+ D
+INV
+STF
+ 01
+ 0
+STO
+ 07 ; just for tidiness (result latitude)
+STO
+ 08 ; just for tidiness (result longitude)
+STO
+ 09 ; just for tidiness (corrected radial)
+DEG ; force DEG mode
+RTN
+
+LBL ; perform the calculations
+ E
+STF
+ 00 ; disable input, enable output of VOR/DME station data
+STF
+ 01 ; disable input, enable output of radial, DME and height
+RCL
+ 03 ; VOR declination
+STO
+ 09 ; for corrected radial
+RCL
+ 04 ; radial
+SUM
+ 09 ; corrected radial
+RCL
+ 05 ; DME
+STO
+ 07 ; used as default distance
+CP
+RCL
+ 06 ; is the height zero?
+X=T
+skip
+
+STO
+ 07 ; correct slant range DME to actual distance
+ 6
+ 0
+ 7
+ 6
+ .
+ 1
+ 1
+ 5
+ 4
+ 9
+INV
+PRD
+ 07
+RCL
+ 07
+X2
++/-
+STO
+ 07 ; -( height / [ft/nm] )^2
+RCL
+ 05 ; DME
+X2
+SUM
+ 07
+CP
+RCL
+ 07
+INV
+X>=T ; negative argument for sqrt; height greater than distance (physically impossible/measurement error)
+reject
+SQRT ; square root
+STO
+ 07 ; actual distance (in nm) = corrected slant range DME
+
+skip:
+ 6
+ 0
+INV
+PRD
+ 07 ; actual distance / 60 (nm->degrees, 1nm=1arcminute) for delta-N (latitude)
+RCL
+ 07
+STO
+ 08 ; actual distance / 60 (nm->degrees, 1nm=1arcminute) for delta-E (longitude)
+
+RCL
+ 09 ; corrected radial
+COS
+PRD
+ 07 ; delta N = distance / 60 * COS( corrected radial ) (latitude)
+
+RCL
+ 09 ; corrected radial
+SIN
+PRD
+ 08 ; delta E = distance / 60 * SIN( corrected radial ) (longitude)
+
+RCL
+ 01 ; VOR latitude
+SBR
+decimal
+SUM
+ 07 ; delta N + VOR latitude = latitude aircraft
+
+COS
+INV
+PRD
+ 08 ; correct delta E for longitude using COS(VOR latitude)
+
+RCL
+ 02 ; VOR longitude
+SBR
+decimal
+SUM
+ 08 ; delta E + VOR longitude = longitude aircraft
+
+RCL
+ 08 ; longitude
+SBR
+cockpit
+X<>T
+RCL
+ 07 ; latitude
+SBR
+cockpit
+RTN
+
+reject:
+CP
+ 0
+1/X
+RTN

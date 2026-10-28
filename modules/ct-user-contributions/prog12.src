@@ -1,0 +1,650 @@
+ ;
+ ; Copyright (C) 2026 by Steffen Beyer
+ ;
+ ; Version: 1.1.0
+ ;
+ ; License:
+ ; GNU General Public License (GPL), GNU Lesser General Public License (LGPL) / GNU Library General Public License (LGPL)
+ ; (Version at your discretion, as usual)
+ ;
+ ; Program for VOR/VOR, VOR-NDB, NDB-NDB navigation (aviation)
+ ;
+ ; DISCLAIMER:
+ ; This program is designed for experimental navigation calculations over distances and at altitudes typical of general aviation (GA).
+ ; It uses an approximate planar model of the Earth's surface, with corrections for the convergence of meridians towards the poles,
+ ; rather than full spherical or ellipsoidal geometry.
+ ; This approximation introduces systematic position errors that can become substantial over long distances.
+ ; The magnitude of these errors depends on the geographical configuration and generally increases with distance.
+ ; Consequently, the program is not suitable for the extended navigation distances typical of high-altitude airline operations.
+ ; For educational and flight-simulation use only. Not suitable as a primary or safety-critical navigation aid in real aircraft.
+ ;
+ ; Operating conditions:
+ ; The calculator must be in DEG mode, not RAD or GRAD (the initialization function E' ensures that).
+ ; Southern latitudes and western longitudes must be negative.
+ ; Magnetic declination is positive east and negative west.
+ ; The aircraft's magnetic radials are measured FROM the VOR station, not the selected OBS course unless the CDI is centered with a FROM indication.
+ ; Before using the program, press E' to initialize it to a well-defined state.
+ ;
+ ; VOR radials and NDB bearings can be treated identically as infinite, undirected lines.
+ ; For an NDB, add the aircraft's magnetic heading to the relative ADF bearing, then add
+ ; the local magnetic declination (also called magnetic variation), preferably at the aircraft's position.
+ ; For a VOR, add the VOR's station declination to its magnetic radial.
+ ; The 180-degree difference between an inbound NDB bearing and an outbound VOR radial is irrelevant
+ ; to the intersection of infinite lines.
+ ;
+ ; Interface:
+ ;
+ ; A : input/output VOR/NDB 1 latitude               (DDDMM.mmmmm)
+ ; B : input/output VOR/NDB 1 longitude              (DDDMM.mmmmm)
+ ; C : input/output VOR 1/local magnetic declination (DDD.ddddddd)
+ ; D : input VOR 1 magnetic radial/ADF 1 readout     (DDD.ddddddd)
+ ;
+ ; A': input/output VOR/NDB 2 latitude               (DDDMM.mmmmm)
+ ; B': input/output VOR/NDB 2 longitude              (DDDMM.mmmmm)
+ ; C': input/output VOR 2/local magnetic declination (DDD.ddddddd)
+ ; D': input VOR 2 magnetic radial/ADF 2 readout     (DDD.ddddddd)
+ ;
+ ; SBR ( : store aircraft's magnetic heading in register 13 for calculation of absolute ADF bearing for NDB 1   (mnemonic: ( comes first)
+ ; SBR ) : store aircraft's magnetic heading in register 14 for calculation of absolute ADF bearing for NDB 2   (mnemonic: ) comes second)
+ ; SBR EE: store aircraft's magnetic heading in registers 13 + 14 for absolute ADF bearing for both NDB 1 and 2 (mnemonic: EE is double)
+ ;
+ ; SBR = : display the intersection angle in degrees (0-90) and the error margin amplification factor in test register t
+ ; Call SBR = only AFTER calling E. This will work even after a rejection.
+ ; Mnemonic: check whether the radials/bearings are (almost) parallel, and display a measure for the reliability of the position calculation
+ ;
+ ;
+ ; E': erases registers 01-29, switches A' B' C' A B C to input (D and D' are always input) and sets DEG mode
+ ;
+ ; E : calculates latitude and longitude of the aircraft, switches A' B' C' A B C to output (D and D' are always input)
+ ;
+ ; However, BEWARE:
+ ;
+ ;                Error margin
+ ; Intersection  amplification  Assessment
+ ;    angle         factor
+ ;
+ ;   0 -5          >=11.47x       REJECT
+ ;   5 -15        3.86-11.47x     Poor
+ ;  15 -30        2.00-3.86x      Marginal
+ ;  30 -60        1.15-2.00x      Good
+ ;  60 -90        1.00-1.15x      Excellent
+ ;
+ ; In case of rejection, a blinking "9.9999999 99" is displayed and execution is stopped (and register t is set to zero).
+ ;
+ ; Output:
+ ; x (current display) = result aircraft's latitude              (DDDMM.mmmmm)
+ ; t (test register)   = result aircraft's longitude             (DDDMM.mmmmm)
+ ; Register 07         = result aircraft's latitude              (DDD.ddddddd)
+ ; Register 08         = result aircraft's longitude             (DDD.ddddddd)
+ ; Register 11         = VOR/NDB 1 true radial/true absolute ADF (DDD.ddddddd)
+ ; Register 12         = VOR/NDB 2 true radial/true absolute ADF (DDD.ddddddd)
+ ; Register 16         = rejection factor, reject if < sin(5)
+ ; Register 17         = intersection angle
+ ; Register 18         = error margin amplification factor
+ ;
+ ; Conversion functions DDDMM.mmmmm <=> DDD.ddddddd:
+ ; SBR  .  = DDDMM.mmmmm => DDD.ddddddd (to decimal format)
+ ; SBR +/- = DDD.ddddddd => DDDMM.mmmmm (to cockpit format)
+ ; Output: current display and register 00
+
+ ; Registers:
+ ; 00 Contains the conversion result DDDMM.mmmmm <=> DDD.ddddddd from SBR . and SBR +/-
+ ; 01 VOR/NDB 1 latitude                              (DDDMM.mmmmm)
+ ; 02 VOR/NDB 1 longitude                             (DDDMM.mmmmm)
+ ; 03 VOR 1/local declination                         (DDD.ddddddd)
+ ; 04 VOR/NDB 2 latitude                              (DDDMM.mmmmm)
+ ; 05 VOR/NDB 2 longitude                             (DDDMM.mmmmm)
+ ; 06 VOR 2/local declination                         (DDD.ddddddd)
+ ; 07 Result aircraft's latitude                      (DDD.ddddddd)
+ ; 08 Result aircraft's longitude                     (DDD.ddddddd)
+ ; 09 VOR/NDB 1 magnetic radial/relative magnetic ADF (DDD.ddddddd)
+ ; 10 VOR/NDB 2 magnetic radial/relative magnetic ADF (DDD.ddddddd)
+ ; 11 VOR/NDB 1 true radial/true absolute ADF         (DDD.ddddddd) (mnemonic: 11 = 1)
+ ; 12 VOR/NDB 2 true radial/true absolute ADF         (DDD.ddddddd) (mnemonic: 12 = 2)
+ ; 13 NDB 1 magnetic aircraft heading at readout ADF  (DDD.ddddddd)
+ ; 14 NDB 2 magnetic aircraft heading at readout ADF  (DDD.ddddddd)
+ ; (these can be the same if the ADF readouts are made in rapid succession or if the aircraft's magnetic heading is stable)
+ ; 15 Signed denominator = sin(RCL11-RCL12)
+ ; 16 Rejection factor = abs(sin(RCL11-RCL12)), reject if < sin(5)
+ ; 17 Intersection angle
+ ; 18 Error margin amplification factor
+ ; 19 VOR 2 lat.  - VOR 1 lat.  (Y2 - Y1)
+ ; 20 VOR 2 long. - VOR 1 long. (X2 - X1) * COS( mean latitude )
+ ; 21 Signed distance d1 from VOR 1 (first in degrees, eventually in nm)
+ ; 22 Signed distance d2 from VOR 2 (first in degrees, eventually in nm)
+ ; 23 Result aircraft's latitude  based on VOR 2      (DDD.ddddddd)
+ ; 24 Result aircraft's longitude based on VOR 2      (DDD.ddddddd)
+ ; 25 VOR/NDB 1 latitude                              (DDD.ddddddd)
+ ; 26 VOR/NDB 1 longitude                             (DDD.ddddddd)
+ ; 27 VOR/NDB 2 latitude                              (DDD.ddddddd)
+ ; 28 VOR/NDB 2 longitude                             (DDD.ddddddd)
+ ; 29 COS( mean latitude of VOR 1 and VOR 2 )
+ ; 30 Scratchpad for conversions
+
+ ; 002 absolute address, convert from DDDMM.mmmmm to decimal DDD.ddddddd
+
+LBL ; mnemonic: convert to decimal format
+ .
+decimal:
+ (  ; DDDMM.mmmmm
+ /
+ 1
+ 0
+ 0
+ )  ; DDD.MMmmmmm
+STO
+ 30 ; DDD.MMmmmmm
+INT ; DDD
+STO
+ 00 ; DDD
+ (
+RCL
+ 30 ; DDD.MMmmmmm
+INV
+INT ; .MMmmmmm
+ /
+ .
+ 6
+ )  ; .ddddddd
+SUM
+ 00 ; DDD.ddddddd
+RCL
+ 00 ; DDD.ddddddd
+RTN
+
+ ; 029 absolute address, convert from decimal DDD.ddddddd to DDDMM.mmmmm
+
+LBL ; convert to cockpit format
++/-
+cockpit:
+STO
+ 30 ; DDD.ddddddd
+INT ; DDD
+STO
+ 00 ; DDD
+ (
+RCL
+ 30 ; DDD.ddddddd
+INV
+INT ; .ddddddd
+ *
+ .
+ 6
+ )  ; .MMmmmmm
+SUM
+ 00 ; DDD.MMmmmmm
+ 1
+ 0
+ 0
+PRD
+ 00 ; DDDMM.mmmmm
+RCL
+ 00 ; DDDMM.mmmmm
+RTN
+
+LBL ; VOR/NDB 1 latitude (DDDMM.mmmmm)
+ A
+IFF
+ 00
+read_01
+STO
+ 01
+RTN
+read_01:
+RCL
+ 01
+RTN
+
+LBL ; VOR/NDB 1 longitude (DDDMM.mmmmm)
+ B
+IFF
+ 00
+read_02
+STO
+ 02
+RTN
+read_02:
+RCL
+ 02
+RTN
+
+LBL ; VOR 1/local declination (DDD.ddddddd)
+ C
+IFF
+ 00
+read_03
+STO
+ 03
+RTN
+read_03:
+RCL
+ 03
+RTN
+
+LBL ; VOR/NDB 1 magnetic radial/relative magnetic ADF (DDD.ddddddd)
+ D
+STO
+ 09
+RTN
+
+LBL ; VOR/NDB 2 latitude (DDDMM.mmmmm)
+A'
+IFF
+ 00
+read_04
+STO
+ 04
+RTN
+read_04:
+RCL
+ 04
+RTN
+
+LBL ; VOR/NDB 2 longitude (DDDMM.mmmmm)
+B'
+IFF
+ 00
+read_05
+STO
+ 05
+RTN
+read_05:
+RCL
+ 05
+RTN
+
+LBL ; VOR 2/local declination (DDD.ddddddd)
+C'
+IFF
+ 00
+read_06
+STO
+ 06
+RTN
+read_06:
+RCL
+ 06
+RTN
+
+LBL ; VOR/NDB 2 magnetic radial/relative magnetic ADF (DDD.ddddddd)
+D'
+STO
+ 10
+RTN
+
+LBL ; initialize
+E'
+INV
+STF
+ 00 ; disable output, enable input of VOR/NDB station 1 + 2 data
+ 0
+STO
+ 01
+STO
+ 02
+STO
+ 03
+STO
+ 04
+STO
+ 05
+STO
+ 06
+STO
+ 07
+STO
+ 08
+STO
+ 09
+STO
+ 10
+STO
+ 11
+STO
+ 12
+STO
+ 13
+STO
+ 14
+STO
+ 15
+STO
+ 16
+STO
+ 17
+STO
+ 18
+STO
+ 19
+STO
+ 20
+STO
+ 21
+STO
+ 22
+STO
+ 23
+STO
+ 24
+STO
+ 25
+STO
+ 26
+STO
+ 27
+STO
+ 28
+STO
+ 29
+DEG ; force DEG mode
+RTN
+
+LBL
+EE
+STO
+ 13 ; NDB 1 magnetic aircraft heading at readout ADF  (DDD.ddddddd)
+STO
+ 14 ; NDB 2 magnetic aircraft heading at readout ADF  (DDD.ddddddd)
+RTN
+LBL
+ (
+STO
+ 13 ; NDB 1 magnetic aircraft heading at readout ADF  (DDD.ddddddd)
+RTN
+LBL
+ )
+STO
+ 14 ; NDB 2 magnetic aircraft heading at readout ADF  (DDD.ddddddd)
+RTN
+
+LBL
+ =
+RCL
+ 18 ; error margin amplification factor
+X<>T
+RCL
+ 17 ; intersection angle
+RTN
+
+LBL ; calculate
+ E
+STF
+ 00 ; disable input, enable output of VOR/NDB station 1 + 2 data
+
+RCL
+ 09 ; VOR/NDB 1 magnetic radial/relative magnetic ADF (DDD.ddddddd)
+STO
+ 11 ; eventually VOR/NDB 1 true radial/true absolute ADF (DDD.ddddddd)
+RCL
+ 13 ; aircraft's magnetic heading if NDB, otherwise **zero**
+SUM
+ 11 ; still magnetic radial if VOR, absolute magnetic ADF if NDB
+RCL
+ 03 ; VOR 1/local declination (DDD.ddddddd)
+SUM
+ 11 ; VOR/NDB 1 true radial/true absolute ADF (DDD.ddddddd)
+
+RCL
+ 10 ; VOR/NDB 2 magnetic radial/relative magnetic ADF (DDD.ddddddd)
+STO
+ 12 ; eventually VOR/NDB 2 true radial/true absolute ADF (DDD.ddddddd)
+RCL
+ 14 ; aircraft's magnetic heading if NDB, otherwise **zero**
+SUM
+ 12 ; still magnetic radial if VOR, absolute magnetic ADF if NDB
+RCL
+ 06 ; VOR 2/local declination (DDD.ddddddd)
+SUM
+ 12 ; VOR/NDB 2 true radial/true absolute ADF (DDD.ddddddd)
+
+ 5
+SIN
+X<>T
+ (
+RCL
+ 11
+ -
+RCL
+ 12
+ )
+SIN
+STO
+ 15 ; Signed denominator = sin(RCL11-RCL12)
+ABS
+STO
+ 16 ; Rejection factor = abs(sin(RCL11-RCL12)), reject if < sin(5)
+X>=T
+start
+INV ; else reject, but still calculate the intersection angle and error margin amplification factor
+SIN
+STO
+ 17 ; Intersection angle
+RCL
+ 16 ; Rejection factor = abs(sin(RCL11-RCL12)), reject if < sin(5)
+1/X
+STO
+ 18 ; Error margin amplification factor
+
+reject:
+CP
+ 0
+1/X
+RTN
+
+start:
+INV
+SIN
+STO
+ 17 ; Intersection angle
+RCL
+ 16 ; Rejection factor = abs(sin(RCL11-RCL12)), reject if < sin(5)
+1/X
+STO
+ 18 ; Error margin amplification factor
+
+ ; calculate (X2 - X1), (Y2 - Y1)
+
+RCL
+ 04 ; VOR 2 latitude (DDDMM.mmmmm)
+SBR
+decimal
+STO
+ 27 ; VOR 2 latitude (DDD.ddddddd)
+STO
+ 19
+RCL
+ 01 ; VOR 1 latitude (DDDMM.mmmmm)
+SBR
+decimal
+STO
+ 25 ; VOR 1 latitude (DDD.ddddddd)
+INV
+SUM
+ 19 ; VOR 2 lat. - VOR 1 lat. (Y2 - Y1)
+
+RCL
+ 05 ; VOR 2 longitude (DDDMM.mmmmm)
+SBR
+decimal
+STO
+ 28 ; VOR 2 longitude (DDD.ddddddd)
+STO
+ 20
+RCL
+ 02 ; VOR 1 longitude (DDDMM.mmmmm)
+SBR
+decimal
+STO
+ 26 ; VOR 1 longitude (DDD.ddddddd)
+INV
+SUM
+ 20 ; VOR 2 long. - VOR 1 long. (X2 - X1)
+
+ ; correct (X2 - X1) with COS( mean latitude )
+
+RCL
+ 25 ; VOR 1 latitude (DDD.ddddddd)
+STO
+ 29
+RCL
+ 27 ; VOR 2 latitude (DDD.ddddddd)
+SUM
+ 29 ; (Y1 + Y2)
+ 2
+INV
+PRD
+ 29 ; arithmetic mean of latitudes of VOR 1 and VOR 2
+RCL
+ 29
+COS
+STO
+ 29 ; replace mean latitude with its cosine
+PRD
+ 20 ; correct (X2 - X1) with COS( mean latitude )
+
+ ; calculate distance 1 from VOR 1 and distance 2 from VOR 2
+
+ (
+RCL
+ 12 ; true radial 2
+COS
+ *
+RCL
+ 20 ; (X2 - X1) * COS( mean latitude )
+ -
+RCL
+ 12 ; true radial 2
+SIN
+ *
+RCL
+ 19 ; (Y2 - Y1)
+ )
+STO
+ 21 ; numerator
+RCL
+ 15 ; denominator SIN(R1 - R2)
+INV
+PRD
+ 21 ; distance 1 from VOR 1
+
+ (
+RCL
+ 11 ; true radial 1
+COS
+ *
+RCL
+ 20 ; (X2 - X1) * COS( mean latitude )
+ -
+RCL
+ 11 ; true radial 1
+SIN
+ *
+RCL
+ 19 ; (Y2 - Y1)
+ )
+STO
+ 22 ; numerator
+RCL
+ 15 ; denominator SIN(R1 - R2)
+INV
+PRD
+ 22 ; distance 2 from VOR 2
+
+ ; calculate delta N and delta E for VOR 1
+
+RCL
+ 11 ; true radial 1
+COS
+STO
+ 07 ; for delta N
+RCL
+ 21 ; distance 1 from VOR 1
+PRD
+ 07 ; delta N = distance * COS( true radial ) (latitude)
+
+RCL
+ 11 ; true radial 1
+SIN
+STO
+ 08 ; for delta E
+RCL
+ 21 ; distance 1 from VOR 1
+PRD
+ 08 ; delta E = distance * SIN( true radial ) (longitude)
+
+ ; calculate delta N and delta E for VOR 2
+
+RCL
+ 12 ; true radial 2
+COS
+STO
+ 23 ; for delta N
+RCL
+ 22 ; distance 2 from VOR 2
+PRD
+ 23 ; delta N = distance * COS( true radial ) (latitude)
+
+RCL
+ 12 ; true radial 2
+SIN
+STO
+ 24 ; for delta E
+RCL
+ 22 ; distance 2 from VOR 2
+PRD
+ 24 ; delta E = distance * SIN( true radial ) (longitude)
+
+ ; Correction for longitude depending on mean latitude:
+
+RCL
+ 29 ; COS( mean latitude )
+INV
+PRD
+ 08 ; correct longitude of position 1
+INV
+PRD
+ 24 ; correct longitude of position 2
+
+ ; add coordinates of VOR 1 and VOR 2 each to their respective delta N and delta E
+
+RCL
+ 25 ; VOR 1 latitude (DDD.ddddddd)
+SUM
+ 07 ; delta N + VOR latitude = latitude aircraft
+
+RCL
+ 26 ; VOR 1 longitude (DDD.ddddddd)
+SUM
+ 08 ; delta E + VOR longitude = longitude aircraft
+
+RCL
+ 27 ; VOR 2 latitude (DDD.ddddddd)
+SUM
+ 23 ; delta N + VOR latitude = latitude aircraft
+
+RCL
+ 28 ; VOR 2 longitude (DDD.ddddddd)
+SUM
+ 24 ; delta E + VOR longitude = longitude aircraft
+
+ ; convert the distances from degrees to nautical miles
+
+ 6
+ 0
+PRD
+ 21
+PRD
+ 22
+
+ ; prepare output of aircraft position based on VOR 1
+
+RCL
+ 08 ; aircraft's longitude
+SBR
+cockpit
+X<>T
+RCL
+ 07 ; aircraft's latitude
+SBR
+cockpit
+RTN

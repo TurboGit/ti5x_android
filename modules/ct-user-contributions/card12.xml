@@ -1,0 +1,14 @@
+<carddef style="user">
+<label slot="titleleft">VOR/VOR VOR/NDB NDB/NDB Navigation</label>
+<label slot="titleright">SB-12</label>
+<label slot="aprime">VOR 2 lat.</label>
+<label slot="bprime">VOR 2 long.</label>
+<label slot="cprime">declin. 2</label>
+<label slot="dprime">radial 2</label>
+<label slot="eprime">initialize</label>
+<label slot="a">VOR 1 lat.</label>
+<label slot="b">VOR 1 long.</label>
+<label slot="c">declin. 1</label>
+<label slot="d">radial 1</label>
+<label slot="e">calc fix</label>
+</carddef>

@@ -1,0 +1,797 @@
+ ;
+ ; Copyright (C) 2026 by Steffen Beyer
+ ;
+ ; Version: 1.1.0
+ ;
+ ; License:
+ ; GNU General Public License (GPL), GNU Lesser General Public License (LGPL) / GNU Library General Public License (LGPL)
+ ; (Version at your discretion, as usual)
+ ;
+ ; Program for DME-DME navigation (aviation)
+ ;
+ ; DISCLAIMER:
+ ; This program is designed for experimental navigation calculations over distances and at altitudes typical of general aviation (GA).
+ ; It uses an approximate planar model of the Earth's surface, with corrections for the convergence of meridians towards the poles,
+ ; rather than full spherical or ellipsoidal geometry.
+ ; This approximation introduces systematic position errors that can become substantial over long distances.
+ ; The magnitude of these errors depends on the geographical configuration and generally increases with distance.
+ ; Consequently, the program is not suitable for the extended navigation distances typical of high-altitude airline operations.
+ ; For educational and flight-simulation use only. Not suitable as a primary or safety-critical navigation aid in real aircraft.
+ ;
+ ; Operating conditions:
+ ; Initialization and angle mode: Before first use, press D' to initialize the program. This also enforces Deg mode;
+ ; do not use Rad or Grad. Press E' to calculate, not to initialize (see the BEWARE warning below).
+ ; Station coordinates: Enter the geographical latitude and longitude of both DME stations in DDDMM.mmmmm format.
+ ; Southern latitudes and western longitudes must be negative. The stations must have distinct positions;
+ ; coincident stations do not provide a two-station position fix.
+ ; Distances: Enter the two measured DME slant ranges in nautical miles (nm). The readings should refer to essentially the same aircraft position;
+ ; aircraft movement between measurements is not corrected for. Negative distance inputs are treated as their absolute values.
+ ; Optional height correction: Enter the aircraft's vertical height relative to each DME station's transmitting/receiving antenna, in feet,
+ ; using SBR ( or SBR ), or SBR EE when both height differences are the same.
+ ; These are not necessarily the aircraft's height above the terrain beneath it (AGL);
+ ; if using altitudes above mean sea level (AMSL), subtract the corresponding station antenna elevation.
+ ; The sign of a height difference is immaterial because the correction squares it.
+ ; A height difference of zero leaves the measured slant range uncorrected.
+ ; Planar approximation: The program converts corrected distances to equivalent latitude degrees and scales longitude differences
+ ; by the cosine of the stations' mean latitude. This is an approximation intended for relatively short distances;
+ ; its accuracy deteriorates over large geographical extents, near the poles, and for station pairs crossing the +/-180ø longitude discontinuity
+ ; (related to the International Date Line, or IDL).
+ ; Two possible positions: When the two distance circles intersect at two points, the program calculates both positions. LEFT and RIGHT are defined
+ ; relative to the directed line from DME 1 to DME 2; they do not identify which position is the actual aircraft position.
+ ; Additional position information/knowledge from the user is required to distinguish between the two. By choosing either LEFT or RIGHT,
+ ; the user is giving this information.
+ ; Rejection criteria:
+ ; (a) If the absolute height difference (in feet, converted to nautical miles) is greater than the measured slant range (in nautical miles),
+ ; which is physically impossible in reality (or a severe measurement error), the program rejects.
+ ; The program then corrects each measured slant range for its associated height difference, obtaining a horizontal distance.
+ ; If the horizontal distance is zero (indicating that the aircraft is directly above that station), there are no two distinct intersection points,
+ ; which however are required for a valid fix.
+ ; (b) When L is the horizontal distance between the two DME stations and d1 and d2 their respective corrected horizontal distances to the aircraft,
+ ; the two distance circles can have five geometrical relationships:
+ ; Intersection angle quality: Two intersections can still give an unreliable fix if the circles cross at a very shallow angle, understood as
+ ; the angle between the two lines from the aircraft to each of the two DME stations.
+ ; This angle is folded into the range 0ø-90ø, because sin(à) = sin(180ø-à); an obtuse intersection angle is equivalent to its supplementary acute angle.
+ ; The program rejects a fix if the folded angle is less than 5ø. This rejects intersections near either external or internal tangency,
+ ; even when the circles cross at two distinct points.
+ ; The error margin amplification factor is calculated as the reciprocal of the sine of this folded angle.
+ ;
+ ; Interface:
+ ;
+ ; BEWARE:
+ ; Contrary to my other programs, in this program the actual calculations are NOT carried out by pressing E, but by pressing E'!
+ ; Subtle difference, huge consequence!
+ ; If you get a non-blinking zero in both X and T, you have probably pressed E instead of E'!
+ ; Press E' to calculate the positions. Then press D for the LEFT position or E for the RIGHT position.
+ ; Also BEWARE that in order to initialize the program, you need to press D', and NOT E', or you may get meaningless or confusing results.
+ ;
+ ; A : input/output DME 1 latitude                       (DDDMM.mmmmm)
+ ; B : input/output DME 1 longitude                      (DDDMM.mmmmm)
+ ; C : input        DME 1 distance                       (nautical miles)
+ ; D : output position LEFT  of DME1->DME2 directed line
+ ; E : output position RIGHT of DME1->DME2 directed line
+ ;
+ ; A': input/output DME 2 latitude                       (DDDMM.mmmmm)
+ ; B': input/output DME 2 longitude                      (DDDMM.mmmmm)
+ ; C': input        DME 2 distance                       (nautical miles)
+ ; D': initialize
+ ; E': calculate positions
+ ;
+ ; C : also switches to "output invalid" mode
+ ; C': also switches to "output invalid" mode
+ ; D': also switches to "output invalid" mode
+ ; E': switches to "OUTPUT IS VALID" mode -- if at least one position has been found
+ ;
+ ; D': erases registers 01-28, switches A B A' B' to input (C and C' are always input) and sets DEG mode
+ ; E': calculates the possible positions of the aircraft, and switches A B A' B' to output (C and C' are always input)
+ ;
+ ; Output E':
+ ; x (current display) = the acute intersection angle (0-90), or a blinking "9.9999999 99" if the fix is rejected
+ ; t (test register)   = measure of the error margin amplification factor, or zero if the fix is rejected
+ ;
+ ; Output D:
+ ; x (current display) = result position latitude  (LEFT of directed line DME1->DME2)  (DDDMM.mmmmm)
+ ; t (test register)   = result position longitude (LEFT of directed line DME1->DME2)  (DDDMM.mmmmm)
+ ; Zero is returned in both registers if no solution has been found by E' or output has been set to "invalid".
+ ;
+ ; Output E:
+ ; x (current display) = result position latitude  (RIGHT of directed line DME1->DME2) (DDDMM.mmmmm)
+ ; t (test register)   = result position longitude (RIGHT of directed line DME1->DME2) (DDDMM.mmmmm)
+ ; Zero is returned in both registers if no solution has been found by E' or output has been set to "invalid".
+
+ ; SBR ( : store aircraft's height above DME 1 (in feet) in register 17 for calculation of corrected slant range for DME 1 (mnemonic: ( comes first)
+ ; SBR ) : store aircraft's height above DME 2 (in feet) in register 18 for calculation of corrected slant range for DME 2 (mnemonic: ( comes first)
+ ; SBR EE: store aircraft's height above both DME 1 and 2 (if both are the same) in registers 17 and 18 for correction     (mnemonic: EE is "double")
+
+ ; SBR = : display the intersection angle in degrees (0-90) and the error margin amplification factor in test register t
+ ; Call SBR = only AFTER calling E' to display the intersection angle and the error margin amplification factor again,
+ ; also in the case of a rejected calculation, if available (if not, zero and plus infinity will be shown as defaults).
+ ; Mnemonic: check whether the calculation is ill-conditioned (e.g. for tangent circles, which are akin to parallel lines).
+
+ ; Conversion functions DDDMM.mmmmm <=> DDD.ddddddd:
+ ; SBR  .  = DDDMM.mmmmm => DDD.ddddddd (to decimal format)
+ ; SBR +/- = DDD.ddddddd => DDDMM.mmmmm (to cockpit format)
+ ; Output: current display and register 00
+
+ ; Registers:
+ ; 00 Contains the conversion result DDDMM.mmmmm <=> DDD.ddddddd from SBR . and SBR +/-
+ ; 01 DME 1 latitude              (DDDMM.mmmmm)
+ ; 02 DME 1 longitude             (DDDMM.mmmmm)
+ ; 03 DME 1 distance              (nautical miles)
+ ; 04 DME 2 latitude              (DDDMM.mmmmm)
+ ; 05 DME 2 longitude             (DDDMM.mmmmm)
+ ; 06 DME 2 distance              (nautical miles)
+ ; 07 Result position L latitude  (DDD.ddddddd)
+ ; 08 Result position L longitude (DDD.ddddddd)
+ ; 09 Result position R latitude  (DDD.ddddddd)
+ ; 10 Result position R longitude (DDD.ddddddd)
+ ; 11 DME 1 latitude              (DDD.ddddddd) Register 01 + 10
+ ; 12 DME 1 longitude             (DDD.ddddddd) Register 02 + 10
+ ; 13 DME 1 distance / 60 = r1    (DDD.ddddddd) Register 03 + 10
+ ; 14 DME 2 latitude              (DDD.ddddddd) Register 04 + 10
+ ; 15 DME 2 longitude             (DDD.ddddddd) Register 05 + 10
+ ; 16 DME 2 distance / 60 = r2    (DDD.ddddddd) Register 06 + 10
+ ; 17 Height above DME 1          (feet) (optional, can improve accuracy)
+ ; 18 Height above DME 2          (feet) (optional, can improve accuracy)
+ ; 19 YY = (Y2 - Y1)                    later normalized / L
+ ; 20 XX = (X2 - X1) * COS( (Y1+Y2)/2 ) later normalized / L
+ ; 21 COS( (Y1+Y2)/2 )
+ ; 22 Baseline length L (= distance between DME 1 and DME 2)
+ ; 23 Baseline offset a = ( ( r1^2 - r2^2 ) / L + L ) / 2
+ ; 24 First q = r1^2 - a^2, then h = sqrt( q )
+ ; 25 First sin(theta), then acute intersection angle theta (0-90)
+ ; 26 Error margin amplification factor
+ ; 27 Intermediate h * YY
+ ; 28 Intermediate h * XX
+ ; 29 Scratchpad for conversions
+
+ ; 002 absolute address, convert from DDDMM.mmmmm to decimal DDD.ddddddd
+
+LBL ; mnemonic: convert to decimal format
+ .
+decimal:
+ (  ; DDDMM.mmmmm
+ /
+ 1
+ 0
+ 0
+ )  ; DDD.MMmmmmm
+STO
+ 29 ; DDD.MMmmmmm
+INT ; DDD
+STO
+ 00 ; DDD
+ (
+RCL
+ 29 ; DDD.MMmmmmm
+INV
+INT ; .MMmmmmm
+ /
+ .
+ 6
+ )  ; .ddddddd
+SUM
+ 00 ; DDD.ddddddd
+RCL
+ 00 ; DDD.ddddddd
+RTN
+
+ ; 029 absolute address, convert from decimal DDD.ddddddd to DDDMM.mmmmm
+
+LBL ; convert to cockpit format
++/-
+cockpit:
+STO
+ 29 ; DDD.ddddddd
+INT ; DDD
+STO
+ 00 ; DDD
+ (
+RCL
+ 29 ; DDD.ddddddd
+INV
+INT ; .ddddddd
+ *
+ .
+ 6
+ )  ; .MMmmmmm
+SUM
+ 00 ; DDD.MMmmmmm
+ 1
+ 0
+ 0
+PRD
+ 00 ; DDDMM.mmmmm
+RCL
+ 00 ; DDDMM.mmmmm
+RTN
+
+LBL ; DME 1 latitude (DDDMM.mmmmm)
+ A
+IFF
+ 00
+read_01
+STO
+ 01
+RTN
+read_01:
+RCL
+ 01
+RTN
+
+LBL ; DME 1 longitude (DDDMM.mmmmm)
+ B
+IFF
+ 00
+read_02
+STO
+ 02
+RTN
+read_02:
+RCL
+ 02
+RTN
+
+LBL ; DME 2 latitude (DDDMM.mmmmm)
+A'
+IFF
+ 00
+read_04
+STO
+ 04
+RTN
+read_04:
+RCL
+ 04
+RTN
+
+LBL ; DME 2 longitude (DDDMM.mmmmm)
+B'
+IFF
+ 00
+read_05
+STO
+ 05
+RTN
+read_05:
+RCL
+ 05
+RTN
+
+LBL ; DME 1 distance (nm)
+ C
+INV
+STF
+ 01 ; set to "output invalid"
+ABS
+STO
+ 03
+RTN
+
+LBL ; DME 2 distance (nm)
+C'
+INV
+STF
+ 01 ; set to "output invalid"
+ABS
+STO
+ 06
+RTN
+
+LBL
+EE
+INV
+STF
+ 01 ; set to "output invalid"
+STO
+ 17 ; Height of the aircraft above DME 1 (in feet)
+STO
+ 18 ; Height of the aircraft above DME 2 (in feet)
+RTN
+LBL
+ (
+INV
+STF
+ 01 ; set to "output invalid"
+STO
+ 17 ; Height of the aircraft above DME 1 (in feet)
+RTN
+LBL
+ )
+INV
+STF
+ 01 ; set to "output invalid"
+STO
+ 18 ; Height of the aircraft above DME 2 (in feet)
+RTN
+
+LBL
+ D
+IFF
+ 01
+valid_L
+CP
+X<>T
+CP
+RTN
+
+valid_L:
+RCL
+ 08 ; position L longitude
+SBR
+cockpit
+X<>T
+RCL
+ 07 ; position L latitude
+SBR
+cockpit
+RTN
+
+LBL
+ E
+IFF
+ 01
+valid_R
+CP
+X<>T
+CP
+RTN
+
+valid_R:
+RCL
+ 10 ; position R longitude
+SBR
+cockpit
+X<>T
+RCL
+ 09 ; position R latitude
+SBR
+cockpit
+RTN
+
+LBL ; initialize
+D'
+INV
+STF
+ 00 ; disable output, enable input of DME station 1 + 2 data
+INV
+STF
+ 01 ; set to "output invalid"
+ 0
+STO
+ 01
+STO
+ 02
+STO
+ 03
+STO
+ 04
+STO
+ 05
+STO
+ 06
+STO
+ 07
+STO
+ 08
+STO
+ 09
+STO
+ 10
+STO
+ 11
+STO
+ 12
+STO
+ 13
+STO
+ 14
+STO
+ 15
+STO
+ 16
+STO
+ 17
+STO
+ 18
+STO
+ 19
+STO
+ 20
+STO
+ 21
+STO
+ 22
+STO
+ 23
+STO
+ 24
+STO
+ 25
+STO
+ 26
+STO
+ 27
+STO
+ 28
+DEG ; force DEG mode
+RTN
+
+LBL
+E'
+STF
+ 00 ; disable input, enable output of DME station 1 + 2 data
+INV
+STF
+ 01 ; set to "output invalid" as the default
+
+ 6
+ 0
+ 7
+ 6
+ .
+ 1
+ 1
+ 5
+ 4
+ 9
+STO
+ 21
+
+RCL
+ 03 ; distance d1 in nautical miles
+STO
+ 13 ; for radius r1
+RCL
+ 06 ; distance d2 in nautical miles
+STO
+ 16 ; for radius r2
+
+CP
+RCL
+ 17 ; is the height above DME 1 zero?
+X=T
+skip1
+STO
+ 13 ; correct slant range DME 1 to actual distance
+RCL
+ 21 ; 6076.11549 [ft/nm]
+INV
+PRD
+ 13
+RCL
+ 13
+X2
++/-
+STO
+ 13 ; -( height / [ft/nm] )^2
+RCL
+ 03 ; distance d1 in nautical miles
+X2
+SUM
+ 13
+RCL
+ 13
+INV
+X>=T ; negative argument for sqrt; height greater than distance (physically impossible/measurement error)
+reject
+SQRT ; square root
+STO
+ 13 ; actual distance (in nm) = corrected slant range DME 1
+
+skip1:
+CP
+RCL
+ 18 ; is the height above DME 2 zero?
+X=T
+skip2
+STO
+ 16 ; correct slant range DME 2 to actual distance
+RCL
+ 21 ; 6076.11549 [ft/nm]
+INV
+PRD
+ 16
+RCL
+ 16
+X2
++/-
+STO
+ 16 ; -( height / [ft/nm] )^2
+RCL
+ 06 ; distance d2 in nautical miles
+X2
+SUM
+ 16
+RCL
+ 16
+INV
+X>=T ; negative argument for sqrt; height greater than distance (physically impossible/measurement error)
+reject
+SQRT ; square root
+STO
+ 16 ; actual distance (in nm) = corrected slant range DME 2
+
+ ; convert nautical miles to equivalent latitude degrees, 1 degree = 60 nautical miles, 1 arcminute = 1 nm (approximately):
+
+skip2:
+ 6
+ 0
+INV
+PRD
+ 13 ; radius r1 in degrees
+INV
+PRD
+ 16 ; radius r2 in degrees
+
+RCL
+ 04 ; latitude DME2
+SBR
+decimal
+STO
+ 14 ; save decimal format
+STO
+ 19 ; for (Y2 - Y1)
+STO
+ 21 ; for (Y1 + Y2) / 2
+RCL
+ 01 ; latitude DME1
+SBR
+decimal
+STO
+ 11 ; save decimal format
+INV
+SUM
+ 19 ; (Y2 - Y1)
+SUM
+ 21 ; = (Y1 + Y2)
+ 2
+INV
+PRD
+ 21 ; = (Y1 + Y2) / 2
+
+RCL
+ 05
+SBR
+decimal
+STO
+ 15 ; save decimal format
+STO
+ 20 ; for (X2 - X1)
+RCL
+ 02
+SBR
+decimal
+STO
+ 12 ; save decimal format
+INV
+SUM
+ 20 ; (X2 - X1)
+RCL
+ 21 ; = (Y1 + Y2) / 2
+COS
+STO
+ 21 ; = COS( (Y1+Y2)/2 )
+PRD
+ 20 ; = (X2 - X1) * COS( (Y1+Y2)/2 )
+
+ (
+RCL
+ 19 ; (Y2 - Y1)
+X2
+ +
+RCL
+ 20 ; (X2 - X1) * COS( (Y1+Y2)/2 )
+X2
+ )
+SQRT
+STO
+ 22 ; L = sqrt( (Y2-Y1)^2 + (X2-X1)^2 )
+CP
+X=T ; distance between DME stations is zero
+reject
+
+RCL
+ 13 ; radius r1
+X2
+STO
+ 23 ; = r1^2 (for a)
+STO
+ 24 ; = r1^2 (for q)
+RCL
+ 16 ; radius r2
+X2
+INV
+SUM
+ 23 ; = ( r1^2 - r2^2 )
+RCL
+ 22 ; L
+INV
+PRD
+ 23 ; = ( r1^2 - r2^2 ) / L
+SUM
+ 23 ; = ( r1^2 - r2^2 ) / L + L
+ 2
+INV
+PRD
+ 23 ; a = ( ( r1^2 - r2^2 ) / L + L ) / 2
+
+RCL
+ 23 ; a
+X2
+INV
+SUM
+ 24 ; q = r1^2 - a^2
+
+CP
+RCL
+ 24 ; q
+X<>T
+X>=T ; q <= 0?  q = 0 => h = 0 => only one intersection => reject
+reject
+X<>T ; retrieve q
+SQRT
+STO
+ 24 ; h = sqrt( q )
+STO
+ 25 ; for sin(theta)
+
+RCL
+ 22 ; L
+INV
+PRD
+ 19 ; normalize (Y2-Y1) / L
+INV
+PRD
+ 20 ; normalize (X2-X1) * COS( (Y1+Y2)/2 ) / L
+PRD
+ 25 ; h * L
+RCL
+ 13 ; radius r1
+INV
+PRD
+ 25 ; = L * h / r1
+RCL
+ 16 ; radius r2
+INV
+PRD
+ 25 ; = L * h / ( r1 * r2 )
+
+ 5
+SIN
+X<>T ; for rejection test below
+RCL
+ 25 ; sin(theta) = L * h / ( r1 * r2 )
+ABS
+STO
+ 26
+X>=T ;  abs(sin(theta)) >= sin(5)
+start
+
+ ; soft reject, with calculated intersection angle and error margin amplification factor:
+
+INV
+SIN
+STO
+ 25 ; acute intersection angle
+RCL
+ 26
+1/X
+STO
+ 26 ; error margin amplification factor
+
+CP
+ 0
+1/X
+RTN
+
+ ; hard reject:
+
+reject:
+CP
+ 0
+STO
+ 25 ; acute intersection angle; set to 0 as default
+1/X
+STO
+ 26 ; error margin amplification factor; set to plus infinity as default
+RTN
+
+start:
+INV
+SIN
+STO
+ 25 ; acute intersection angle
+RCL
+ 26
+1/X
+STO
+ 26 ; error margin amplification factor
+
+RCL
+ 19 ; YY = (Y2 - Y1) / L
+STO
+ 07 ; for aYY
+STO
+ 27 ; for hYY
+
+RCL
+ 20 ; XX = (X2 - X1) * COS( (Y1+Y2)/2 ) / L
+STO
+ 08 ; for aXX
+STO
+ 28 ; for hXX
+
+RCL
+ 23 ; a
+PRD
+ 07 ; aYY
+PRD
+ 08 ; aXX
+
+RCL
+ 24 ; h
+PRD
+ 27 ; hYY
+PRD
+ 28 ; hXX
+
+RCL
+ 07 ; aYY
+STO
+ 09 ; aYY
+
+RCL
+ 08 ; aXX
+STO
+ 10 ; aXX
+
+RCL
+ 28 ; hXX
+SUM
+ 07 ; delta position L latitude
+INV
+SUM
+ 09 ; delta position R latitude
+
+RCL
+ 27 ; hYY
+INV
+SUM
+ 08 ; delta position L longitude
+SUM
+ 10 ; delta position R longitude
+
+RCL
+ 21 ; COS( (Y1+Y2)/2 )
+INV
+PRD
+ 08 ; correction for L longitude based on mean latitude
+INV
+PRD
+ 10 ; correction for R longitude based on mean latitude
+
+RCL
+ 11 ; DME 1 latitude in degrees
+SUM
+ 07 ; Add to position L latitude
+SUM
+ 09 ; Add to position R latitude
+
+RCL
+ 12 ; DME 1 longitude in degrees
+SUM
+ 08 ; Add to position L longitude
+SUM
+ 10 ; Add to position R longitude
+
+STF
+ 01 ; set to "output VALID"
+
+LBL
+ =
+RCL
+ 26 ; Error margin amplification factor
+X<>T
+RCL
+ 25 ; Acute intersection angle (0-90)
+RTN

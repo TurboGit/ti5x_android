@@ -1,0 +1,356 @@
+<html><head>
+<title>DME/DME Navigation for Aviation</title>
+<STYLE TYPE="text/css">
+.yellowbutton
+  {
+    background : #FFE071;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.brownbutton
+  {
+    background : #63452B;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    color : #F0EDD5;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.whitebutton
+  {
+    background : #E0DDC5;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    color : #222424;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.alttext
+  {
+    background : #000000;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    color : #dcb151;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.deflist DT
+  {
+    display : compact;
+    font-weight : bold;
+  }
+.deflist DD
+  {
+    margin-left : 4em;
+  }
+
+.display
+ {
+    color : red;
+    font-weight : bold;
+    font-family: courier bold;
+    text-align : right;
+    margin-right : 2em;
+ }
+.displayb
+ {
+    padding: 0em 0.5em 0em;
+    color: red;
+    background: #eeeeee;
+    font-weight: bold;
+    font-family: courier bold;
+    font-size: 1.1em;
+ }
+</STYLE>
+</head>
+<body>
+
+<h1>SB-13 &ndash; DME/DME Navigation for Aviation</h1>
+
+<span style="font-size: 1.17em; font-weight: bold;">Copyright:</span>
+<span>&copy; 2026 by Steffen Beyer</span>
+<p></p>
+
+<span style="font-size: 1.17em; font-weight: bold;">Version:</span>
+<span>1.1.0</span>
+<p></p>
+
+<span style="font-size: 1.17em; font-weight: bold;">License:</span>
+<span>GNU General Public License (GPL) or GNU Lesser General Public License (LGPL), version at your discretion (as usual).</span>
+<p></p>
+
+<h3>Description:</h3>
+<p>Calculate an aircraft&apos;s current geographical latitude and longitude (sometimes also called a fix) from the known positions of two DME stations, and the slant range distance from both of them.
+Optionally, enter the height of the aircraft above each DME station, which allows to correct the slant range into horizontal distance, and which may improve the accuracy of the fix.</p>
+
+<h3>Disclaimer:</h3>
+<p>This program is designed for experimental navigation calculations over distances and at altitudes typical of general aviation (GA).
+It uses an approximate planar model of the Earth&apos;s surface, with corrections for the convergence of meridians towards the poles,
+rather than full spherical or ellipsoidal geometry.</p>
+<p>This approximation introduces systematic position errors that can become substantial over long distances.
+The magnitude of these errors depends on the geographical configuration and generally increases with distance.
+Consequently, the program is not suitable for the extended navigation distances typical of high-altitude airline operations.</p>
+<table style="background-color: #FF6666;" border="0" cellpadding="10"><tr><td>
+<p>&#x26A0;&#xFE0F; <span style="font-weight:bold">For educational and flight-simulation use only. Not suitable as a primary or safety-critical navigation aid in real aircraft.</span> &#x26A0;&#xFE0F;</p>
+</td></tr></table>
+
+<h3>Operating conditions:</h3>
+<ul>
+<li><b>Initialization and angle mode:</b> Before first use, press <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span> to initialize the program.
+This also enforces <span class="yellowbutton">2nd</span> <span class="alttext">Deg</span> mode; do not use <span class="yellowbutton">2nd</span> <span class="alttext">Rad</span> or
+<span class="yellowbutton">2nd</span> <span class="alttext">Grad</span>. Press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> to <b>calculate</b>,
+not to initialize (see the BEWARE warning below).</li>
+<li><b>Station coordinates:</b> Enter the geographical latitude and longitude of both DME stations in DDDMM.mmmmm format. Southern latitudes and western longitudes must be negative.
+The stations must have distinct positions; coincident stations do not provide a two-station position fix.</li>
+<li><b>Distances:</b> Enter the two measured DME <em>slant ranges</em> in nautical miles (nm). The readings should refer to essentially the same aircraft position;
+aircraft movement between measurements is not corrected for. Negative distance inputs are treated as their absolute values.</li>
+<li><b>Optional height correction:</b> Enter the aircraft&apos;s vertical height <em>relative to each DME station&apos;s transmitting/receiving antenna</em>, in feet,
+using
+<span class="brownbutton">SBR</span> <span class="whitebutton">(</span> or
+<span class="brownbutton">SBR</span> <span class="whitebutton">)</span>, or
+<span class="brownbutton">SBR</span> <span class="whitebutton">EE</span> when
+both height differences are the same.<br>
+These are not necessarily the aircraft&apos;s height above the terrain beneath it (AGL);
+if using altitudes above mean sea level (AMSL), subtract the corresponding station antenna elevation.
+The sign of a height difference is immaterial because the correction squares it.<br>
+A height difference of zero leaves the measured slant range uncorrected.
+If height differences are not provided, the program uses the measured slant ranges as approximate horizontal distances.</li>
+<li><b>Planar approximation:</b> The program converts corrected distances to equivalent latitude degrees and scales longitude differences by the cosine of the stations&apos; mean latitude.<br>
+This is an approximation intended for relatively short distances; its accuracy deteriorates over large geographical extents, near the poles, and for station pairs crossing the &plusmn;180&deg; longitude discontinuity (related to the International Date Line, or IDL).</li>
+<li><b>Two possible positions:</b> When the two distance circles intersect at two points, the program calculates both positions. LEFT and RIGHT are defined relative to the directed line from DME 1 to DME 2;
+they do <b>not</b> identify which position is the actual aircraft position.<br>
+Additional position information/knowledge from the user is required to distinguish between the two. By choosing either LEFT or RIGHT, the user is giving this information.</li>
+
+<li><b>Rejection criteria:</b>
+<p>(a) If the absolute height difference (in feet, converted to nautical miles) is greater than the measured slant range (in nautical miles), which is physically impossible in reality (or a severe measurement error), the program rejects.<br>
+The program then corrects each measured slant range for its associated height difference, obtaining a horizontal distance.<br>
+If the horizontal distance is zero (indicating that the aircraft is directly above that station), there are no two distinct intersection points, which however are required for a valid fix.</p>
+<p>(b) When L is the horizontal distance between the two DME stations and d<sub>1</sub>  and d<sub>2</sub> their respective corrected horizontal distances to the aircraft, the two distance circles can have five geometrical relationships:</p>
+
+<table border="0" cellspacing="10">
+<tr><th>Condition</th><th>Geometry</th><th>Result</th></tr>
+<tr><td>L &gt; d<sub>1</sub> + d<sub>2</sub></td><td>Circles too far apart to meet (externally separated)</td><td><b>REJECT</b>: no intersection</td></tr>
+<tr><td>L = d<sub>1</sub> + d<sub>2</sub></td><td>Circles touch externally at one point</td><td><b>REJECT</b>: tangency; perpendicular offset h = 0</td></tr>
+<tr><td>|d<sub>1</sub> &minus; d<sub>2</sub>| &lt; L &lt; d<sub>1</sub> + d<sub>2</sub></td><td>Circles cross at two distinct points</td><td>Proceed to the intersection angle quality check (see below)</td></tr>
+<tr><td>L = |d<sub>1</sub> &minus; d<sub>2</sub>|</td><td>Circles touch internally at one point</td><td><b>REJECT</b>: tangency; perpendicular offset h = 0</td></tr>
+<tr><td>L &lt; |d<sub>1</sub> &minus; d<sub>2</sub>|</td><td>One circle lies inside the other without touching (internally separated)</td><td><b>REJECT</b>: no intersection</td></tr>
+</table></li>
+<li><p><b>Intersection angle quality:</b> Two intersections can still give an unreliable fix if the circles cross at a very shallow angle, understood as the angle between the two lines from the aircraft to each of the two DME stations.</p>
+<p>This angle is folded into the range 0&deg;-90&deg;, because sin(&alpha;) = sin(180&deg;-&alpha;); an obtuse intersection angle is equivalent to its supplementary acute angle.<br>
+The program rejects a fix if the folded angle is less than 5&deg;. This rejects intersections near either external or internal tangency, even when the circles cross at two distinct points.<br>
+The error margin amplification factor is calculated as the reciprocal of the sine of this folded angle.</p>
+<table border="0" cellspacing="10">
+<tr><th>Intersection angle</th><th>Error margin amplification factor</th><th>Assessment</th></tr>
+<tr><td>0&deg; to &lt;5&deg;</td><td>&ge;11.47&times; (undefined at 0&deg;)</td><td>REJECT</td></tr>
+<tr><td>5&deg; to &lt;15&deg;</td><td>3.86&ndash;11.47&times;</td><td>Poor</td></tr>
+<tr><td>15&deg; to &lt;30&deg;</td><td>2.00&ndash;3.86&times;</td><td>Marginal</td></tr>
+<tr><td>30&deg; to &lt;60&deg;</td><td>1.15&ndash;2.00&times;</td><td>Good</td></tr>
+<tr><td>60&deg; to 90&deg;</td><td>1.00&ndash;1.15&times;</td><td>Excellent</td></tr>
+</table></li>
+</ul>
+
+<h3>Usage:</h3>
+<table style="background-color: #FFFF99;" border="2" cellpadding="30" width="33%"><tr><td>
+<p style="font-size: 1.5em;">&#x26A0;&#xFE0F; <b><u>BEWARE:</u></b> &#x26A0;&#xFE0F;</p>
+<p>Contrary to my other programs, in this program the actual calculations are <b><u>NOT</u></b> carried out by pressing <span class="brownbutton">E</span>, but by pressing <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>!</p>
+<p style="font-size: 1.2em;"><b>Subtle difference, huge consequence!</b></p>
+<p>If you get a non-blinking zero in both X and T, you have probably pressed <span class="brownbutton">E</span> instead of <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>!</p>
+<p>Press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> to calculate the positions. Then press <span class="brownbutton">D</span> for the LEFT position or <span class="brownbutton">E</span> for the RIGHT position.</p>
+<P>Also <b><u>BEWARE</u></b> that in order to <b>initialize the program</b>, you need to press <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span>, and <b><u>NOT</u></b> <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>,
+or you may get <b>meaningless or confusing results</b>.</p>
+</td></tr></table>
+<p>To initialize for a new pair of DME stations, press <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span>; this also enforces <span class="yellowbutton">2nd</span> <span class="alttext">Deg</span> mode.</p>
+<p>Enter the geographical coordinates of both DME stations, followed by the slant range distance for each of them.</p>
+<p>Optionally, enter the height of the aircraft above each DME station with
+<span class="brownbutton">SBR</span> <span class="whitebutton">(</span>, <span class="brownbutton">SBR</span> <span class="whitebutton">)</span> or <span class="brownbutton">SBR</span> <span class="whitebutton">EE</span>,
+which allows to correct the slant range into horizontal distance, and which may improve the accuracy of the fix.</p>
+
+<table border="0" cellspacing="10"><tr><th>Key</th><th>Input / Output</th><th>Location</th><th>Format / Unit</th></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span></td><td> Initialize</td><td>Registers 1-28</td><td>n/a</td></tr>
+<tr><td align="center"><span class="brownbutton">A</span></td><td>Input/output DME 1 latitude</td><td> Display (x) </td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">B</span></td><td>Input/output DME 1 longitude</td><td> Display (x) </td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">C</span></td><td>Input slant range distance from DME 1</td><td> Display (x) </td><td>nautical miles</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">A&apos;</span></td><td> Input/output DME 2 latitude</td><td>Display (x)</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">B&apos;</span></td><td> Input/output DME 2 longitude</td><td>Display (x)</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span></td><td> Input slant range distance from DME 2</td><td>Display (x)</td><td>nautical miles</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span></td><td> Calculate fix</td><td>Display (x): intersection angle in degrees (0-90);<br>Register t: error margin amplification factor </td><td>DDD.ddddddd; n/a</td></tr>
+<tr><td align="center"><span class="brownbutton">D</span></td><td>Output position LEFT of DME 1 to DME 2 directed line</td><td> Display (x): latitude;<br>Register t: longitude </td><td>DDDMM.mmmmm; DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">E</span></td><td>Output position RIGHT of DME 1 to DME 2 directed line</td><td> Display (x): latitude;<br>Register t: longitude </td><td>DDDMM.mmmmm; DDDMM.mmmmm</td></tr>
+</table>
+
+<table border="0" cellspacing="10"><tr><th>Keys</th><th>Explanation</th><th>Location</th><th>Format / Unit</th><th>Comment</th></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">(</span></td><td>Store aircraft&apos;s height above DME 1</td><td>Register 17</td><td>feet</td><td>mnemonic: &apos;(&apos; comes first</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">)</span></td><td>Store aircraft&apos;s height above DME 2</td><td>Register 18</td><td>feet</td><td>mnemonic: &apos;)&apos; comes second</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">EE</span></td><td>Store aircraft&apos;s height above both DME 1 and 2, if both are the same</td><td>Registers 17 and 18</td><td>feet</td><td>mnemonic: &apos;EE&apos; is &quot;double&quot;</td></tr>
+</table>
+<p>&nbsp;</p>
+
+<p>Press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> to calculate the aircraft&apos;s two possible positions.
+If the geometry is acceptable, you can then retrieve the two positions, either the one to the LEFT of the directed line from DME 1 to DME 2 with <span class="brownbutton">D</span>;
+or the one to the RIGHT of the directed line from DME 1 to DME 2 with <span class="brownbutton">E</span>.</p>
+<p>After calculation, <span class="brownbutton">A</span>, <span class="brownbutton">B</span>,
+<span class="yellowbutton">2nd</span> <span class="alttext">A&apos;</span> and <span class="yellowbutton">2nd</span> <span class="alttext">B&apos;</span>
+retrieve their stored values instead of accepting new ones;
+<span class="brownbutton">C</span> and <span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span>, as well as
+<span class="brownbutton">SBR</span> <span class="whitebutton">(</span>,
+<span class="brownbutton">SBR</span> <span class="whitebutton">)</span> and
+<span class="brownbutton">SBR</span> <span class="whitebutton">EE</span>,
+always accept new entries (in order to allow for quick successive fixes).</p>
+<p>To change station coordinates, press <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span> and re-enter all data; initialization clears registers 01&ndash;28, including the stored heights, and sets <span class="yellowbutton">2nd</span> <span class="alttext">Deg</span> mode.</p>
+<p>&nbsp;</p>
+
+<p>If you press <span class="brownbutton">D</span> or <span class="brownbutton">E</span> before a valid result has been obtained by <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>,
+or if the calculation has been rejected, then both <span class="brownbutton">D</span> and <span class="brownbutton">E</span> will display a zero in both the display and in t.</p>
+<p>Note that not only does <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span> reset the flag for valid output and <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>
+in case of a rejected calculation, but so do <span class="brownbutton">C</span> and <span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span>, as well as
+<span class="brownbutton">SBR</span> <span class="whitebutton">(</span>,
+<span class="brownbutton">SBR</span> <span class="whitebutton">)</span> and
+<span class="brownbutton">SBR</span> <span class="whitebutton">EE</span>, i.e.,</p>
+<p>whenever you re-enter a new slant range distance or a new height of the aircraft above the corresponding DME station.
+This prevents muddled results while allowing repeated fixes in rapid succession.</p>
+<p>Simply press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> again.</p>
+<p>&nbsp;</p>
+
+<p>After pressing <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>,
+the program displays the acute intersection angle (0&ndash;90&deg;) in x and the error margin amplification factor in t.</p>
+<p>The error margin amplification factor indicates how sensitive the calculated position is to errors in the measured distances; it is not an absolute position-error estimate.</p>
+<p>If <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> has rejected the fix, the program stops and shows a blinking &quot;9.9999999 99&quot; in the display (x), and t is set to zero.</p>
+<p>The function <span class="brownbutton">SBR</span> <span class="yellowbutton">=</span> can be used anytime after calling <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>
+to display the intersection angle and the error margin amplification factor again, also in the case of a rejected calculation, if available (if not, zero and plus infinity will be shown as defaults).</p>
+<p>&nbsp;</p>
+
+<h3>Function keys:</h3>
+<table border="0" cellspacing="10"><tr><th>Key</th><th>Input / Output</th><th>Location</th><th>Format / Unit</th></tr>
+<tr><td align="center"><span class="brownbutton">A</span></td><td>Input/output DME 1 latitude</td><td> Display (x) </td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">B</span></td><td>Input/output DME 1 longitude</td><td> Display (x) </td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">C</span></td><td>Input slant range distance from DME 1</td><td> Display (x) </td><td>nautical miles</td></tr>
+<tr><td align="center"><span class="brownbutton">D</span></td><td>Output position LEFT of DME 1 to DME 2 directed line</td><td> Display (x): latitude;<br>Register t: longitude </td><td>DDDMM.mmmmm; DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">E</span></td><td>Output position RIGHT of DME 1 to DME 2 directed line</td><td> Display (x): latitude;<br>Register t: longitude </td><td>DDDMM.mmmmm; DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">A&apos;</span></td><td> Input/output DME 2 latitude</td><td>Display (x)</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">B&apos;</span></td><td> Input/output DME 2 longitude</td><td>Display (x)</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span></td><td> Input slant range distance from DME 2</td><td>Display (x)</td><td>nautical miles</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span></td><td> Initialize</td><td>Registers 1-28</td><td>n/a</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span></td><td> Calculate fix</td><td>Display (x): intersection angle in degrees (0-90);<br>Register t: error margin amplification factor </td><td>DDD.ddddddd; n/a</td></tr>
+</table>
+
+<h3>Subroutines:</h3>
+<table border="0" cellspacing="10"><tr><th>Keys</th><th>Explanation</th><th>Location</th><th>Format / Unit</th><th>Comment</th></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">(</span></td><td>Store aircraft&apos;s height above DME 1</td><td>Register 17</td><td>feet</td><td>mnemonic: &apos;(&apos; comes first</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">)</span></td><td>Store aircraft&apos;s height above DME 2</td><td>Register 18</td><td>feet</td><td>mnemonic: &apos;)&apos; comes second</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">EE</span></td><td>Store aircraft&apos;s height above both DME 1 and 2, if both are the same</td><td>Registers 17 and 18</td><td>feet</td><td>mnemonic: &apos;EE&apos; is &quot;double&quot;</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="yellowbutton">=</span></td><td>Display intersection geometry
+</td><td>Display (x): angle in degrees (0-90);<br>Register t: error margin amplification factor</td><td>DDD.ddddddd; n/a</td><td>only after calculation with <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span></td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">.</span></td><td>Converts cockpit format DDDMM.mmmmm to decimal degrees DDD.ddddddd</td><td>Display (x) and Register 00</td><td>DDD.ddddddd</td><td></td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">+/-</span></td><td>Converts decimal degrees DDD.ddddddd to cockpit format DDDMM.mmmmm</td><td>Display (x) and Register 00</td><td>DDDMM.mmmmm</td><td></td></tr>
+</table>
+
+<h3>Output:</h3>
+<table border="0" cellspacing="10">
+<tr><th>Location</th><th>Value</th><th>Format / Unit</th></tr>
+<tr><td>Register 07:</td><td>Result position L latitude</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 08:</td><td>Result position L longitude</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 09:</td><td>Result position R latitude</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 10:</td><td>Result position R longitude</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 17:</td><td>Height of aircraft above DME 1</td><td>feet</td></tr>
+<tr><td>Register 18:</td><td>Height of aircraft above DME 2</td><td>feet</td></tr>
+<tr><td>Register 22:</td><td>Baseline length L (= distance between DME 1 and DME 2)</td><td>n/a</td></tr>
+<tr><td>Register 23:</td><td>Baseline offset a = ( ( r<sub>1</sub><sup>2</sup> - r<sub>2</sub><sup>2</sup> ) / L + L ) / 2</td><td>n/a</td></tr>
+<tr><td>Register 24:</td><td>First q = r<sub>1</sub><sup>2</sup> - a<sup>2</sup>, then h = sqrt( q )</td><td>n/a</td></tr>
+<tr><td>Register 25:</td><td>First sin(intersection angle), then acute intersection angle (0-90)</td><td>n/a</td></tr>
+<tr><td>Register 26:</td><td>Error margin amplification factor</td><td>n/a</td></tr>
+</table>
+
+<h3>Good to know:</h3>
+<p>The program does not interrupt ongoing calculations. Its functions and subroutines do not use <span class="yellowbutton">CLR</span> or <span class="yellowbutton">=</span> internally, so ongoing arithmetic operations are not prematurely cleared or evaluated.</p>
+
+<h3>Registers used:</h3>
+<table border="0" cellspacing="10"><tr><th>Register</th><th>Purpose</th><th>Format / Unit</th><th>Comment</th></tr>
+<tr><td>00</td><td>Coordinate conversion result</td><td>DDDMM.mmmmm, DDD.ddddddd</td><td></td></tr>
+<tr><td>01</td><td>DME 1 latitude (cockpit format)</td><td>DDDMM.mmmmm</td><td></td></tr>
+<tr><td>02</td><td>DME 1 longitude (cockpit format)</td><td>DDDMM.mmmmm</td><td></td></tr>
+<tr><td>03</td><td>DME 1 slant range distance</td><td>nautical miles</td><td></td></tr>
+<tr><td>04</td><td>DME 2 latitude (cockpit format)</td><td>DDDMM.mmmmm</td><td></td></tr>
+<tr><td>05</td><td>DME 2 longitude (cockpit format)</td><td>DDDMM.mmmmm</td><td></td></tr>
+<tr><td>06</td><td>DME 2 slant range distance</td><td>nautical miles</td><td></td></tr>
+<tr><td>07</td><td>Result position L latitude</td><td>DDD.ddddddd</td><td></td></tr>
+<tr><td>08</td><td>Result position L longitude</td><td>DDD.ddddddd</td><td></td></tr>
+<tr><td>09</td><td>Result position R latitude</td><td>DDD.ddddddd</td><td></td></tr>
+<tr><td>10</td><td>Result position R longitude</td><td>DDD.ddddddd</td><td></td></tr>
+<tr><td>11</td><td>DME 1 latitude (decimal format)</td><td>DDD.ddddddd</td><td>mnemonic: Register 01 + 10</td></tr>
+<tr><td>12</td><td>DME 1 longitude (decimal format)</td><td>DDD.ddddddd</td><td>mnemonic: Register 02 + 10</td></tr>
+<tr><td>13</td><td>Horizontal distance d<sub>1</sub> (corrected DME 1 slant range) / 60 = r<sub>1</sub></td><td>DDD.ddddddd</td><td>mnemonic: Register 03 + 10</td></tr>
+<tr><td>14</td><td>DME 2 latitude (decimal format)</td><td>DDD.ddddddd</td><td>mnemonic: Register 04 + 10</td></tr>
+<tr><td>15</td><td>DME 2 longitude (decimal format)</td><td>DDD.ddddddd</td><td>mnemonic: Register 05 + 10</td></tr>
+<tr><td>16</td><td>Horizontal distance d<sub>2</sub> (corrected DME 2 slant range) / 60 = r<sub>2</sub></td><td>DDD.ddddddd</td><td>mnemonic: Register 06 + 10</td></tr>
+<tr><td>17</td><td>Height of aircraft above DME 1</td><td>feet</td><td>optional, can improve accuracy</td></tr>
+<tr><td>18</td><td>Height of aircraft above DME 2</td><td>feet</td><td>optional, can improve accuracy</td></tr>
+<tr><td>19</td><td>YY = (Y2 - Y1)</td><td>n/a</td><td>later normalized / L</td></tr>
+<tr><td>20</td><td>XX = (X2 - X1) * COS( (Y1+Y2)/2 )</td><td>n/a</td><td>later normalized / L</td></tr>
+<tr><td>21</td><td>COS( (Y1+Y2)/2 )</td><td>n/a</td><td></td></tr>
+<tr><td>22</td><td>Baseline length L (= distance between DME 1 and DME 2)</td><td>n/a</td><td></td></tr>
+<tr><td>23</td><td>Baseline offset a = ( ( r<sub>1</sub><sup>2</sup> - r<sub>2</sub><sup>2</sup> ) / L + L ) / 2</td><td>n/a</td><td></td></tr>
+<tr><td>24</td><td>First q = r<sub>1</sub><sup>2</sup> - a<sup>2</sup>, then h = sqrt( q )</td><td>n/a</td><td></td></tr>
+<tr><td>25</td><td>First sin(intersection angle), then acute intersection angle (0-90)</td><td>n/a</td><td></td></tr>
+<tr><td>26</td><td>Error margin amplification factor</td><td>n/a</td><td></td></tr>
+<tr><td>27</td><td>Intermediate h * YY</td><td>n/a</td><td></td></tr>
+<tr><td>28</td><td>Intermediate h * XX</td><td>n/a</td><td></td></tr>
+<tr><td>29</td><td>Scratchpad for coordinate conversions</td><td>n/a</td><td></td></tr>
+<tr><td>x</td><td>Aircraft latitude in cockpit format; folded intersection angle, internal use</td><td>DDDMM.mmmmm, n/a</td><td></td></tr>
+<tr><td>t</td><td>Aircraft longitude in cockpit format; error margin amplification factor, internal use</td><td>DDDMM.mmmmm, n/a</td><td></td></tr>
+<tr><td>Flag 0</td><td>Controls input/output mode for DME 1 and DME 2 coordinates (latitude, longitude)</td><td>0 = input, 1 = output</td><td></td></tr>
+<tr><td>Flag 1</td><td>Controls whether there is valid output from the most recent call to <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span></td><td>0 = invalid, 1 = valid</td><td></td></tr>
+</table>
+
+<h3>Glossary:</h3>
+<table border="0" cellspacing="10"><tr><th>Abbreviation</th><th>Meaning</th><th>Explanation</th></tr>
+<tr><td>ADF</td><td>Automatic Direction Finder</td><td>A marine and aircraft radio-navigation instrument that automatically and continuously displays the relative bearing of the aircraft to a ground-based radio transmitter (such as a Non-Directional Beacon or NDB)</td></tr>
+<tr><td>AGL, height</td><td>Above Ground Level</td><td>The vertical distance of an aircraft measured directly above a specific ground surface, airfield or VOR/DME station</td></tr>
+<tr><td>AM</td><td>Amplitude Modulation</td><td>A method of broadcasting radio signals where the amplitude (strength) of the carrier wave is varied to embed audio information</td></tr>
+<tr><td>AMSL</td><td>Above Mean Sea Level</td><td>Refers to the altitude of an aircraft or geographic feature measured relative to the average level of the ocean&apos;s surface</td></tr>
+<tr><td>ATC</td><td>Air Traffic Control</td><td>A ground-based service that manages aircraft on the ground and in the air to prevent collisions and keep traffic moving safely</td></tr>
+<tr><td>BRG</td><td>Bearing</td><td>Direction from one geographical point to another on a compass rose</td></tr>
+<tr><td>CDI</td><td>Course Deviation Indicator</td><td>A needle inside an OBI that shows a pilot whether an aircraft is to the left, right, or directly on the center of an intended magnetic course to or from a VOR station, selected with the OBS knob</td></tr>
+<tr><td>DECL</td><td>Magnetic Declination</td><td>Difference between magnetic and true (geographic) north, same as magnetic variation</td></tr>
+<tr><td>DME</td><td>Distance Measuring Equipment</td><td>A radio navigation system that measures the direct slant-range distance between an aircraft and a ground-based transponder station</td></tr>
+<tr><td>DVOR</td><td>Doppler VHF Omnidirectional Range</td><td> A ground-based radio navigation system that uses the Doppler effect to give pilots accurate bearing and direction information to or from the DVOR station</td></tr>
+<tr><td>EHF</td><td>Extremely High Frequency (30 - 300 GHz)</td><td>Used in cutting-edge, high-resolution airport surface movement radars and advanced military satellite nets</td></tr>
+<tr><td>FL</td><td>Flight Level</td><td>Refers to an aircraft&apos;s altitude expressed in hundreds of feet above a standard atmospheric pressure setting of 1013.25 hPa (or 29.92 inHg)</td></tr>
+<tr><td>FM</td><td>Frequency Modulation</td><td>A method where the frequency of the radio carrier wave is varied instead of its amplitude, offering clearer audio and greater resistance to static or electrical interference</td></tr>
+<tr><td>GA</td><td>General Aviation</td><td>Refers to all civilian aircraft operations such as private flying, flight training, business jets, and aerial work, other than scheduled commercial airline or military flights</td></tr>
+<tr><td>HF</td><td>High Frequency (3 - 30 MHz)</td><td>HF radio waves reflect off the Earth&apos;s ionosphere to provide ultra-long-range communication, making them essential for transoceanic and remote arctic flights</td></tr>
+<tr><td>LF</td><td>Low Frequency (30 - 300 kHz)</td><td>Drives Non-Directional Beacons (NDBs) utilized for legacy automatic direction finding (ADF) navigation</td></tr>
+<tr><td>MB</td><td>Magnetic Bearing</td><td>Bearing referenced to magnetic north</td></tr>
+<tr><td>MF</td><td>Medium Frequency (300 kHz - 3 MHz)</td><td>Houses commercial AM broadcasting (which pilots can use for crude navigation) and some legacy maritime/aviation distress frequencies</td></tr>
+<tr><td>MH</td><td>Magnetic Heading</td><td>Aircraft heading relative to magnetic north</td></tr>
+<tr><td>MSL</td><td>Mean Sea Level</td><td>Measures an aircraft&apos;s altitude above the average level of the ocean, providing a fixed and consistent reference point for navigation and air traffic control regardless of the terrain below</td></tr>
+<tr><td>NDB</td><td>Non-Directional Beacon</td><td>A ground-based radio transmitter that broadcasts signals in all directions, allowing an aircraft&apos;s Automatic Direction Finder (ADF) to determine the bearing to the station for navigation</td></tr>
+<tr><td>OBI</td><td>Omni Bearing Indicator</td><td>A cockpit instrument that displays a pilot&apos;s aircraft position relative to a VOR (VHF Omnidirectional Range) navigation beacon</td></tr>
+<tr><td>OBS</td><td>Omni-Bearing Selector</td><td> A rotatable cockpit control knob on an OBI that pilots use to select a specific magnetic course to or from a VOR station</td></tr>
+<tr><td>RAD</td><td>Radial</td><td>The magnetic bearing FROM a VOR station</td></tr>
+<tr><td>RB</td><td>Relative Bearing</td><td>The angle indicated by an ADF relative to the aircraft&apos;s nose</td></tr>
+<tr><td>SHF</td><td>Super High Frequency (3 - 30 GHz)</td><td>Crucial for modern weather radar, precision Microwave Landing Systems (MLS), and satellite data communications (SATCOM)</td></tr>
+<tr><td>SR</td><td>Slant Range</td><td>Slant range is the direct, diagonal line-of-sight distance between an aircraft and a ground station or radar, forming the hypotenuse of a right triangle created by the aircraft&apos;s altitude and its horizontal ground distance</td></tr>
+<tr><td>TACAN</td><td>Tactical Air Navigation</td><td>A military radio navigation system that provides a pilot with both the direction (bearing) and distance (slant range) to a ground- or ship-based station</td></tr>
+<tr><td>TB</td><td>True Bearing</td><td>Bearing referenced to true (geographic) north</td></tr>
+<tr><td>TH</td><td>True Heading</td><td>Aircraft heading relative to true (geographic) north</td></tr>
+<tr><td>UHF</td><td>Ultra High Frequency (300 MHz - 3 GHz)</td><td>UHF frequencies are primarily reserved for military aviation communications and advanced tactical systems due to their high data-carrying capacity and smaller antenna requirements</td></tr>
+<tr><td>VAR</td><td>Magnetic Variation</td><td>Difference between magnetic and true (geographic) north, same as magnetic declination</td></tr>
+<tr><td>VHF</td><td>Very High Frequency (30 - 300 MHz)</td><td>VHF is the primary frequency band for civil aviation, utilizing line-of-sight propagation for crystal-clear short-to-medium-range voice communication with Air Traffic Control (ATC)</td></tr>
+<tr><td>VLF</td><td>Very Low Frequency (3 - 30 kHz)</td><td>Historically used for backup global navigation (Omega system) and subterranean tracking</td></tr>
+<tr><td>VOR</td><td>VHF Omnidirectional Range</td><td>A ground-based radio navigation system that sends out signals in all directions so pilots can find their exact magnetic bearing to or from a station</td></tr>
+<tr><td>VOR/DME</td><td>VOR with DME</td><td>Combined bearing and distance navigation facility</td></tr>
+<tr><td>VORTAC</td><td>VOR+TACAN</td><td>Physically combines a civilian VOR and a military TACAN transmitter into a single ground station that serves both civilian and military aircraft simultaneously</td></tr>
+</table>
+
+<p>&nbsp;</p>
+</body></html>

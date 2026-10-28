@@ -1,0 +1,300 @@
+<html><head>
+<title>VOR/VOR VOR/NDB NDB/NDB Navigation for Aviation</title>
+<STYLE TYPE="text/css">
+.yellowbutton
+  {
+    background : #FFE071;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.brownbutton
+  {
+    background : #63452B;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    color : #F0EDD5;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.whitebutton
+  {
+    background : #E0DDC5;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    color : #222424;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.alttext
+  {
+    background : #000000;
+    padding : 0.05em 0.3em 0.05em;
+    border : 1pt solid black;
+    font-weight : bold;
+    color : #dcb151;
+    font-size: 0.8em;
+    display: inline-flex; min-width: 1.5em; justify-content: center;
+  }
+
+.deflist DT
+  {
+    display : compact;
+    font-weight : bold;
+  }
+.deflist DD
+  {
+    margin-left : 4em;
+  }
+
+.display
+ {
+    color : red;
+    font-weight : bold;
+    font-family: courier bold;
+    text-align : right;
+    margin-right : 2em;
+ }
+.displayb
+ {
+    padding: 0em 0.5em 0em;
+    color: red;
+    background: #eeeeee;
+    font-weight: bold;
+    font-family: courier bold;
+    font-size: 1.1em;
+ }
+</STYLE>
+</head>
+<body>
+
+<h1>SB-12 &ndash; VOR/VOR VOR/NDB NDB/NDB Navigation for Aviation</h1>
+
+<span style="font-size: 1.17em; font-weight: bold;">Copyright:</span>
+<span>&copy; 2026 by Steffen Beyer</span>
+<p></p>
+
+<span style="font-size: 1.17em; font-weight: bold;">Version:</span>
+<span>1.1.0</span>
+<p></p>
+
+<span style="font-size: 1.17em; font-weight: bold;">License:</span>
+<span>GNU General Public License (GPL) or GNU Lesser General Public License (LGPL), version at your discretion (as usual).</span>
+<p></p>
+
+<h3>Description:</h3>
+<p>Calculate an aircraft&apos;s current geographical latitude and longitude (sometimes also called a fix) from the known positions of two VOR stations, two NDB stations, or mixed VOR and NDB stations,
+and either the VOR station&apos;s magnetic declination, or for an NDB, the local magnetic declination, preferably at the aircraft&apos;s current position, plus either the aircraft&apos;s magnetic radial FROM the VOR station,
+or the relative ADF bearing measured clockwise from the aircraft&apos;s nose, and the magnetic heading of the aircraft at the time of that ADF reading.</p>
+
+<h3>Disclaimer:</h3>
+<p>This program is designed for experimental navigation calculations over distances and at altitudes typical of general aviation (GA).
+It uses an approximate planar model of the Earth&apos;s surface, with corrections for the convergence of meridians towards the poles,
+rather than full spherical or ellipsoidal geometry.</p>
+<p>This approximation introduces systematic position errors that can become substantial over long distances.
+The magnitude of these errors depends on the geographical configuration and generally increases with distance.
+Consequently, the program is not suitable for the extended navigation distances typical of high-altitude airline operations.</p>
+<table style="background-color: #FF6666;" border="0" cellpadding="10"><tr><td>
+<p>&#x26A0;&#xFE0F; <span style="font-weight:bold">For educational and flight-simulation use only. Not suitable as a primary or safety-critical navigation aid in real aircraft.</span> &#x26A0;&#xFE0F;</p>
+</td></tr></table>
+
+<h3>Operating conditions:</h3>
+<ul>
+<li>The calculator must use <span class="yellowbutton">2nd</span> <span class="alttext">Deg</span> mode, not <span class="yellowbutton">2nd</span> <span class="alttext">Rad</span> or <span class="yellowbutton">2nd</span> <span class="alttext">Grad</span>. The initialization function <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> enforces <span class="yellowbutton">2nd</span> <span class="alttext">Deg</span> mode.</li>
+<li>Southern latitudes and western longitudes are negative. Station coordinates use DDDMM.mmmmm; bearings, headings and declinations use decimal degrees (DDD.ddddddd).</li>
+<li>Magnetic declination is positive east and negative west. For a VOR, use the station&apos;s magnetic declination; for an NDB, use the local magnetic declination, preferably at the aircraft&apos;s position.</li>
+<li>For each VOR, enter its magnetic radial <b>FROM</b> the station, not merely the OBS course selected on the receiver (unless the CDI is centered with a FROM indication).</li>
+<li>For each NDB, enter the relative ADF bearing measured clockwise from the aircraft&apos;s nose, and record the aircraft&apos;s magnetic heading at the time of that ADF reading. For a VOR, the corresponding stored aircraft heading must be zero.</li>
+<li>The two observations should refer to approximately the same aircraft position. The program treats both VOR radials and NDB bearings as infinite, undirected lines; the 180&deg; difference between a VOR radial FROM a station and an ADF bearing TO an NDB does not affect the line intersection.</li>
+<li>The (folded) acute intersection angle must be at least 5&deg;. Obtuse and acute intersection angles are equivalent here; folding is based on sin(&alpha;)=sin(180&deg;-&alpha;). The program rejects intersections of nearly parallel lines because of excessive error amplification.</li>
+<li>Before first use, press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> to initialize the program.</li>
+</ul>
+
+<h3>Usage:</h3>
+<p>To initialize for a new pair of navigation stations, press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span>. Enter the geographical coordinates and magnetic declination of both navigation stations, followed by the appropriate VOR radial or ADF relative bearing for each station. Either station may be a VOR or an NDB:</p>
+
+<table border="0" cellspacing="10"><tr><th>Key</th><th>Input / Output</th><th>Format / Unit</th></tr>
+<tr><td align="center"><span class="brownbutton">A</span></td><td>VOR/NDB 1 latitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">B</span></td><td>VOR/NDB 1 longitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">C</span></td><td>VOR 1 station declination / NDB 1 local declination</td><td>DDD.ddddddd</td></tr>
+<tr><td align="center"><span class="brownbutton">D</span></td><td>VOR 1 magnetic radial FROM station / NDB 1 relative ADF bearing</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">A&apos;</span></td><td>VOR/NDB 2 latitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">B&apos;</span></td><td>VOR/NDB 2 longitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span></td><td>VOR 2 station declination / NDB 2 local declination</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span></td><td>VOR 2 magnetic radial FROM station / NDB 2 relative ADF bearing</td><td>DDD.ddddddd</td></tr>
+</table>
+
+<p><b>VOR observations:</b> No aircraft heading is needed. After initialization, the heading registers are zero; leave them at zero for any station that is a VOR. The program adds that VOR&apos;s station declination to the magnetic radial to obtain its true radial.</p>
+
+<p><b>NDB/ADF observations:</b> The ADF gives a bearing relative to the aircraft&apos;s nose, not a geographical bearing. The program converts the relative bearing to an absolute true bearing by adding the aircraft&apos;s magnetic heading at the moment of the ADF reading and then the local magnetic declination. Enter the magnetic heading and invoke the appropriate heading-storage subroutine:</p>
+
+<table border="0" cellspacing="10"><tr><th>Subroutine</th><th>Explanation</th><th>When to use</th><th>Format / Unit</th></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">(</span></td><td>Store aircraft&apos;s magnetic heading for ADF 1 readout (NDB 1) in Register 13 (mnemonic: &apos;(&apos; comes first)</td><td><b>Do NOT use for VOR</b></td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">)</span></td><td>Store aircraft&apos;s magnetic heading for ADF 2 readout (NDB 2) in Register 14 (mnemonic: &apos;)&apos; comes second)</td><td><b>Do NOT use for VOR</b></td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">EE</span></td><td>Store aircraft&apos;s magnetic heading for both ADF readouts in Registers 13 and 14 (mnemonic: &apos;EE&apos; is &quot;double&quot;)</td><td><b>Do NOT use for VOR</b></td><td>DDD.ddddddd</td></tr>
+</table>
+
+<p>Thus, in a VOR/NDB combination, store the magnetic heading only for the NDB; leave the VOR&apos;s heading register at zero. For two NDBs, use <span class="brownbutton">SBR</span> <span class="whitebutton">(</span> and <span class="brownbutton">SBR</span> <span class="whitebutton">)</span> separately if the aircraft&apos;s heading changed between ADF readings, or <span class="brownbutton">SBR</span> <span class="whitebutton">EE</span> if the same heading applies to both.</p>
+<p><span class="brownbutton">D</span> or <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span> do <b>not</b> store the aircraft&apos;s heading automatically.
+<span class="brownbutton">D</span> and <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span> versus
+<span class="brownbutton">SBR</span> <span class="whitebutton">(</span>,
+<span class="brownbutton">SBR</span> <span class="whitebutton">)</span> and
+<span class="brownbutton">SBR</span> <span class="whitebutton">EE</span> are mutually independent.</p>
+<p>Do <b>not</b> enter an already converted absolute magnetic bearing as though it were a relative ADF bearing while a nonzero heading is stored.</p>
+<p>&nbsp;</p>
+<p>Press <span class="brownbutton">E</span> to calculate the aircraft&apos;s position. If the geometry is acceptable, the aircraft&apos;s latitude appears on the display (x), and its longitude is placed in the test register <b>t</b>, both in DDDMM.mmmmm format. After calculation, <span class="brownbutton">A</span>, <span class="brownbutton">B</span>, <span class="brownbutton">C</span>, <span class="yellowbutton">2nd</span> <span class="alttext">A&apos;</span>, <span class="yellowbutton">2nd</span> <span class="alttext">B&apos;</span> and <span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span> retrieve their stored values instead of accepting new ones; <span class="brownbutton">D</span> and <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span> always accept new readings (in order to allow for quick successive fixes).</p>
+<p>For another fix using the same pair of stations, enter new radials or ADF readings with <span class="brownbutton">D</span> and <span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span>, update the magnetic heading for each NDB as necessary, and press <span class="brownbutton">E</span> again. To change station coordinates or declinations, press <span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span> and re-enter all data; initialization clears registers 01&ndash;29, including the stored headings.</p>
+<p>&nbsp;</p>
+<p><b>Intersection quality:</b> After pressing <span class="brownbutton">E</span>, use <span class="brownbutton">SBR</span> <span class="yellowbutton">=</span> to display the acute intersection angle (0&ndash;90&deg;) in x and the error margin amplification factor in <b>t</b>. The error margin amplification factor indicates how the geometry magnifies bearing errors; it is not an absolute position-error estimate. This subroutine also works after a rejected calculation.</p>
+
+<table border="0" cellspacing="10">
+<tr><th>Intersection angle</th><th>Error margin amplification factor</th><th>Assessment</th></tr>
+<tr><td>0&deg; to &lt;5&deg;</td><td>&ge;11.47&times; (undefined at 0&deg;)</td><td>REJECT</td></tr>
+<tr><td>5&deg; to &lt;15&deg;</td><td>3.86&ndash;11.47&times;</td><td>Poor</td></tr>
+<tr><td>15&deg; to &lt;30&deg;</td><td>2.00&ndash;3.86&times;</td><td>Marginal</td></tr>
+<tr><td>30&deg; to &lt;60&deg;</td><td>1.15&ndash;2.00&times;</td><td>Good</td></tr>
+<tr><td>60&deg; to 90&deg;</td><td>1.00&ndash;1.15&times;</td><td>Excellent</td></tr>
+</table>
+<p>If the (folded) acute intersection angle is less than 5&deg;, the program rejects the fix and stops with a blinking &quot;9.9999999 99&quot; in the display (x),
+instead of producing position coordinates (and register t is set to zero).
+<span class="brownbutton">SBR</span> <span class="yellowbutton">=</span> can still be used after that to examine the intersection geometry.</p>
+
+<h3>Function keys:</h3>
+<table border="0" cellspacing="10">
+<tr><th>Key</th><th>Input / Output</th><th>Format / Unit</th></tr>
+<tr><td align="center"><span class="brownbutton">A</span></td><td>Enter or retrieve VOR/NDB 1 latitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">B</span></td><td>Enter or retrieve VOR/NDB 1 longitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td align="center"><span class="brownbutton">C</span></td><td>Enter or retrieve VOR 1 station / NDB 1 local magnetic declination</td><td>DDD.ddddddd</td></tr>
+<tr><td align="center"><span class="brownbutton">D</span></td><td>Enter VOR 1 magnetic radial or NDB 1 relative ADF bearing (always input)</td><td>DDD.ddddddd</td></tr>
+<tr><td align="center"><span class="brownbutton">E</span></td><td>Calculate aircraft position; switch station data keys to output mode</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">A&apos;</span></td><td>Enter or retrieve VOR/NDB 2 latitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">B&apos;</span></td><td>Enter or retrieve VOR/NDB 2 longitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">C&apos;</span></td><td>Enter or retrieve VOR 2 station / NDB 2 local magnetic declination</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">D&apos;</span></td><td>Enter VOR 2 magnetic radial or NDB 2 relative ADF bearing (always input)</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="yellowbutton">2nd</span> <span class="alttext">E&apos;</span></td><td>Clear registers 01&ndash;29; switch all station data keys to input mode; enforce <span class="yellowbutton">2nd</span> <span class="alttext">Deg</span> mode</td><td>n/a</td></tr>
+</table>
+
+<h3>Subroutines:</h3>
+<table border="0" cellspacing="10">
+<tr><th>Keys</th><th>Explanation</th><th>Location</th><th>Format / Unit</th></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">(</span></td><td>Store aircraft&apos;s magnetic heading for ADF 1 bearing</td><td>Register 13</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">)</span></td><td>Store aircraft&apos;s magnetic heading for ADF 2 bearing</td><td>Register 14</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">EE</span></td><td>Store aircraft&apos;s magnetic heading for both ADF bearings</td><td>Registers 13 and 14</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="yellowbutton">=</span></td><td>Display intersection geometry (only after calculation with <span class="brownbutton">E</span>)</td><td>Display (x): angle in degrees (0-90);<br>Register t: error margin amplification factor</td><td>DDD.ddddddd; n/a</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">.</span></td><td>Converts cockpit format DDDMM.mmmmm to decimal degrees DDD.ddddddd</td><td>Display (x) and Register 00</td><td>DDD.ddddddd</td></tr>
+<tr><td><span class="brownbutton">SBR</span> <span class="whitebutton">+/-</span></td><td>Converts decimal degrees DDD.ddddddd to cockpit format DDDMM.mmmmm</td><td>Display (x) and Register 00</td><td>DDDMM.mmmmm</td></tr>
+</table>
+
+<h3>Output:</h3>
+<table border="0" cellspacing="10">
+<tr><th>Location</th><th>Value</th><th>Format / Unit</th></tr>
+<tr><td>Display (x):</td><td>Result aircraft&apos;s latitude  based on VOR/NDB 1</td><td>DDDMM.mmmmm</td></tr>
+<tr><td>Register t:</td><td>Result aircraft&apos;s longitude  based on VOR/NDB 1</td><td>DDDMM.mmmmm</td></tr>
+<tr><td>Register 07:</td><td>Result aircraft&apos;s latitude  based on VOR/NDB 1</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 08:</td><td>Result aircraft&apos;s longitude based on VOR/NDB 1</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 11:</td><td>VOR 1 true radial/NDB 1 true absolute ADF bearing</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 12:</td><td>VOR 2 true radial/NDB 2 true absolute ADF bearing</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 16:</td><td>Rejection factor = abs(sin(RCL11-RCL12)), reject if &lt; sin(5)</td><td>n/a</td></tr>
+<tr><td>Register 17:</td><td>Intersection angle (0-90)</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 18:</td><td>Error margin amplification factor = (1 / rejection factor)</td><td>n/a</td></tr>
+<tr><td>Register 21:</td><td>Signed distance d1 from VOR/NDB 1</td><td>nautical miles</td></tr>
+<tr><td>Register 22:</td><td>Signed distance d2 from VOR/NDB 2</td><td>nautical miles</td></tr>
+<tr><td>Register 23:</td><td>Result aircraft&apos;s latitude  based on VOR/NDB 2 (for cross-checking)</td><td>DDD.ddddddd</td></tr>
+<tr><td>Register 24:</td><td>Result aircraft&apos;s longitude based on VOR/NDB 2 (for cross-checking)</td><td>DDD.ddddddd</td></tr>
+</table>
+
+<p>Distances in registers 21 and 22 are signed because the program intersects complete lines rather than directional rays. A negative value places the aircraft on the opposite side of the station from the direction used in the calculation. In particular, negative distances are normal for NDB bearings, which point <b>TO</b> the beacon.</p>
+<p>Registers 23 and 24 provide a second calculation of the intersection coordinates, starting from station 2; they are available for cross-checking only. The normal displayed fix uses registers 07 and 08. The true directions in registers 11 and 12 are used directly in trigonometric calculations and are not normalized to 0&ndash;360&deg;.</p>
+<p>After <span class="brownbutton">SBR</span> <span class="yellowbutton">=</span>, x and <b>t</b> show the intersection angle and error margin amplification factor instead of latitude and longitude; the stored coordinates in registers 07 and 08 remain available.
+Or simply press <span class="brownbutton">E</span> again.</p>
+
+<h3>Good to know:</h3>
+<p>The program does not interrupt ongoing calculations. Its functions and subroutines do not use <span class="yellowbutton">CLR</span> or <span class="yellowbutton">=</span> internally, so ongoing arithmetic operations are not prematurely cleared or evaluated.</p>
+
+<h3>Registers used:</h3>
+<table border="0" cellspacing="10"><tr><th>Register</th><th>Purpose</th><th>Format / Unit</th></tr>
+<tr><td>00</td><td>Coordinate conversion result</td><td>DDDMM.mmmmm, DDD.ddddddd</td></tr>
+<tr><td>01</td><td>VOR/NDB 1 latitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td>02</td><td>VOR/NDB 1 longitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td>03</td><td>VOR 1/local declination</td><td>DDD.ddddddd</td></tr>
+<tr><td>04</td><td>VOR/NDB 2 latitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td>05</td><td>VOR/NDB 2 longitude</td><td>DDDMM.mmmmm</td></tr>
+<tr><td>06</td><td>VOR 2/local declination</td><td>DDD.ddddddd</td></tr>
+<tr><td>07</td><td>Result aircraft&apos;s latitude  based on VOR/NDB 1</td><td>DDD.ddddddd</td></tr>
+<tr><td>08</td><td>Result aircraft&apos;s longitude based on VOR/NDB 1</td><td>DDD.ddddddd</td></tr>
+<tr><td>09</td><td>VOR/NDB 1 magnetic radial/relative magnetic ADF</td><td>DDD.ddddddd</td></tr>
+<tr><td>10</td><td>VOR/NDB 2 magnetic radial/relative magnetic ADF</td><td>DDD.ddddddd</td></tr>
+<tr><td>11</td><td>VOR 1 true radial/NDB 1 true absolute ADF bearing (mnemonic: 11 = 1)</td><td>DDD.ddddddd</td></tr>
+<tr><td>12</td><td>VOR 2 true radial/NDB 2 true absolute ADF bearing (mnemonic: 12 = 2)</td><td>DDD.ddddddd</td></tr>
+<tr><td>13</td><td>NDB 1 magnetic aircraft heading at readout ADF</td><td>DDD.ddddddd</td></tr>
+<tr><td>14</td><td>NDB 2 magnetic aircraft heading at readout ADF</td><td>DDD.ddddddd</td></tr>
+<tr><td>15</td><td>Signed denominator = sin(RCL11-RCL12)</td><td>n/a</td></tr>
+<tr><td>16</td><td>Rejection factor = abs(sin(RCL11-RCL12)), reject if &lt; sin(5)</td><td>n/a</td></tr>
+<tr><td>17</td><td>Intersection angle (0-90)</td><td>DDD.ddddddd</td></tr>
+<tr><td>18</td><td>Error margin amplification factor = (1 / rejection factor)</td><td>n/a</td></tr>
+<tr><td>19</td><td>VOR 2 lat.  - VOR 1 lat.  (Y2 - Y1)</td><td>DDD.ddddddd</td></tr>
+<tr><td>20</td><td>VOR 2 long. - VOR 1 long. (X2 - X1) * COS( mean latitude )</td><td>DDD.ddddddd</td></tr>
+<tr><td>21</td><td>Signed distance d1 from VOR/NDB 1 (first in degrees, eventually in nm)</td><td>DDD.ddddddd, nm</td></tr>
+<tr><td>22</td><td>Signed distance d2 from VOR/NDB 2 (first in degrees, eventually in nm)</td><td>DDD.ddddddd, nm</td></tr>
+<tr><td>23</td><td>Result aircraft&apos;s latitude  based on VOR/NDB 2 (for cross-checking with RCL 07)</td><td>DDD.ddddddd</td></tr>
+<tr><td>24</td><td>Result aircraft&apos;s longitude based on VOR/NDB 2 (for cross-checking with RCL 08)</td><td>DDD.ddddddd</td></tr>
+<tr><td>25</td><td>VOR/NDB 1 latitude (converted from DDDMM.mmmmm)</td><td>DDD.ddddddd</td></tr>
+<tr><td>26</td><td>VOR/NDB 1 longitude (converted from DDDMM.mmmmm)</td><td>DDD.ddddddd</td></tr>
+<tr><td>27</td><td>VOR/NDB 2 latitude (converted from DDDMM.mmmmm)</td><td>DDD.ddddddd</td></tr>
+<tr><td>28</td><td>VOR/NDB 2 longitude (converted from DDDMM.mmmmm)</td><td>DDD.ddddddd</td></tr>
+<tr><td>29</td><td>COS( mean latitude of VOR/NDB 1 and VOR/NDB 2 )</td><td>n/a</td></tr>
+<tr><td>30</td><td>Scratchpad for coordinate conversions</td><td>n/a</td></tr>
+<tr><td>t</td><td>Aircraft longitude in cockpit format; error margin amplification factor, internal use</td><td>DDDMM.mmmmm, n/a</td></tr>
+<tr><td>Flag 0</td><td>Controls input/output mode for VOR/NDB 1 and VOR/NDB 2 station data (latitude, longitude, declination)</td><td>0 = input, 1 = output</td></tr>
+</table>
+
+<h3>Glossary:</h3>
+<table border="0" cellspacing="10"><tr><th>Abbreviation</th><th>Meaning</th><th>Explanation</th></tr>
+<tr><td>ADF</td><td>Automatic Direction Finder</td><td>A marine and aircraft radio-navigation instrument that automatically and continuously displays the relative bearing of the aircraft to a ground-based radio transmitter (such as a Non-Directional Beacon or NDB)</td></tr>
+<tr><td>AGL, height</td><td>Above Ground Level</td><td>The vertical distance of an aircraft measured directly above a specific ground surface, airfield or VOR/DME station</td></tr>
+<tr><td>AM</td><td>Amplitude Modulation</td><td>A method of broadcasting radio signals where the amplitude (strength) of the carrier wave is varied to embed audio information</td></tr>
+<tr><td>AMSL</td><td>Above Mean Sea Level</td><td>Refers to the altitude of an aircraft or geographic feature measured relative to the average level of the ocean&apos;s surface</td></tr>
+<tr><td>ATC</td><td>Air Traffic Control</td><td>A ground-based service that manages aircraft on the ground and in the air to prevent collisions and keep traffic moving safely</td></tr>
+<tr><td>BRG</td><td>Bearing</td><td>Direction from one geographical point to another on a compass rose</td></tr>
+<tr><td>CDI</td><td>Course Deviation Indicator</td><td>A needle inside an OBI that shows a pilot whether an aircraft is to the left, right, or directly on the center of an intended magnetic course to or from a VOR station, selected with the OBS knob</td></tr>
+<tr><td>DECL</td><td>Magnetic Declination</td><td>Difference between magnetic and true (geographic) north, same as magnetic variation</td></tr>
+<tr><td>DME</td><td>Distance Measuring Equipment</td><td>A radio navigation system that measures the direct slant-range distance between an aircraft and a ground-based transponder station</td></tr>
+<tr><td>DVOR</td><td>Doppler VHF Omnidirectional Range</td><td> A ground-based radio navigation system that uses the Doppler effect to give pilots accurate bearing and direction information to or from the DVOR station</td></tr>
+<tr><td>EHF</td><td>Extremely High Frequency (30 - 300 GHz)</td><td>Used in cutting-edge, high-resolution airport surface movement radars and advanced military satellite nets</td></tr>
+<tr><td>FL</td><td>Flight Level</td><td>Refers to an aircraft&apos;s altitude expressed in hundreds of feet above a standard atmospheric pressure setting of 1013.25 hPa (or 29.92 inHg)</td></tr>
+<tr><td>FM</td><td>Frequency Modulation</td><td>A method where the frequency of the radio carrier wave is varied instead of its amplitude, offering clearer audio and greater resistance to static or electrical interference</td></tr>
+<tr><td>GA</td><td>General Aviation</td><td>Refers to all civilian aircraft operations such as private flying, flight training, business jets, and aerial work, other than scheduled commercial airline or military flights</td></tr>
+<tr><td>HF</td><td>High Frequency (3 - 30 MHz)</td><td>HF radio waves reflect off the Earth&apos;s ionosphere to provide ultra-long-range communication, making them essential for transoceanic and remote arctic flights</td></tr>
+<tr><td>LF</td><td>Low Frequency (30 - 300 kHz)</td><td>Drives Non-Directional Beacons (NDBs) utilized for legacy automatic direction finding (ADF) navigation</td></tr>
+<tr><td>MB</td><td>Magnetic Bearing</td><td>Bearing referenced to magnetic north</td></tr>
+<tr><td>MF</td><td>Medium Frequency (300 kHz - 3 MHz)</td><td>Houses commercial AM broadcasting (which pilots can use for crude navigation) and some legacy maritime/aviation distress frequencies</td></tr>
+<tr><td>MH</td><td>Magnetic Heading</td><td>Aircraft heading relative to magnetic north</td></tr>
+<tr><td>MSL</td><td>Mean Sea Level</td><td>Measures an aircraft&apos;s altitude above the average level of the ocean, providing a fixed and consistent reference point for navigation and air traffic control regardless of the terrain below</td></tr>
+<tr><td>NDB</td><td>Non-Directional Beacon</td><td>A ground-based radio transmitter that broadcasts signals in all directions, allowing an aircraft&apos;s Automatic Direction Finder (ADF) to determine the bearing to the station for navigation</td></tr>
+<tr><td>OBI</td><td>Omni Bearing Indicator</td><td>A cockpit instrument that displays a pilot&apos;s aircraft position relative to a VOR (VHF Omnidirectional Range) navigation beacon</td></tr>
+<tr><td>OBS</td><td>Omni-Bearing Selector</td><td> A rotatable cockpit control knob on an OBI that pilots use to select a specific magnetic course to or from a VOR station</td></tr>
+<tr><td>RAD</td><td>Radial</td><td>The magnetic bearing FROM a VOR station</td></tr>
+<tr><td>RB</td><td>Relative Bearing</td><td>The angle indicated by an ADF relative to the aircraft&apos;s nose</td></tr>
+<tr><td>SHF</td><td>Super High Frequency (3 - 30 GHz)</td><td>Crucial for modern weather radar, precision Microwave Landing Systems (MLS), and satellite data communications (SATCOM)</td></tr>
+<tr><td>SR</td><td>Slant Range</td><td>Slant range is the direct, diagonal line-of-sight distance between an aircraft and a ground station or radar, forming the hypotenuse of a right triangle created by the aircraft&apos;s altitude and its horizontal ground distance</td></tr>
+<tr><td>TACAN</td><td>Tactical Air Navigation</td><td>A military radio navigation system that provides a pilot with both the direction (bearing) and distance (slant range) to a ground- or ship-based station</td></tr>
+<tr><td>TB</td><td>True Bearing</td><td>Bearing referenced to true (geographic) north</td></tr>
+<tr><td>TH</td><td>True Heading</td><td>Aircraft heading relative to true (geographic) north</td></tr>
+<tr><td>UHF</td><td>Ultra High Frequency (300 MHz - 3 GHz)</td><td>UHF frequencies are primarily reserved for military aviation communications and advanced tactical systems due to their high data-carrying capacity and smaller antenna requirements</td></tr>
+<tr><td>VAR</td><td>Magnetic Variation</td><td>Difference between magnetic and true (geographic) north, same as magnetic declination</td></tr>
+<tr><td>VHF</td><td>Very High Frequency (30 - 300 MHz)</td><td>VHF is the primary frequency band for civil aviation, utilizing line-of-sight propagation for crystal-clear short-to-medium-range voice communication with Air Traffic Control (ATC)</td></tr>
+<tr><td>VLF</td><td>Very Low Frequency (3 - 30 kHz)</td><td>Historically used for backup global navigation (Omega system) and subterranean tracking</td></tr>
+<tr><td>VOR</td><td>VHF Omnidirectional Range</td><td>A ground-based radio navigation system that sends out signals in all directions so pilots can find their exact magnetic bearing to or from a station</td></tr>
+<tr><td>VOR/DME</td><td>VOR with DME</td><td>Combined bearing and distance navigation facility</td></tr>
+<tr><td>VORTAC</td><td>VOR+TACAN</td><td>Physically combines a civilian VOR and a military TACAN transmitter into a single ground station that serves both civilian and military aircraft simultaneously</td></tr>
+</table>
+
+<p>&nbsp;</p>
+</body></html>

@@ -1,0 +1,14 @@
+<carddef style="user">
+<label slot="titleleft">DME/DME Navigation</label>
+<label slot="titleright">SB-13</label>
+<label slot="aprime">DME 2 lat.</label>
+<label slot="bprime">DME 2 long.</label>
+<label slot="cprime">DME 2 dist.</label>
+<label slot="dprime">initialize</label>
+<label slot="eprime">calc fix</label>
+<label slot="a">DME 1 lat.</label>
+<label slot="b">DME 1 long.</label>
+<label slot="c">DME 1 dist.</label>
+<label slot="d">L of 1->2</label>
+<label slot="e">R of 1->2</label>
+</carddef>
