@@ -132,7 +132,6 @@ public class PrinterActivity extends BaseActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    setContentView(R.layout.activity_printer);
     super.onCreate(savedInstanceState);
 
     if (Global.Print == null) {
