@@ -1139,7 +1139,7 @@ public class Main extends BaseCompatActivity {
           new Intent()
              .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
              .setClass(Main.this, Main.class),
-          0
+          android.app.PendingIntent.FLAG_IMMUTABLE
        );
     if (Ongoing) {
       NotifyDone.flags = Notification.FLAG_ONGOING_EVENT;
