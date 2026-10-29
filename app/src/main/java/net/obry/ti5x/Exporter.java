@@ -46,8 +46,11 @@ public class Exporter {
         boolean NumbersOnly
      )
      throws RuntimeException {
+
+    final String FullFilename = Global.DataStorage.GetAppDataExportFile(FileName);
+
     try {
-      Out = new java.io.FileOutputStream(FileName, Append);
+      Out = new java.io.FileOutputStream(FullFilename, Append);
       this.NumbersOnly = NumbersOnly;
       if (this.NumbersOnly) {
         PrintOut = new java.io.PrintStream(Out);

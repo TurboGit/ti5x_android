@@ -18,11 +18,13 @@
 
 package net.obry.ti5x;
 
+import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.ArrayList;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.Intent;
 import android.view.MenuInflater;
@@ -435,7 +437,7 @@ public class Main extends BaseCompatActivity {
             Main.this,
             ExportDataRequest,
             getString(R.string.exported_data),
-            Persistent.DataDir,
+            Global.DataStorage.GetAppDataExportDir(),
             SaveAsExtra,
             ".dat"
          );
@@ -489,10 +491,10 @@ public class Main extends BaseCompatActivity {
        ArrayList<String> CalcDirs = new ArrayList<String>();
 
        final String ProgramsDir =
-           Persistent.EnsureDirExists(this, Persistent.ProgramsDir, "");
+           Global.DataStorage.GetAppDataProgramsDir();
 
        final String DataDir =
-           Persistent.EnsureDirExists(this, Persistent.DataDir, "");
+           Global.DataStorage.GetAppDataExportDir();
 
        if (new java.io.File(ProgramsDir).exists()) {
          CalcDirs.add(Persistent.ProgramsDir);
@@ -916,7 +918,7 @@ public class Main extends BaseCompatActivity {
                  Data.getData().getPath().substring(1) /* ignoring leading slash */
                     + Persistent.ProgExt;
               final String SaveFile =
-                  Persistent.EnsureDirExists(getApplicationContext(), Persistent.ProgramsDir, TheName);
+                  Global.DataStorage.GetAppDataProgramsFile(TheName);
               Global.StartBGTask
                  (
 
@@ -1023,17 +1025,20 @@ public class Main extends BaseCompatActivity {
                 case android.app.Activity.RESULT_OK:
                   Global.Export.Close();
                   try {
+                    // for Append mode the following returns the full pathname
                     String FileName = Data.getData().getPath();
-                    String SaveFile = FileName;
+                    // we get the file simple name (no directory)
+                    String SaveFile = Paths.get(FileName).getFileName().toString();
                     if (!ExportAppend) {
                       if(FileName.indexOf('.') == -1) {
+                        // remove leading '/' from getPath()
                         // no extension added, use default
                         FileName = FileName.substring(1) + Persistent.DataExt;
                       }
                       /* note FileName will have leading slash */
-                      SaveFile = Persistent.EnsureDirExists(getApplicationContext(), Persistent.DataDir, FileName);
-
+                      SaveFile = FileName;
                     }
+
                     Global.Export.Open(SaveFile, ExportAppend, ExportNumbersOnly);
                     Snackbar.make(
                           findViewById(android.R.id.content),
@@ -1157,6 +1162,7 @@ public class Main extends BaseCompatActivity {
     setContentView(R.layout.main);
     super.onCreate(savedInstanceState);
 
+    Global.DataStorage = new AppData(this);
     Global.Disp = (Display) findViewById(R.id.display);
     Global.Label = (LabelCard) findViewById(R.id.help_card);
     Global.Buttons = (ButtonGrid) findViewById(R.id.buttons);

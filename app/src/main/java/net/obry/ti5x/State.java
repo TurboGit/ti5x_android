@@ -2700,7 +2700,7 @@ class State {
       N = N - 10;
     }
 
-    final String BankFilename = String.format("%03d.ti5b", CardId);
+    final String BankFilename = String.format("%03d%s", CardId, Persistent.BankExt);
     if (Part > 2
         || ((N < 1 || N > 4)
             && (N != 0 || !InvState || CardId < 0)))
@@ -2803,8 +2803,7 @@ class State {
   void ImportNew() {
       final int N = (int)Math.abs(X.getInt());
       final String DataFilename = String.format("%d.dat", N);
-      final String SaveFile =
-        Persistent.EnsureDirExists(ctx, Persistent.DataDir, DataFilename);
+      final String SaveFile = Global.DataStorage.GetAppDataExportFile(DataFilename);
       ClearImport();
       try {
         Global.Import.ImportData(SaveFile);
@@ -2820,11 +2819,10 @@ class State {
   {
     final int N = (int)Math.abs(X.getInt());
     final String DataFilename = String.format("%d.dat", N);
-    final String SaveFile =
-        Persistent.EnsureDirExists(ctx, Persistent.DataDir, DataFilename);
+
     ResetExport();
     try {
-      Global.Export.Open(SaveFile, Append, true);
+      Global.Export.Open(DataFilename, Append, true);
     } catch (Persistent.DataFormatException Failed) {
       SetErrorState(true);
     }

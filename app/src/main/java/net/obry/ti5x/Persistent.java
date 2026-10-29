@@ -84,9 +84,11 @@ public class Persistent {
   private static final String StateExt = ".ti5s"; /* for saved calculator state */
   static final String ProgExt = ".ti5p"; /* for saved user program */
   static final String LibExt = ".ti5l"; /* for library */
+  static final String BankExt = ".ti5b"; /* for library */
   static final String DataExt = ".dat"; /* for data export */
   static final String ProgramsDir = "Programs"; /* where to save user programs */
-  static final String DataDir = "Download"; /* where to save exported data */
+  static final String DataDir = "Data"; /* where to save exported data */
+  static final String PrinterDir = "Paper"; /* where to save exported paper */
   static final String BankDir = "Banks"; /* where to save bank files */
   static final String StateDir = "State"; /* where to save state files */
   static final String[] ExternalCalcDirectories =
@@ -254,7 +256,7 @@ public class Persistent {
       ) {
 
     // create BankDir
-    String ToFile = EnsureDirExists(ctx, BankDir, FileName);
+    final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
 
     if(!new File(ToFile).isFile()) {
       Calc.SetErrorState(true);
@@ -297,7 +299,7 @@ public class Persistent {
       ) {
 
     // create BankDir
-    String ToFile = EnsureDirExists(ctx, BankDir, FileName);
+    final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
 
     java.io.FileOutputStream Out;
     try {

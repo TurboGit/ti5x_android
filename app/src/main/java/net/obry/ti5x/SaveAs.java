@@ -141,7 +141,7 @@ public class SaveAs extends BaseActivity {
                 if (!HadFunnies) {
                   if (TheCleanedText.length() != 0) {
                     final String SaveFile =
-                        Persistent.EnsureDirExists(getApplicationContext(), SaveWhere, TheCleanedText + FileExt);
+                        Global.DataStorage.GetAppDataProgramsFile(TheCleanedText + FileExt);
                     if (new java.io.File (SaveFile).exists()) {
                       new OverwriteConfirm(SaveAs.this, TheCleanedText).show();
                     } else {
