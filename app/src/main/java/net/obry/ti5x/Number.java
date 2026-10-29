@@ -231,7 +231,11 @@ class Number {
   }
 
   public void rem(Number n) {
-    v = v.remainder(n.v, mc);
+    if (n.v.compareTo(B_ZERO) == 0) {
+      v = B_ERROR;
+      error = true;
+    } else
+      v = v.remainder(n.v, mc);
   }
 
   public void rem(long i) {
