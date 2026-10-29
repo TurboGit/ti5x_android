@@ -21,7 +21,6 @@ package net.obry.ti5x;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
-import android.os.Environment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -258,18 +257,11 @@ class Printer {
     // Clear message
     mes.setLength(0);
 
-    String extStorageDirectory = Environment.getExternalStorageState();
-
-    if (Environment.MEDIA_MOUNTED.equals(extStorageDirectory)) {
-      extStorageDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
-    } else {
-      extStorageDirectory = Environment.getDownloadCacheDirectory().toString();
-    }
-
     OutputStream outputStream = null;
     @SuppressLint("SimpleDateFormat") /* we want a specific format without slash as separator */
         String outString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss.SSS").format(new Date());
-    File file = new File(extStorageDirectory, "ti5x " + outString + ".png");
+
+    File file = new File(Global.DataStorage.GetAppDataPrinterFile(outString + ".png"));
 
     try {
       outputStream = new FileOutputStream(file);
@@ -277,16 +269,14 @@ class Printer {
     } catch (FileNotFoundException ex) {
       //exception handling code
       ex.printStackTrace();
-      mes.append("Can't Create. " + extStorageDirectory +
-          "/ti5x " + outString + ".png");
+      mes.append("Can't Create. " + file.getAbsolutePath());
       return false;
     } finally {
       try {
         if (outputStream != null) {
           outputStream.flush();
           outputStream.close();
-          mes.append("Saved to " + extStorageDirectory +
-              "/ti5x " + outString + ".png");
+          mes.append("Saved to " + file.getAbsolutePath());
           return true;
         }
       } catch (java.io.IOException ex) {

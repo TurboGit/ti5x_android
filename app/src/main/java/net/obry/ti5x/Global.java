@@ -21,6 +21,8 @@ package net.obry.ti5x;
 import android.view.MenuItem;
 
 final class Global {
+
+  static AppData DataStorage;
   static Display Disp;
   static LabelCard Label;
   static ButtonGrid Buttons;

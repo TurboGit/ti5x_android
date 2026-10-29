@@ -6,17 +6,18 @@
         On Android Marshmallow and above, use of these permissions is only requested
         at run time.
     -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Android 10 and earlier -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--
-        The following permissions are only requested if the device is on Marshmallow
-        or above.  On older platforms these permissions are not requested and will
-        not be available.
-    -->
-    <uses-permission-sdk-23 android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"

@@ -20,7 +20,6 @@ package net.obry.ti5x;
 
 // import android.support.annotation.NonNull;
 // import android.support.design.widget.Snackbar;
-import android.app.AlertDialog;
 
 import com.google.android.material.snackbar.Snackbar;
 import androidx.annotation.NonNull;
@@ -313,7 +312,7 @@ public class Picker extends BaseActivity {
 
     try {
       for (String Here : LookIn) {
-        final String ThisDirName = Persistent.EnsureDirExists(this, Here, "");
+        final String ThisDirName = Global.DataStorage.GetAppDataDir(Here);
         final java.io.File ThisDir = new java.io.File(ThisDirName);
         /*
          * We need to ensure that the lack of permissions doesn't harm us

@@ -758,6 +758,9 @@ the currently-selected program bank into the user program area.
 <P><A HREF="#Topics">Back to Topics</A>
 
 <H2><A NAME="Import"></A>Importing Data</H2>
+
+<P>The imported data directory is <i>Documents/Ti5x/Data</i>.
+
 <P>You can read numbers from a data file, instead of having to enter them manually.
 You choose a file to open from the “Import Data...” item in the
 <A HREF="#OptionsMenu">Options Menu</A>. The file must contain a sequence of numbers
@@ -771,6 +774,9 @@ and leave the display unchanged. If a number was successfully read, flag 7 will 
 <P><A HREF="#Topics">Back to Topics</A>
 
 <H2><A NAME="Export"></A>Exporting Data</H2>
+
+<P>The exported data directory is <i>Documents/Ti5x/Data</i>.
+
 <P>Calculation results can also be exported, in either of two ways:
 <OL>
 <LI>The printer emulation can write text representations of every printed line
@@ -878,9 +884,14 @@ listing starts from <B>000</B>.
 register with the number showing in the display.
 </UL>
 
+<P>The command <i>Tear-off</i> on the printer view will store the current
+  paper into directory <i>Documents/Ti5x/Printer</i>.
+
 <P><A HREF="#Topics">Back to Topics</A>
 
 <H2><A NAME="Card"></A>Card Emulation</H2>
+
+<P>The written/read bank files' directory is <i>Documents/ti5x/Banks</i>.
 
 <P>The emulator implements
   the <SPAN CLASS="yellowbutton">2nd</SPAN> <SPAN CLASS="alttext">write</SPAN>
@@ -945,7 +956,7 @@ register with the number showing in the display.
     <LI>4.001</B> <SPAN CLASS="yellowbutton">2nd</SPAN> <SPAN CLASS="alttext">write</SPAN>
   </UL>
 
-<p>After this command, the file <i>001.ti5b</i> is created.
+<p>After this command, the file <i>Documents/Ti5x/Banks/001.ti5b</i> is created.
 
 <P><A HREF="#Topics">Back to Topics</A>
 
@@ -1183,16 +1194,16 @@ Y2AYBSQBRjT+////8almRFHPRInNo5pHhuZRMJolRzWPZsnRLDmaPEc1jwIqAQAiywk6eQCZrwAA
 AABJRU5ErkJggg==" ALT="Overflow Icon" HEIGHT="20px">) brings up a menu with the following options:
 <UL>
 <LI>Load Program... — load a library module or saved program from a
-  file.  The list to pick from is built from the contents
-  of the “Programs” and “Download” directories.
+  file on the SD card.  The list to pick from is built from the contents
+  of the “Documents/ti5x/Programs” and “Documents/Ti5x/Download” directories.
 <LI>Save Program... — save the user-entered program to a file. The
-  file is saved in the “Programs” directory.
-<LI>Import Data... — lets you open a data file in the “Download”
+  file is saved in the “Documents/Ti5x/Programs” directory.
+<LI>Import Data... — lets you open a data file in the “Documents/Ti5x/Data”
   directory to begin importing numbers
   from. (See <A HREF="#Import">Importing Data</A> for more details.)
 <LI>Export Data... — lets you create a data file (or
   append to an existing data file) to write exported data to. The file
-  is saved in the “Download” directory.
+  is saved in the “Documents/Ti5x/Data” directory.
   (See <A HREF="#Export">Exporting Data</A> for more details.)
 <LI>Key Codes — toggle the display of program key codes next to the
   corresponding keys.

@@ -81,10 +81,7 @@ public class PrinterActivity extends BaseActivity {
           Snackbar.LENGTH_LONG
       ).show();
     } else {
-      new AlertDialog.Builder(PrinterActivity.this)
-          .setMessage(mes.toString())
-          .setPositiveButton("OK", null)
-          .show();
+
     }
   }
   private void tearOffPaper() {
