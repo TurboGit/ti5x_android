@@ -119,7 +119,7 @@ public class PrinterActivity extends BaseActivity {
     btnBottom.setEnabled(hasData);
     btnClear.setEnabled(hasData);
     btnTearOff.setEnabled(hasData);
-    btnTrace.setChecked(Global.Calc.TracePrintActivated);
+    btnTrace.setChecked(Global.Calc != null && Global.Calc.TracePrintActivated);
 
     if (scrollToPos && hasData) {
       if (savedScrollPosition == -1) {
@@ -134,6 +134,10 @@ public class PrinterActivity extends BaseActivity {
   protected void onCreate(Bundle savedInstanceState) {
     setContentView(R.layout.activity_printer);
     super.onCreate(savedInstanceState);
+
+    if (Global.Print == null) {
+      Global.Print = new Printer(this);
+    }
 
     recycler = findViewById(R.id.printerRecycler);
     recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -160,8 +164,10 @@ public class PrinterActivity extends BaseActivity {
     });
 
     btnTrace.setOnClickListener(v -> {
-      Global.Calc.TracePrintActivated = !Global.Calc.TracePrintActivated;
-      btnTrace.setChecked(Global.Calc.TracePrintActivated);
+      if (Global.Calc != null) {
+        Global.Calc.TracePrintActivated = !Global.Calc.TracePrintActivated;
+        btnTrace.setChecked(Global.Calc.TracePrintActivated);
+      }
     });
 
     btnBottom.setOnClickListener(v -> {
@@ -205,6 +211,9 @@ public class PrinterActivity extends BaseActivity {
   }
 
   private Bitmap renderPrinterLine(int line) {
+    if (Global.Print == null) {
+      Global.Print = new Printer(this);
+    }
     Bitmap bitmap = Bitmap.createBitmap(
         Global.Print.PaperWidth,
         Global.Print.LineHeight,
