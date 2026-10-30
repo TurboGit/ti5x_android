@@ -34,7 +34,6 @@ public class Help extends BaseActivity {
      (
         android.os.Bundle savedInstanceState
      ) {
-    setContentView(R.layout.help);
     super.onCreate(savedInstanceState);
     HelpView = (android.webkit.WebView) findViewById(R.id.help_view);
     final android.content.Intent MyIntent = getIntent();

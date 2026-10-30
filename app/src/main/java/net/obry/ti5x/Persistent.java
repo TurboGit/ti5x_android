@@ -84,9 +84,11 @@ public class Persistent {
   private static final String StateExt = ".ti5s"; /* for saved calculator state */
   static final String ProgExt = ".ti5p"; /* for saved user program */
   static final String LibExt = ".ti5l"; /* for library */
+  static final String BankExt = ".ti5b"; /* for library */
   static final String DataExt = ".dat"; /* for data export */
   static final String ProgramsDir = "Programs"; /* where to save user programs */
-  static final String DataDir = "Download"; /* where to save exported data */
+  static final String DataDir = "Data"; /* where to save exported data */
+  static final String PrinterDir = "Paper"; /* where to save exported paper */
   static final String BankDir = "Banks"; /* where to save bank files */
   static final String StateDir = "State"; /* where to save state files */
   static final String[] ExternalCalcDirectories =
@@ -254,7 +256,7 @@ public class Persistent {
       ) {
 
     // create BankDir
-    String ToFile = EnsureDirExists(ctx, BankDir, FileName);
+    final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
 
     if(!new File(ToFile).isFile()) {
       Calc.SetErrorState(true);
@@ -297,7 +299,7 @@ public class Persistent {
       ) {
 
     // create BankDir
-    String ToFile = EnsureDirExists(ctx, BankDir, FileName);
+    final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
 
     java.io.FileOutputStream Out;
     try {
@@ -746,7 +748,7 @@ public class Persistent {
         //  Save printer status
         POut.println("    <printer>");
         int LineStart = 0;
-        final int LineEnd = Global.Print.Content.size();
+        final int LineEnd = Global.Print != null ? Global.Print.Content.size() : 0;
         if(LineEnd > Global.MaxPrinterLineSaved) {
           LineStart = LineEnd - Global.MaxPrinterLineSaved;
         }
@@ -1202,11 +1204,17 @@ public class Persistent {
         case DoingPrinter:
           if (localName.equals("line")) {
             byte[] line = new byte[Printer.CharColumns];
-            Global.Print.Translate(ContentStr, line);
-            Global.Print.Content.add(line);
+            if (Global.Print == null && Calc != null && Calc.ctx != null) {
+              Global.Print = new Printer(Calc.ctx);
+            }
+            if (Global.Print != null) {
+              Global.Print.Translate(ContentStr, line);
+              Global.Print.Content.add(line);
+            }
           } else if (localName.equals("printer")) {
             ParseState = DoingCalc;
           }
+          break;
         case DoingMem:
           if (localName.equals("mem")) {
 

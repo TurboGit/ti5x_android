@@ -231,7 +231,11 @@ class Number {
   }
 
   public void rem(Number n) {
-    v = v.remainder(n.v, mc);
+    if (n.v.compareTo(B_ZERO) == 0) {
+      v = B_ERROR;
+      error = true;
+    } else
+      v = v.remainder(n.v, mc);
   }
 
   public void rem(long i) {
@@ -253,15 +257,11 @@ class Number {
     }
   }
 
-  private void NormalizeAngle(int Angle) {
-    v = v.multiply(trigScale2(Angle), mc);
+  private void NormalizeAngle(int angle) {
+    v = v.multiply(trigScale2(angle), mc).remainder(TWO_PI, mc);
 
-    if (v.compareTo(B_ZERO) < 0) {
-      while (v.compareTo(B_ZERO) < 0.0)
-        v = v.add(TWO_PI, mc);
-    } else if (v.compareTo(TWO_PI) >= 0) {
-      while (v.compareTo(TWO_PI) >= 0)
-        v = v.subtract(TWO_PI, mc);
+    if (v.signum() < 0) {
+      v = v.add(TWO_PI, mc);
     }
   }
 

@@ -1481,7 +1481,7 @@ class State {
       do /*once*/ {
         if (Indirect) {
           ProgNr = (ProgNr + RegOffset) % 100;
-          if (ProgNr >= MaxMemories)
+          if (ProgNr < 0 || ProgNr >= MaxMemories)
             break;
           ProgNr = (int) Memory[ProgNr].getInt();
           if (ProgNr < 0)
@@ -1539,7 +1539,7 @@ class State {
       boolean OK = false; /* to begin with */
       do /*once*/ {
         RegNr = (RegNr + RegOffset) % 100;
-        if (RegNr >= MaxMemories)
+        if (RegNr < 0 || RegNr >= MaxMemories)
           break;
         if (Indirect) {
           RegNr = ((int) Memory[RegNr].getInt() + RegOffset) % 100;
@@ -1749,7 +1749,7 @@ class State {
       do /*once*/ {
         if (Indirect) {
           OpNr = (OpNr + RegOffset) % 100;
-          if (OpNr >= MaxMemories)
+          if (OpNr < 0 || OpNr >= MaxMemories)
             break;
           // if Memory[OpNr] is negative, do nothing, no error
           if (Memory[OpNr].getSignum() < 0) {
@@ -2700,7 +2700,7 @@ class State {
       N = N - 10;
     }
 
-    final String BankFilename = String.format("%03d.ti5b", CardId);
+    final String BankFilename = String.format("%03d%s", CardId, Persistent.BankExt);
     if (Part > 2
         || ((N < 1 || N > 4)
             && (N != 0 || !InvState || CardId < 0)))
@@ -2803,8 +2803,7 @@ class State {
   void ImportNew() {
       final int N = (int)Math.abs(X.getInt());
       final String DataFilename = String.format("%d.dat", N);
-      final String SaveFile =
-        Persistent.EnsureDirExists(ctx, Persistent.DataDir, DataFilename);
+      final String SaveFile = Global.DataStorage.GetAppDataExportFile(DataFilename);
       ClearImport();
       try {
         Global.Import.ImportData(SaveFile);
@@ -2820,11 +2819,10 @@ class State {
   {
     final int N = (int)Math.abs(X.getInt());
     final String DataFilename = String.format("%d.dat", N);
-    final String SaveFile =
-        Persistent.EnsureDirExists(ctx, Persistent.DataDir, DataFilename);
+
     ResetExport();
     try {
-      Global.Export.Open(SaveFile, Append, true);
+      Global.Export.Open(DataFilename, Append, true);
     } catch (Persistent.DataFormatException Failed) {
       SetErrorState(true);
     }
@@ -2858,7 +2856,7 @@ class State {
      ) {
     /* returns the next program instruction byte, or -1 if run off the end. */
     byte Result;
-    if (RunPC < Bank[RunBank].Program.length) {
+    if (RunPC >= 0 && RunPC < Bank[RunBank].Program.length) {
       Result = Bank[RunBank].Program[RunPC++];
     } else {
       Result = -1;
@@ -2979,7 +2977,7 @@ class State {
       do /*once*/ {
         if (LocType == TRANSFER_LOC_INDIRECT) {
           Loc = (Loc + RegOffset) % 100;
-          if (Loc >= MaxMemories)
+          if (Loc < 0 || Loc >= MaxMemories)
             break;
           Loc = (int) Memory[Loc].getInt();
         } else if (LocType == TRANSFER_LOC_SYMBOLIC) {
@@ -3092,7 +3090,7 @@ class State {
     if (FlagNr >= 0) {
       if (Ind) {
         FlagNr = (FlagNr + RegOffset) % 100;
-        if (FlagNr < MaxMemories) {
+        if (FlagNr >= 0 && FlagNr < MaxMemories) {
           FlagNr = (int) Memory[FlagNr].getInt();
         } else {
           FlagNr = -1;
@@ -3117,7 +3115,7 @@ class State {
     if (FlagNr >= 0) {
       if (FlagNrInd) {
         FlagNr = (FlagNr + RegOffset) % 100;
-        if (FlagNr < MaxMemories) {
+        if (FlagNr >= 0 && FlagNr < MaxMemories) {
           FlagNr = (int) Memory[FlagNr].getInt();
         } else {
           FlagNr = -1;
@@ -3140,7 +3138,7 @@ class State {
       // if the location we land is a number it must replace the current X
 
       byte Result = -1;
-      if (RunPC < Bank[RunBank].Program.length) {
+      if (RunPC >= 0 && RunPC < Bank[RunBank].Program.length) {
         Result = Bank[RunBank].Program[RunPC];
       }
 
@@ -3188,7 +3186,7 @@ class State {
     // if the location we land is a number it must replace the current X
 
     byte Result = -1;
-    if (RunPC < Bank[RunBank].Program.length) {
+    if (RunPC >= 0 && RunPC < Bank[RunBank].Program.length) {
       Result = Bank[RunBank].Program[RunPC];
     }
 
@@ -3207,7 +3205,7 @@ class State {
     if (Reg >= 0) {
       Reg = (Reg + RegOffset) % 100;
       if (RegInd) {
-        if (Reg < MaxMemories) {
+        if (Reg >= 0 && Reg < MaxMemories) {
           Reg = ((int) Memory[Reg].getInt() + RegOffset) % 100;
         } else {
           Reg = -1;

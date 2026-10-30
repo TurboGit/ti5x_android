@@ -68,7 +68,7 @@ class Tester {
   }
 
   private void deleteExportFile(String filename) {
-    String path = Persistent.EnsureDirExists(Calc.ctx, Persistent.DataDir, filename);
+    String path = Global.DataStorage.GetAppDataExportFile(filename);
     java.io.File file = new java.io.File(path);
     if (file.exists()) {
       file.delete();
@@ -76,7 +76,7 @@ class Tester {
   }
 
   private boolean checkExportFile(String filename, String... expectedLines) {
-    String path = Persistent.EnsureDirExists(Calc.ctx, Persistent.DataDir, filename);
+    String path = Global.DataStorage.GetAppDataExportFile(filename);
     java.io.File file = new java.io.File(path);
     if (!file.exists()) {
       return false;
