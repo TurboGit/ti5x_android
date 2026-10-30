@@ -255,18 +255,22 @@ public class Persistent {
           ButtonGrid Buttons
       ) {
 
-    // create BankDir
-    final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
-
-    if(!new File(ToFile).isFile()) {
-      Calc.SetErrorState(true);
-      return;
+    if (!Global.DataStorage.fileExists(BankDir, FileName)) {
+      final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
+      if(!new File(ToFile).isFile()) {
+        Calc.SetErrorState(true);
+        return;
+      }
     }
 
     // open file
-    java.io.FileInputStream In;
+    java.io.InputStream In;
     try {
-      In = new java.io.FileInputStream(ToFile);
+      In = Global.DataStorage.getInputStream(BankDir, FileName);
+      if (In == null) {
+        final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
+        In = new java.io.FileInputStream(ToFile);
+      }
       javax.xml.parsers.SAXParserFactory.newInstance().newSAXParser().parse
             (
                 In,
@@ -301,10 +305,13 @@ public class Persistent {
     // create BankDir
     final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
 
-    java.io.FileOutputStream Out;
+    java.io.OutputStream Out;
     try {
-      Out = new java.io.FileOutputStream(ToFile);
-    } catch (java.io.FileNotFoundException Failed) {
+      Out = Global.DataStorage.getOutputStream(BankDir, FileName, false);
+      if (Out == null) {
+        Out = new java.io.FileOutputStream(ToFile);
+      }
+    } catch (Exception Failed) {
       throw new RuntimeException
           (
               "ti5x.Persistent.SaveBankFile create error " + Failed.toString()
@@ -778,10 +785,16 @@ public class Persistent {
              false to only save program */
         String ToFile
      ) {
-    java.io.FileOutputStream Out;
+    java.io.OutputStream Out = null;
     try {
-      Out = new java.io.FileOutputStream(ToFile);
-    } catch (java.io.FileNotFoundException Failed) {
+      File f = new File(ToFile);
+      String parentName = f.getParentFile() != null ? f.getParentFile().getName() : ProgramsDir;
+      String fileName = f.getName();
+      Out = Global.DataStorage.getOutputStream(parentName, fileName, false);
+      if (Out == null) {
+        Out = new java.io.FileOutputStream(ToFile);
+      }
+    } catch (Exception Failed) {
       throw new RuntimeException
          (
             "ti5x.Persistent.Save create error " + Failed.toString()

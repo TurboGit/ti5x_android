@@ -23,14 +23,14 @@ import java.io.IOException;
 public class Importer {
 
   static class ImportDataFeeder extends State.ImportFeeder {
-    java.io.FileInputStream Data;
+    java.io.InputStream Data;
     String FileName;
     int LineNr, ColNr; /* for reporting locations of errors */
     boolean WasNL, WasCR, EOF;
 
     ImportDataFeeder
        (
-          java.io.FileInputStream Data,
+          java.io.InputStream Data,
           String FileName
        ) {
       this.Data = Data;
@@ -47,7 +47,13 @@ public class Importer {
         try {
           // reset() is not supported, so we close and reopen the file
           Data.close();
-          Data = new java.io.FileInputStream (this.FileName);
+          Data = Global.DataStorage.getInputStream(Persistent.ProgramsDir, this.FileName);
+          if (Data == null) {
+            Data = Global.DataStorage.getInputStream(Persistent.DataDir, this.FileName);
+          }
+          if (Data == null) {
+            Data = new java.io.FileInputStream(this.FileName);
+          }
           LineNr = 0;
           ColNr = 0;
           WasNL = true;
@@ -176,10 +182,16 @@ public class Importer {
      )
      throws Persistent.DataFormatException {
     /* starts importing numbers from the specified file. */
-    java.io.FileInputStream Data;
+    java.io.InputStream Data;
     try {
-      Data = new java.io.FileInputStream(FileName);
-    } catch (java.io.FileNotFoundException NotFound) {
+      Data = Global.DataStorage.getInputStream(Persistent.ProgramsDir, FileName);
+      if (Data == null) {
+        Data = Global.DataStorage.getInputStream(Persistent.DataDir, FileName);
+      }
+      if (Data == null) {
+        Data = new java.io.FileInputStream(FileName);
+      }
+    } catch (Exception NotFound) {
       throw new Persistent.DataFormatException
          (
             String.format

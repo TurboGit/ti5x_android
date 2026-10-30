@@ -260,23 +260,26 @@ class Printer {
     OutputStream outputStream = null;
     @SuppressLint("SimpleDateFormat") /* we want a specific format without slash as separator */
         String outString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss.SSS").format(new Date());
-
-    File file = new File(Global.DataStorage.GetAppDataPrinterFile(outString + ".png"));
+    String fileName = outString + ".png";
 
     try {
-      outputStream = new FileOutputStream(file);
+      outputStream = Global.DataStorage.getOutputStream(Persistent.PrinterDir, fileName, false);
+      if (outputStream == null) {
+        File file = new File(Global.DataStorage.GetAppDataPrinterFile(fileName));
+        outputStream = new FileOutputStream(file);
+      }
       boolean ok = Paper.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-    } catch (FileNotFoundException ex) {
+    } catch (Exception ex) {
       //exception handling code
       ex.printStackTrace();
-      mes.append("Can't Create. " + file.getAbsolutePath());
+      mes.append("Can't Create. " + fileName);
       return false;
     } finally {
       try {
         if (outputStream != null) {
           outputStream.flush();
           outputStream.close();
-          mes.append("Saved to " + file.getAbsolutePath());
+          mes.append("Saved to " + fileName);
           return true;
         }
       } catch (java.io.IOException ex) {

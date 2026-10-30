@@ -27,6 +27,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,6 +72,7 @@ public class Main extends BaseCompatActivity {
 
   private final static int READ_WRITE_EXTERNAL_RESULT = 100;
   private final static int CHOOSE_FILE_RESULT = 102;
+  static final int REQUEST_CODE_OPEN_DOCUMENT_TREE = 1001;
 
   boolean ExportAppend, ExportNumbersOnly;
 
@@ -563,6 +565,12 @@ public class Main extends BaseCompatActivity {
 
      case R.id.turn_off:
         finish(); /* start afresh next time */
+        break;
+
+      case R.id.select_documents_folder:
+        AppData.clearUri(this);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
         break;
 
       case R.id.action_help:
@@ -1099,6 +1107,16 @@ public class Main extends BaseCompatActivity {
     PickerExtra = null;
     SaveAs.Cleanup();
     SaveAsExtra = null;
+    if (RequestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE && ResultCode == RESULT_OK) {
+      if (Data != null && Data.getData() != null) {
+        Uri treeUri = Data.getData();
+        getContentResolver().takePersistableUriPermission(treeUri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        AppData.setUri(this, treeUri);
+        Snackbar.make(mLayout, "Documents folder selected successfully", Snackbar.LENGTH_SHORT).show();
+      }
+      return;
+    }
     if (ResultCode != android.app.Activity.RESULT_CANCELED) {
       final RequestResponseAction Action = ActivityResultActions.get(RequestCode);
       if (Action != null) {
@@ -1180,18 +1198,18 @@ public class Main extends BaseCompatActivity {
     registerForContextMenu(Global.Disp);
     Notiman = (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-    /*
-     * check to see if we should ask for permissions before we do anything else
-     */
     mLayout = findViewById(R.id.keyboard_main_layout);
 
-    if (!PermissionUtil.hasCorrectPermission(this)) {
-      // Storage READ permission has not been granted yet. Request it directly.
-      ActivityCompat.requestPermissions(
-         this,
-         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE},
-         READ_WRITE_EXTERNAL_RESULT);
+    if (!AppData.hasUri(this)) {
+      new android.app.AlertDialog.Builder(this)
+          .setTitle("Select Documents Folder")
+          .setMessage("Please select your Documents folder so ti5x can read and write programs and data.\n\nThe directory Documents/Ti5x will be created with a set of sub-directories:\n\n  - Documents/Ti5x/Data - exported data\n\n  - Documents/Ti5x/Paper- printer paper\n\n  - Documents/Ti5x/Programs - programs\n\n  - Documents/Ti5x/Banks - exported banks")
+          .setPositiveButton("Select", (dialog, which) -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+          })
+          .setNegativeButton("Later", null)
+          .show();
     }
 
     Global.Calc.OnStop = new Runnable() {

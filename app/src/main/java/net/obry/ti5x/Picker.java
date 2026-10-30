@@ -312,31 +312,13 @@ public class Picker extends BaseActivity {
 
     try {
       for (String Here : LookIn) {
-        final String ThisDirName = Global.DataStorage.GetAppDataDir(Here);
-        final java.io.File ThisDir = new java.io.File(ThisDirName);
-        /*
-         * We need to ensure that the lack of permissions doesn't harm us
-         * if the user didn't grant them ... this logic ensures that no error
-         * is thrown due to incorrect permissions.
-         */
-        if (!ThisDir.canRead()) {
-          if (InaccessibleFolders.length() > 0) {
-            InaccessibleFolders = InaccessibleFolders.concat(", ");
-          }
-          InaccessibleFolders = InaccessibleFolders.concat(ThisDirName);
-        } else {
-          /*
-           * This segment iterates on all of the files contained
-           * withing the folder context.
-           */
-          File ourFiles[] = ThisDir.listFiles();
-          Arrays.sort(ourFiles);
+        String[] fileNames = Global.DataStorage.listFiles(Here, Alt.FileExts);
+        if (fileNames != null) {
+          Arrays.sort(fileNames);
 
-          for (java.io.File Item : ourFiles) {
+          for (String ItemName : fileNames) {
             boolean MatchesExt;
-            String DisplayName = "";
-            final String ItemName = Item.getName();
-            DisplayName = ItemName;
+            String DisplayName = ItemName;
 
             if (Alt.FileExts != null) {
               for (int i = 0; ; ) {
@@ -357,7 +339,7 @@ public class Picker extends BaseActivity {
               MatchesExt = true;
             }
             if (MatchesExt) {
-              PickerList.add(new PickerItem(Item.getAbsolutePath(), DisplayName));
+              PickerList.add(new PickerItem(Here + "/" + ItemName, DisplayName));
             }
           }
         }

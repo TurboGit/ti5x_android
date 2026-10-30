@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--
-        Note that all required permissions are declared here in the Android manifest.
-        On Android Marshmallow and above, use of these permissions is only requested
-        at run time.
-    -->
     <!-- Android 10 and earlier -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -15,7 +10,6 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29" />
 
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 

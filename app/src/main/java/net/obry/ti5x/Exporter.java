@@ -47,18 +47,18 @@ public class Exporter {
      )
      throws RuntimeException {
 
-    final String FullFilename = Global.DataStorage.GetAppDataExportFile(FileName);
-
     try {
-      Out = new java.io.FileOutputStream(FullFilename, Append);
+      Out = Global.DataStorage.getOutputStream(Persistent.DataDir, FileName, Append);
+      if (Out == null) {
+        final String FullFilename = Global.DataStorage.GetAppDataExportFile(FileName);
+        Out = new java.io.FileOutputStream(FullFilename, Append);
+      }
       this.NumbersOnly = NumbersOnly;
       if (this.NumbersOnly) {
         PrintOut = new java.io.PrintStream(Out);
       }
-    } catch (java.io.FileNotFoundException DirErr) {
+    } catch (Exception DirErr) {
       throw new RuntimeException(DirErr.toString());
-    } catch (SecurityException PermErr) {
-      throw new RuntimeException(PermErr.toString());
     }
   }
 

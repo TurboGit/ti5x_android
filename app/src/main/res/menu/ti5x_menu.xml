@@ -36,6 +36,10 @@
         android:title="@string/export_data"
         android:showAsAction="ifRoom"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/select_documents_folder"
+        android:title="Select Documents Folder..."
+        app:showAsAction="never" />
     <item android:id="@+id/show_overlay"
         android:title="@string/show_overlay"
         android:showAsAction="never"

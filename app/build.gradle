@@ -51,5 +51,6 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     implementation 'androidx.core:core:1.17.0'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
     implementation 'com.google.android.material:material:1.13.0'
 }
