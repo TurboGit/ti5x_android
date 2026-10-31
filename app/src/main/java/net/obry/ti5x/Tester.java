@@ -68,30 +68,26 @@ class Tester {
   }
 
   private void deleteExportFile(String filename) {
-    String path = Global.DataStorage.GetAppDataExportFile(filename);
-    java.io.File file = new java.io.File(path);
-    if (file.exists()) {
-      file.delete();
-    }
+    Global.DataStorage.deleteFile(Persistent.DataDir, filename);
   }
 
   private boolean checkExportFile(String filename, String... expectedLines) {
-    String path = Global.DataStorage.GetAppDataExportFile(filename);
-    java.io.File file = new java.io.File(path);
-    if (!file.exists()) {
-      return false;
-    }
-    try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
-      for (String expected : expectedLines) {
-        String line = reader.readLine();
-        if (line == null) {
-          return false;
-        }
-        if (!line.equals(expected) && !line.trim().equals(expected.trim())) {
-          return false;
-        }
+    try (java.io.InputStream in = Global.DataStorage.getInputStream(Persistent.DataDir, filename)) {
+      if (in == null) {
+        return false;
       }
-      return reader.readLine() == null;
+      try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in))) {
+        for (String expected : expectedLines) {
+          String line = reader.readLine();
+          if (line == null) {
+            return false;
+          }
+          if (!line.equals(expected) && !line.trim().equals(expected.trim())) {
+            return false;
+          }
+        }
+        return reader.readLine() == null;
+      }
     } catch (java.io.IOException e) {
       return false;
     }
