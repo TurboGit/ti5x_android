@@ -47,12 +47,9 @@ public class Importer {
         try {
           // reset() is not supported, so we close and reopen the file
           Data.close();
-          Data = Global.DataStorage.getInputStream(Persistent.ProgramsDir, this.FileName);
+          Data = Global.DataStorage.getInputStreamForPath(this.FileName);
           if (Data == null) {
-            Data = Global.DataStorage.getInputStream(Persistent.DataDir, this.FileName);
-          }
-          if (Data == null) {
-            Data = new java.io.FileInputStream(this.FileName);
+            throw new java.io.FileNotFoundException("File not found: " + this.FileName);
           }
           LineNr = 0;
           ColNr = 0;
@@ -65,7 +62,7 @@ public class Importer {
                   String.format
                       (
                           Global.StdLocale,
-                          "Couldn't reset import data file",
+                          "Couldn't reset import data file: %s",
                           Failed.toString()
                       )
               );        }
@@ -184,12 +181,9 @@ public class Importer {
     /* starts importing numbers from the specified file. */
     java.io.InputStream Data;
     try {
-      Data = Global.DataStorage.getInputStream(Persistent.ProgramsDir, FileName);
+      Data = Global.DataStorage.getInputStreamForPath(FileName);
       if (Data == null) {
-        Data = Global.DataStorage.getInputStream(Persistent.DataDir, FileName);
-      }
-      if (Data == null) {
-        Data = new java.io.FileInputStream(FileName);
+        throw new java.io.FileNotFoundException("File not found: " + FileName);
       }
     } catch (Exception NotFound) {
       throw new Persistent.DataFormatException

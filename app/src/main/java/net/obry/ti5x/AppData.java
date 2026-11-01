@@ -225,7 +225,35 @@ public class AppData {
     }
     return appDir.getAbsolutePath();
   }
-
+  String GetAppDataFile(String filename) {
+    String cleanName = filename != null ? filename : "";
+    if (cleanName.startsWith("/")) {
+      cleanName = cleanName.substring(1);
+    }
+    String subDir = Persistent.ProgramsDir;
+    if (cleanName.startsWith(Persistent.ProgramsDir + "/")) {
+      cleanName = cleanName.substring(Persistent.ProgramsDir.length() + 1);
+    } else if (cleanName.startsWith(Persistent.DataDir + "/")) {
+      subDir = Persistent.DataDir;
+      cleanName = cleanName.substring(Persistent.DataDir.length() + 1);
+    } else {
+      int idx = cleanName.lastIndexOf('/');
+      if (idx >= 0) {
+        String prefix = cleanName.substring(0, idx);
+        if (prefix.equals(Persistent.DataDir)) {
+          subDir = Persistent.DataDir;
+        }
+        cleanName = cleanName.substring(idx + 1);
+      }
+    }
+    File documents = Environment.getExternalStoragePublicDirectory(
+        Environment.DIRECTORY_DOCUMENTS);
+    if (documents == null) {
+      documents = AppDataContext.getFilesDir();
+    }
+    File appDir = new File(documents, "Ti5x/" + subDir + "/" + cleanName);
+    return appDir.getAbsolutePath();
+  }
   String GetAppDataPrinterDir(){
     return GetAppDataDir(Persistent.PrinterDir);
   }
@@ -256,5 +284,61 @@ public class AppData {
 
   String GetAppDataBankFile(String Filename){
     return GetAppDataBankDir() + "/" + Filename;
+  }
+
+  public Context getContext() {
+    return AppDataContext;
+  }
+
+  public java.io.InputStream getInputStreamForPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    try {
+      String cleanName = path;
+      if (cleanName.startsWith("/")) {
+        cleanName = cleanName.substring(1);
+      }
+      String dir = Persistent.ProgramsDir;
+      if (cleanName.startsWith(Persistent.ProgramsDir + "/")) {
+        cleanName = cleanName.substring(Persistent.ProgramsDir.length() + 1);
+      } else if (cleanName.startsWith(Persistent.DataDir + "/")) {
+        dir = Persistent.DataDir;
+        cleanName = cleanName.substring(Persistent.DataDir.length() + 1);
+      } else {
+        int idx = cleanName.lastIndexOf('/');
+        if (idx >= 0) {
+          String prefix = cleanName.substring(0, idx);
+          if (prefix.equals(Persistent.DataDir) || prefix.endsWith("/" + Persistent.DataDir)) {
+            dir = Persistent.DataDir;
+          }
+          cleanName = cleanName.substring(idx + 1);
+        }
+      }
+
+      java.io.InputStream in = getInputStream(dir, cleanName);
+      if (in == null) {
+        String fallbackDir = dir.equals(Persistent.ProgramsDir) ? Persistent.DataDir : Persistent.ProgramsDir;
+        in = getInputStream(fallbackDir, cleanName);
+      }
+
+      if (in == null) {
+        try {
+          android.net.Uri uri = android.net.Uri.parse(path);
+          in = AppDataContext.getContentResolver().openInputStream(uri);
+        } catch (Exception ignored) {}
+      }
+
+      if (in == null) {
+        java.io.File f = new java.io.File(path);
+        if (f.exists() && f.isFile()) {
+          in = new java.io.FileInputStream(f);
+        }
+      }
+
+      return in;
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

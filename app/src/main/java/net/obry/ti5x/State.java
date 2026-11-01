@@ -2802,7 +2802,7 @@ class State {
 
   void ImportNew() {
       final int N = (int)Math.abs(X.getInt());
-      final String DataFilename = String.format("%d.dat", N);
+      final String DataFilename = String.format("%d%s", N, Persistent.DataExt);
       final String SaveFile = Global.DataStorage.GetAppDataExportFile(DataFilename);
       ClearImport();
       try {
@@ -2818,7 +2818,7 @@ class State {
       )
   {
     final int N = (int)Math.abs(X.getInt());
-    final String DataFilename = String.format("%d.dat", N);
+    final String DataFilename = String.format("%d%s", N, Persistent.DataExt);
 
     ResetExport();
     try {

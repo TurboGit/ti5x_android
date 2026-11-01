@@ -1415,9 +1415,24 @@ public class Persistent {
     public void BGRun() {
       try {
         try {
+          java.io.InputStream stream = Global.DataStorage.getInputStreamForPath(FromFile);
+          if (stream == null) {
+            throw new java.io.FileNotFoundException("File not found: " + FromFile);
+          }
+
+          File tempFile = File.createTempFile("load", ".tmp", Global.DataStorage.getContext().getCacheDir());
+          tempFile.deleteOnExit();
+          try (java.io.OutputStream out = new java.io.FileOutputStream(tempFile)) {
+            byte[] buf = new byte[8192];
+            for (int len; (len = stream.read(buf)) > 0; ) {
+              out.write(buf, 0, len);
+            }
+          }
+          stream.close();
+
           final java.util.zip.ZipFile In = new java.util.zip.ZipFile
              (
-                new java.io.File(FromFile),
+                tempFile,
                 java.util.zip.ZipFile.OPEN_READ
              );
           final ZipEntry MimeType = In.getEntry("mimetype");

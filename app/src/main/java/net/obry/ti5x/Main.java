@@ -28,6 +28,7 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -746,14 +747,14 @@ public class Main extends BaseCompatActivity {
                   int ResultCode,
                   Intent Data
                ) {
-              final String ProgName = Data.getData().getPath();
+              final String ProgFileName = Data.getData().getPath();
               final int SelId = Data.getIntExtra(Picker.SpeIndexID, 0);
               final int FirstBuiltinId = Data.getIntExtra(Picker.BuiltinIndexID, 0);
               final int FirstUserProgId = Data.getIntExtra(Picker.UserProgIndexID, 0);
               final boolean IsLib = Data.getIntExtra(Picker.AltIndexID, 0) != 0;
               /* assumes AltLists array passed to Picker has element 0 for
                  saved programs and element 1 for libraries */
-              final boolean LoadingBuiltinLibrary = IsLib && ProgName.intern().equals("/");
+              final boolean LoadingBuiltinLibrary = IsLib && ProgFileName.intern().equals("/");
               /* It appears onActivityResult is liable to be called before
                  onResume. Therefore I do additional restoring/saving state
                  here to ensure the saved state includes the newly-loaded
@@ -765,6 +766,8 @@ public class Main extends BaseCompatActivity {
                 private static final int LOAD_DONE = 3;
                 private int Step;
                 private Global.Task Subtask;
+
+                String ProgName = ProgFileName;
 
                 private LoadProgram
                    (
@@ -798,7 +801,9 @@ public class Main extends BaseCompatActivity {
                       if (SelId < FirstUserProgId) {
                         // a built-in programs
                         Subtask = new Persistent.LoadBuiltin(Main.this, false, SelId);
+                        ProgName = Main.BuiltinPrograms[SelId].getName(Main.this);
                       } else {
+                        ProgName = Global.DataStorage.GetAppDataFile(ProgName);
                         Subtask = new Persistent.Load
                            (
                               ProgName,
