@@ -21,6 +21,8 @@ package net.obry.ti5x;
 import android.app.AlertDialog;
 import android.util.SparseIntArray;
 
+import java.util.Arrays;
+
 class State {
   /* the calculator state, number entry and programs */
 
@@ -1402,20 +1404,19 @@ class State {
     if (Global.Print != null && CurDisplay != null) {
       final byte[] Translated = new byte[Printer.CharColumns];
       String Disp = (Data ? CurDisplay : "");
-      Global.Print.Translate
-         (
-            String.format
-               (
-                  Global.StdLocale,
-                  String.format
-                     (Global.StdLocale, "%%%ds", Math.max(1, 14 - Disp.length())),
-                  " "
-               ).substring(1) /* because I can't have a 0-length format width */
-               + Disp
-               + (InErrorState() ? "?" : " ")
-               + (Label.length() == 4 ? Label : ""),
-            Translated
-         );
+      // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
+      String Line = String.format
+          (
+              Global.StdLocale,
+              String.format
+                  (Global.StdLocale, "%%%ds", Math.max(1, 14 - Disp.length())),
+              " "
+          ).substring(1) /* because I can't have a 0-length format width */
+          + Disp
+          + (InErrorState() ? "?" : " ")
+          + (Label.length() == 4 ? Label : "");
+
+      Global.Print.Translate(Line, Translated);
 
       if (Labelled) {
         /* clear left-most characters of the last column */
@@ -1426,8 +1427,11 @@ class State {
               Translated,   Printer.CharColumns - 4,
               4
            );
+        Line = Line + "  " + Global.Print.BackToText(Arrays.copyOfRange(PrintRegister,
+            Printer.CharColumns - 4,
+            Printer.CharColumns));
       }
-      Global.Print.Render(Translated, ForceFullExport);
+      Global.Print.Render(Line, Translated, ForceFullExport);
     }
   }
 
@@ -1809,7 +1813,7 @@ class State {
           break;
           case 5:
             if (Global.Print != null) {
-              Global.Print.Render(PrintRegister, true);
+              Global.Print.Render("", PrintRegister, true);
             }
             OK = true;
             break;
@@ -1826,7 +1830,7 @@ class State {
                 for (int i = 0; i < Printer.CharColumns; ++i) {
                   Plot[i] = (byte) (i == PlotX ? 51 : 0);
                 }
-                Global.Print.Render(Plot, true);
+                Global.Print.Render("", Plot, true);
               } else {
                 SetErrorState(false);
               }
@@ -2404,21 +2408,19 @@ class State {
       if (Index < SortedLabels.length) {
         final LabelDef ThisLabel = SortedLabels[Index];
         final byte[] Translated = new byte[Printer.CharColumns];
-        Global.Print.Translate
-           (
-              String.format
-                 (
-                    Global.StdLocale,
-                    "      %03d  %02d %3s",
-                    ThisLabel.Loc - 1,
+        // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
+        final String Line = String.format
+            (
+                Global.StdLocale,
+                "      %03d  %02d %3s",
+                ThisLabel.Loc - 1,
                           /* seems to match original, pointing at label symbol
                             (location of "Lbl" + 1) */
-                    ThisLabel.Code,
-                    Printer.KeyCodeSym(ThisLabel.Code)
-                 ),
-              Translated
-           );
-        Global.Print.Render(Translated, false);
+                ThisLabel.Code,
+                Printer.KeyCodeSym(ThisLabel.Code)
+            );
+        Global.Print.Translate(Line, Translated);
+        Global.Print.Render(Line, Translated, false);
         ++Index;
       }
       if (Index == SortedLabels.length) {
@@ -2448,18 +2450,16 @@ class State {
       }
       if (CurReg < (Wrapped ? EndReg : MaxMemories)) {
         final byte[] Translated = new byte[Printer.CharColumns];
-        Global.Print.Translate
-           (
-              String.format
-                 (
-                    Global.StdLocale,
-                    "%16s  %02d",
-                    FormatNumber(Memory[CurReg], FORMAT_FIXED, -1, true),
-                    CurReg /* post-RegOffset number */
-                 ),
-              Translated
-           );
-        Global.Print.Render(Translated, false);
+        // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
+        final String Line = String.format
+            (
+                Global.StdLocale,
+                "%16s  %02d",
+                FormatNumber(Memory[CurReg], FORMAT_FIXED, -1, true),
+                CurReg /* post-RegOffset number */
+            );
+        Global.Print.Translate(Line, Translated);
+        Global.Print.Render(Line, Translated, false);
         ++CurReg;
       }
       if (Wrapped && CurReg >= EndReg) {
@@ -2594,19 +2594,17 @@ class State {
           InvState = false;
         }
         final byte[] Translated = new byte[Printer.CharColumns];
-        Global.Print.Translate
-           (
-              String.format
-                 (
-                    Global.StdLocale,
-                    "       %03d  %02d %3s  ",
-                    ListPC,
-                    Val,
-                    Symbol
-                 ),
-              Translated
-           );
-        Global.Print.Render(Translated, false);
+        // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
+        final String Line = String.format
+            (
+                Global.StdLocale,
+                "       %03d  %02d %3s  ",
+                ListPC,
+                Val,
+                Symbol
+            );
+        Global.Print.Translate(Line, Translated);
+        Global.Print.Render(Line, Translated, false);
         Expecting = NextExpecting;
         ++ListPC;
       }

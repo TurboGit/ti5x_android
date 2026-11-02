@@ -29,6 +29,8 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
 
 class Printer {
 
@@ -227,6 +229,83 @@ class Printer {
           /*90*/ "LST",
       };
 
+  private static final Map<Character, Byte> TranslateTable = new TreeMap<>();
+  private static final char[] BackToTextTable = new char[78];
+
+  static {
+    // Initialize TranslateTable using a self-balancing binary search tree (TreeMap)
+    TranslateTable.put(' ', (byte) 0);
+    for (char ch = '0'; ch <= '6'; ch++) TranslateTable.put(ch, (byte) (1 + ch - '0'));
+    for (char ch = '7'; ch <= '9'; ch++) TranslateTable.put(ch, (byte) (10 + ch - '7'));
+    for (char ch = 'A'; ch <= 'E'; ch++) TranslateTable.put(ch, (byte) (13 + ch - 'A'));
+    for (char ch = 'F'; ch <= 'L'; ch++) TranslateTable.put(ch, (byte) (21 + ch - 'F'));
+    for (char ch = 'M'; ch <= 'T'; ch++) TranslateTable.put(ch, (byte) (30 + ch - 'M'));
+    for (char ch = 'U'; ch <= 'Z'; ch++) TranslateTable.put(ch, (byte) (41 + ch - 'U'));
+    TranslateTable.put('.', (byte) 40);
+    TranslateTable.put('+', (byte) 47);
+    TranslateTable.put('-', (byte) 20);
+    TranslateTable.put('*', (byte) 51);
+    TranslateTable.put('×', (byte) 50);
+    TranslateTable.put('÷', (byte) 72);
+    TranslateTable.put('√', (byte) 52);
+    TranslateTable.put('π', (byte) 53);
+    TranslateTable.put('e', (byte) 54);
+    TranslateTable.put('(', (byte) 55);
+    TranslateTable.put(')', (byte) 56);
+    TranslateTable.put(',', (byte) 57);
+    TranslateTable.put('↑', (byte) 60);
+    TranslateTable.put('%', (byte) 61);
+    TranslateTable.put('⇌', (byte) 62);
+    TranslateTable.put('/', (byte) 63);
+    TranslateTable.put('=', (byte) 64);
+    TranslateTable.put('\'', (byte) 65);
+    TranslateTable.put('ⓧ', (byte) 66);
+    TranslateTable.put('ẍ', (byte) 67);
+    TranslateTable.put('²', (byte) 70);
+    TranslateTable.put('?', (byte) 71);
+    TranslateTable.put('!', (byte) 73);
+    TranslateTable.put('♊', (byte) 74);
+    TranslateTable.put('_', (byte) 75);
+    TranslateTable.put('Π', (byte) 76);
+    TranslateTable.put('∑', (byte) 77);
+
+    // Initialize BackToTextTable
+    BackToTextTable[0] = ' ';
+    for (int b = 1; b <= 7; b++) BackToTextTable[b] = (char) (47 + b);
+    for (int b = 10; b <= 12; b++) BackToTextTable[b] = (char) (45 + b);
+    for (int b = 13; b <= 17; b++) BackToTextTable[b] = (char) (52 + b);
+    BackToTextTable[20] = '-';
+    for (int b = 21; b <= 27; b++) BackToTextTable[b] = (char) (49 + b);
+    for (int b = 30; b <= 37; b++) BackToTextTable[b] = (char) (47 + b);
+    BackToTextTable[40] = '.';
+    for (int b = 41; b <= 46; b++) BackToTextTable[b] = (char) (44 + b);
+    BackToTextTable[47] = '+';
+    BackToTextTable[50] = '×';
+    BackToTextTable[51] = '*';
+    BackToTextTable[52] = '√';
+    BackToTextTable[53] = 'π';
+    BackToTextTable[54] = 'e';
+    BackToTextTable[55] = '(';
+    BackToTextTable[56] = ')';
+    BackToTextTable[57] = ',';
+    BackToTextTable[60] = '↑';
+    BackToTextTable[61] = '%';
+    BackToTextTable[62] = '⇌';
+    BackToTextTable[63] = '/';
+    BackToTextTable[64] = '=';
+    BackToTextTable[65] = '\'';
+    BackToTextTable[66] = 'ⓧ';
+    BackToTextTable[67] = 'ẍ';
+    BackToTextTable[70] = '²';
+    BackToTextTable[71] = '?';
+    BackToTextTable[72] = '÷';
+    BackToTextTable[73] = '!';
+    BackToTextTable[74] = '♊';
+    BackToTextTable[75] = '_';
+    BackToTextTable[76] = 'Π';
+    BackToTextTable[77] = '∑';
+  }
+
   static String KeyCodeSym
       (
           int KeyCode
@@ -352,12 +431,14 @@ class Printer {
 
   void Render
      (
+        String Line,
         byte[] PrintReg,
         boolean ForceFullExport
      ) {
     if ((Global.Export != null && ForceFullExport)
         || !Global.Export.NumbersOnly) {
-      Global.Export.WriteLine(BackToText(PrintReg));
+      final String Data = Line.isEmpty() ? BackToText(PrintReg) : Line;
+      Global.Export.WriteLine(Data);
     }
     Content.add(PrintReg.clone());
   }
@@ -369,77 +450,8 @@ class Printer {
      ) {
     for (int i = 0; i < Math.min(Chars.length(), Translated.length); ++i) {
       final char ch = Chars.charAt(i);
-      int glyph = 0;
-      if (ch == ' ') {
-        glyph = 0;
-      } else if (ch >= 'A' && ch <= 'E') {
-        glyph = 13 + (int) ch - (int) 'A';
-      } else if (ch >= 'F' && ch <= 'L') {
-        glyph = 21 + (int) ch - (int) 'F';
-      } else if (ch >= 'M' && ch <= 'T') {
-        glyph = 30 + (int) ch - (int) 'M';
-      } else if (ch >= 'U' && ch <= 'Z') {
-        glyph = 41 + (int) ch - (int) 'U';
-      } else if (ch >= '0' && ch <= '6') {
-        glyph = 1 + (int) ch - (int) '0';
-      } else if (ch >= '7' && ch <= '9') {
-        glyph = 10 + (int) ch - (int) '7';
-      } else if (ch == '.') {
-        glyph = 40;
-      } else if (ch == '+') {
-        glyph = 47;
-      } else if (ch == '-') {
-        glyph = 20;
-      } else if (ch == '*') {
-        glyph = 51;
-      } else if (ch == '×') {
-        glyph = 50;
-      } else if (ch == '÷') {
-        glyph = 72;
-      } else if (ch == '√') {
-        glyph = 52;
-      } else if (ch == 'π') {
-        glyph = 53;
-      } else if (ch == 'e') {
-        glyph = 54;
-      } else if (ch == '(') {
-        glyph = 55;
-      } else if (ch == ')') {
-        glyph = 56;
-      } else if (ch == ',') {
-        glyph = 57;
-      } else if (ch == '↑') {
-        glyph = 60;
-      } else if (ch == '%') {
-        glyph = 61;
-      } else if (ch == '⇌') {
-        glyph = 62;
-      } else if (ch == '/') {
-        glyph = 63;
-      } else if (ch == '=') {
-        glyph = 64;
-      } else if (ch == '\'') {
-        glyph = 65;
-      } else if (ch == 'ⓧ') /* standing in for superscript x */ {
-        glyph = 66;
-      } else if (ch == 'ẍ') /* closest I can get in Unicode to an x with a bar over it */ {
-        glyph = 67;
-      } else if (ch == '²') {
-        glyph = 70;
-      } else if (ch == '?') {
-        glyph = 71;
-      } else if (ch == '!') /*?*/ {
-        glyph = 73;
-      } else if (ch == '♊') /* Gemini! */ {
-        glyph = 74; /* looks like pi with extra bar across bottom */
-      } else if (ch == '_') {
-        glyph = 75; /* bottom triangle symbol? */
-      } else if (ch == 'Π') {
-        glyph = 76;
-      } else if (ch == '∑') {
-        glyph = 77;
-      }
-      Translated[i] = (byte) glyph;
+      final Byte glyph = TranslateTable.get(ch);
+      Translated[i] = (glyph != null) ? glyph : 0;
     }
     for (int i = Chars.length() + 1; i < Translated.length; ++i) {
       Translated[i] = 0;
@@ -451,79 +463,10 @@ class Printer {
         byte[] PrintReg
      ) {
     StringBuilder Result = new StringBuilder();
-    for (final int b : PrintReg) {
-      int ch = 0;
-      if (b == 0) {
-        ch = ' ';
-      } else if (b >= 1 && b <= 7) /* '0' .. '6' */ {
-        ch = (char) (47 + b);
-      } else if (b >= 10 && b <= 12) /* '7' .. '9' */ {
-        ch = (char) (45 + b);
-      } else if (b >= 13 && b <= 17) /* 'A' .. 'E' */ {
-        ch = (char) (52 + b);
-      } else if (b == 20) /* '-' */ {
-        ch = '-';
-      } else if (b >= 21 && b <= 27) /* 'F' .. 'L' */ {
-        ch = (char) (49 + b);
-      } else if (b >= 30 && b <= 37) /* 'M' .. 'T' */ {
-        ch = (char) (47 + b);
-      } else if (b == 40) /* '.' */ {
-        ch = '.';
-      } else if (b >= 41 && b <= 46) /* 'U' .. 'Z' */ {
-        ch = (char) (44 + b);
-      } else if (b == 47) /* '+' */ {
-        ch = '+';
-      } else if (b == 50) /* '×' */ {
-        ch = '×';
-      } else if (b == 51) /* '*' */ {
-        ch = '*';
-      } else if (b == 52) /* '√' */ {
-        ch = '√';
-      } else if (b == 53) /* 'π' */ {
-        ch = 'π';
-      } else if (b == 54) /* 'e' */ {
-        ch = 'e';
-      } else if (b == 55) /* '(' */ {
-        ch = '(';
-      } else if (b == 56) /* ')' */ {
-        ch = ')';
-      } else if (b == 57) /* ',' */ {
-        ch = ',';
-      } else if (b == 60) /* '↑' */ {
-        ch = '↑';
-      } else if (b == 61) /* '%' */ {
-        ch = '%';
-      } else if (b == 62) /* double arrow */ {
-        ch = '⇌';
-      } else if (b == 63) /* '/' */ {
-        ch = '/';
-      } else if (b == 64) /* '=' */ {
-        ch = '=';
-      } else if (b == 65) /* '\'' */ {
-        ch = '\'';
-      } else if (b == 66) {
-        ch = 'ⓧ'; /* standing in for superscript x */
-      } else if (b == 67) {
-        ch = 'ẍ'; /* closest I can get in Unicode to an x with a bar over it */
-      } else if (b == 70) /* '²' */ {
-        ch = '²';
-      } else if (b == 71) /* '?' */ {
-        ch = '?';
-      } else if (b == 72) /* '÷' */ {
-        ch = '÷';
-      } else if (b == 73) /* '!'? */ {
-        ch = '!'; /*?*/
-      } else if (b == 74) /* looks like pi with extra bar across bottom */ {
-        ch = '♊'; /* Gemini! */
-      } else if (b == 75) /* bottom triangle symbol? */ {
-        ch = '_';
-      } else if (b == 76) /* 'Π' */ {
-        ch = 'Π';
-      } else if (b == 77) /* '∑' */ {
-        ch = '∑';
-      }
-      if (ch != 0) {
-        Result.appendCodePoint(ch);
+    for (final byte bByte : PrintReg) {
+      final int b = bByte & 0xFF;
+      if (b < BackToTextTable.length) {
+        Result.appendCodePoint(BackToTextTable[b]);
       }
     }
     return Result.toString();
