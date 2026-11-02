@@ -154,23 +154,7 @@ public class Picker extends BaseActivity {
           int WhichButton
        ) {
       if (WhichButton == android.content.DialogInterface.BUTTON_POSITIVE) {
-        boolean Deleted;
-        try {
-          new java.io.File(TheFile.FullPath).delete();
-          Deleted = true;
-        } catch (SecurityException AccessDenied) {
-          Snackbar.make(
-               findViewById(android.R.id.content),
-                String.format
-                   (
-                      Global.StdLocale,
-                      getString(R.string.file_delete_error),
-                      AccessDenied.toString()
-                   ),
-                Snackbar.LENGTH_LONG
-             ).show();
-          Deleted = false;
-        }
+        boolean Deleted = Global.DataStorage.deleteFileForPath(TheFile.FullPath);
         if (Deleted) {
           Snackbar.make(
                findViewById(android.R.id.content),
@@ -183,6 +167,17 @@ public class Picker extends BaseActivity {
                 Snackbar.LENGTH_SHORT
              ).show();
           PopulatePickerList(SelectedAlt);
+        } else {
+          Snackbar.make(
+               findViewById(android.R.id.content),
+                String.format
+                   (
+                      Global.StdLocale,
+                      getString(R.string.file_delete_error),
+                      TheFile.toString()
+                   ),
+                Snackbar.LENGTH_LONG
+             ).show();
         }
       }
       dismiss();

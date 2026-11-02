@@ -493,16 +493,10 @@ public class Main extends BaseCompatActivity {
 
        ArrayList<String> CalcDirs = new ArrayList<String>();
 
-       final String ProgramsDir =
-           Global.DataStorage.GetAppDataProgramsDir();
-
-       final String DataDir =
-           Global.DataStorage.GetAppDataExportDir();
-
-       if (new java.io.File(ProgramsDir).exists()) {
+       if (Global.DataStorage.dirExists(Persistent.ProgramsDir)) {
          CalcDirs.add(Persistent.ProgramsDir);
        }
-       if (new java.io.File(DataDir).exists()) {
+       if (Global.DataStorage.dirExists(Persistent.DataDir)) {
          CalcDirs.add(Persistent.DataDir);
        }
 

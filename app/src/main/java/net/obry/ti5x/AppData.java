@@ -145,13 +145,82 @@ public class AppData {
     return f.exists();
   }
 
+  public boolean dirExists(String dir) {
+    DocumentFile root = getRootDir();
+    if (root != null) {
+      DocumentFile subDir = root.findFile(dir);
+      if (subDir != null && subDir.exists()) {
+        return true;
+      }
+    }
+    File documents = Environment.getExternalStoragePublicDirectory(
+        Environment.DIRECTORY_DOCUMENTS);
+    if (documents == null) {
+      documents = AppDataContext.getFilesDir();
+    }
+    File appDir = new File(documents, "Ti5x/" + dir);
+    return appDir.exists();
+  }
+
   public boolean deleteFile(String dir, String fileName) {
+    boolean deleted = false;
     DocumentFile doc = getSubDirFile(dir, fileName, false);
     if (doc != null && doc.exists()) {
-      return doc.delete();
+      deleted = doc.delete();
     }
     File f = getFallbackFile(dir, fileName);
-    return f.delete();
+    if (f.exists()) {
+      deleted = f.delete() || deleted;
+    }
+    return deleted;
+  }
+
+  public boolean deleteFileForPath(String path) {
+    if (path == null) {
+      return false;
+    }
+    try {
+      String cleanName = path;
+      if (cleanName.startsWith("/")) {
+        cleanName = cleanName.substring(1);
+      }
+      String dir = Persistent.ProgramsDir;
+      if (cleanName.regionMatches(true, 0, Persistent.ProgramsDir + "/", 0, Persistent.ProgramsDir.length() + 1)) {
+        dir = Persistent.ProgramsDir;
+        cleanName = cleanName.substring(Persistent.ProgramsDir.length() + 1);
+      } else if (cleanName.regionMatches(true, 0, Persistent.DataDir + "/", 0, Persistent.DataDir.length() + 1)) {
+        dir = Persistent.DataDir;
+        cleanName = cleanName.substring(Persistent.DataDir.length() + 1);
+      } else {
+        int idx = cleanName.lastIndexOf('/');
+        if (idx >= 0) {
+          String prefix = cleanName.substring(0, idx);
+          if (prefix.equalsIgnoreCase(Persistent.DataDir) || prefix.toLowerCase().endsWith("/" + Persistent.DataDir.toLowerCase())) {
+            dir = Persistent.DataDir;
+          } else if (prefix.equalsIgnoreCase(Persistent.ProgramsDir) || prefix.toLowerCase().endsWith("/" + Persistent.ProgramsDir.toLowerCase())) {
+            dir = Persistent.ProgramsDir;
+          }
+          cleanName = cleanName.substring(idx + 1);
+        }
+      }
+
+      boolean deleted = deleteFile(dir, cleanName);
+      if (!deleted) {
+        String fallbackDir = dir.equals(Persistent.ProgramsDir) ? Persistent.DataDir : Persistent.ProgramsDir;
+        deleted = deleteFile(fallbackDir, cleanName);
+      }
+
+      if (!deleted) {
+        File f = new File(path);
+        if (f.exists()) {
+          deleted = f.delete();
+        }
+      }
+
+      return deleted;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   public String[] listFiles(String dir, String[] extensions) {
@@ -231,17 +300,20 @@ public class AppData {
       cleanName = cleanName.substring(1);
     }
     String subDir = Persistent.ProgramsDir;
-    if (cleanName.startsWith(Persistent.ProgramsDir + "/")) {
+    if (cleanName.regionMatches(true, 0, Persistent.ProgramsDir + "/", 0, Persistent.ProgramsDir.length() + 1)) {
+      subDir = Persistent.ProgramsDir;
       cleanName = cleanName.substring(Persistent.ProgramsDir.length() + 1);
-    } else if (cleanName.startsWith(Persistent.DataDir + "/")) {
+    } else if (cleanName.regionMatches(true, 0, Persistent.DataDir + "/", 0, Persistent.DataDir.length() + 1)) {
       subDir = Persistent.DataDir;
       cleanName = cleanName.substring(Persistent.DataDir.length() + 1);
     } else {
       int idx = cleanName.lastIndexOf('/');
       if (idx >= 0) {
         String prefix = cleanName.substring(0, idx);
-        if (prefix.equals(Persistent.DataDir)) {
+        if (prefix.equalsIgnoreCase(Persistent.DataDir)) {
           subDir = Persistent.DataDir;
+        } else if (prefix.equalsIgnoreCase(Persistent.ProgramsDir)) {
+          subDir = Persistent.ProgramsDir;
         }
         cleanName = cleanName.substring(idx + 1);
       }
@@ -300,17 +372,20 @@ public class AppData {
         cleanName = cleanName.substring(1);
       }
       String dir = Persistent.ProgramsDir;
-      if (cleanName.startsWith(Persistent.ProgramsDir + "/")) {
+      if (cleanName.regionMatches(true, 0, Persistent.ProgramsDir + "/", 0, Persistent.ProgramsDir.length() + 1)) {
+        dir = Persistent.ProgramsDir;
         cleanName = cleanName.substring(Persistent.ProgramsDir.length() + 1);
-      } else if (cleanName.startsWith(Persistent.DataDir + "/")) {
+      } else if (cleanName.regionMatches(true, 0, Persistent.DataDir + "/", 0, Persistent.DataDir.length() + 1)) {
         dir = Persistent.DataDir;
         cleanName = cleanName.substring(Persistent.DataDir.length() + 1);
       } else {
         int idx = cleanName.lastIndexOf('/');
         if (idx >= 0) {
           String prefix = cleanName.substring(0, idx);
-          if (prefix.equals(Persistent.DataDir) || prefix.endsWith("/" + Persistent.DataDir)) {
+          if (prefix.equalsIgnoreCase(Persistent.DataDir) || prefix.toLowerCase().endsWith("/" + Persistent.DataDir.toLowerCase())) {
             dir = Persistent.DataDir;
+          } else if (prefix.equalsIgnoreCase(Persistent.ProgramsDir) || prefix.toLowerCase().endsWith("/" + Persistent.ProgramsDir.toLowerCase())) {
+            dir = Persistent.ProgramsDir;
           }
           cleanName = cleanName.substring(idx + 1);
         }
