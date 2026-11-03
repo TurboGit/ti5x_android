@@ -1405,16 +1405,17 @@ class State {
       final byte[] Translated = new byte[Printer.CharColumns];
       String Disp = (Data ? CurDisplay : "");
       // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
-      String Line = String.format
-          (
-              Global.StdLocale,
-              String.format
-                  (Global.StdLocale, "%%%ds", Math.max(1, 14 - Disp.length())),
-              " "
-          ).substring(1) /* because I can't have a 0-length format width */
-          + Disp
-          + (InErrorState() ? "?" : " ")
-          + (Label.length() == 4 ? Label : "");
+      final int padLen = Math.max(0, 13 - Disp.length());
+      StringBuilder sb = new StringBuilder(18);
+      for (int i = 0; i < padLen; i++) {
+        sb.append(' ');
+      }
+      sb.append(Disp);
+      sb.append(InErrorState() ? '?' : ' ');
+      if (Label.length() == 4) {
+        sb.append(Label);
+      }
+      String Line = sb.toString();
 
       Global.Print.Translate(Line, Translated);
 

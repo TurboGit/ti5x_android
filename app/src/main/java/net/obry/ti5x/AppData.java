@@ -7,11 +7,15 @@ import android.net.Uri;
 import android.os.Environment;
 import androidx.documentfile.provider.DocumentFile;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppData {
 
@@ -19,8 +23,18 @@ public class AppData {
   private static final String PREFS_NAME = "Ti5xPrefs";
   private static final String KEY_SAF_URI = "saf_tree_uri";
 
+  private DocumentFile cachedRootDir = null;
+  private String cachedUriStr = null;
+  private final Map<String, DocumentFile> cachedSubDirs = new HashMap<>();
+
   public AppData(Context ctx) {
     AppDataContext = ctx;
+  }
+
+  public synchronized void clearCache() {
+    cachedRootDir = null;
+    cachedUriStr = null;
+    cachedSubDirs.clear();
   }
 
   public static boolean hasUri(Context ctx) {
@@ -44,48 +58,75 @@ public class AppData {
   public static void setUri(Context ctx, Uri uri) {
     SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     prefs.edit().putString(KEY_SAF_URI, uri.toString()).apply();
+    if (Global.DataStorage != null) {
+      Global.DataStorage.clearCache();
+    }
   }
 
   public static void clearUri(Context ctx) {
     SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     prefs.edit().remove(KEY_SAF_URI).apply();
+    if (Global.DataStorage != null) {
+      Global.DataStorage.clearCache();
+    }
   }
 
-  private DocumentFile getRootDir() {
+  private synchronized DocumentFile getRootDir() {
     SharedPreferences prefs = AppDataContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     String uriStr = prefs.getString(KEY_SAF_URI, null);
-    if (uriStr != null) {
-      try {
-        Uri uri = Uri.parse(uriStr);
-        DocumentFile root = DocumentFile.fromTreeUri(AppDataContext, uri);
-        if (root != null && root.canRead() && root.canWrite()) {
-          DocumentFile ti5x = root.findFile("Ti5x");
-          if (ti5x == null) {
-            ti5x = root.createDirectory("Ti5x");
-          }
-          return ti5x;
+    if (uriStr == null) {
+      clearCache();
+      return null;
+    }
+    if (cachedRootDir != null && uriStr.equals(cachedUriStr) && cachedRootDir.exists()) {
+      return cachedRootDir;
+    }
+    try {
+      Uri uri = Uri.parse(uriStr);
+      DocumentFile root = DocumentFile.fromTreeUri(AppDataContext, uri);
+      if (root != null && root.canRead() && root.canWrite()) {
+        DocumentFile ti5x = root.findFile("Ti5x");
+        if (ti5x == null) {
+          ti5x = root.createDirectory("Ti5x");
         }
-      } catch (Exception e) {
-        // fallback
+        cachedUriStr = uriStr;
+        cachedRootDir = ti5x;
+        cachedSubDirs.clear();
+        return ti5x;
       }
+    } catch (Exception e) {
+      clearCache();
     }
     return null;
   }
 
-  private DocumentFile getSubDirFile(String dir, String fileName, boolean create) {
+  private synchronized DocumentFile getSubDir(String dir, boolean create) {
     DocumentFile root = getRootDir();
-    if (root != null) {
-      DocumentFile subDir = root.findFile(dir);
-      if (subDir == null && create) {
-        subDir = root.createDirectory(dir);
+    if (root == null) {
+      return null;
+    }
+    DocumentFile subDir = cachedSubDirs.get(dir);
+    if (subDir != null && subDir.exists()) {
+      return subDir;
+    }
+    subDir = root.findFile(dir);
+    if (subDir == null && create) {
+      subDir = root.createDirectory(dir);
+    }
+    if (subDir != null) {
+      cachedSubDirs.put(dir, subDir);
+    }
+    return subDir;
+  }
+
+  private DocumentFile getSubDirFile(String dir, String fileName, boolean create) {
+    DocumentFile subDir = getSubDir(dir, create);
+    if (subDir != null) {
+      DocumentFile file = subDir.findFile(fileName);
+      if (file == null && create) {
+        file = subDir.createFile("application/octet-stream", fileName);
       }
-      if (subDir != null) {
-        DocumentFile file = subDir.findFile(fileName);
-        if (file == null && create) {
-          file = subDir.createFile("application/octet-stream", fileName);
-        }
-        return file;
-      }
+      return file;
     }
     return null;
   }
@@ -107,12 +148,14 @@ public class AppData {
     try {
       DocumentFile doc = getSubDirFile(dir, fileName, false);
       if (doc != null && doc.exists()) {
-        return AppDataContext.getContentResolver().openInputStream(doc.getUri());
-      } else {
-        File f = getFallbackFile(dir, fileName);
-        if (f.exists()) {
-          return new java.io.FileInputStream(f);
+        InputStream is = AppDataContext.getContentResolver().openInputStream(doc.getUri());
+        if (is != null) {
+          return new BufferedInputStream(is);
         }
+      }
+      File f = getFallbackFile(dir, fileName);
+      if (f.exists() && f.isFile()) {
+        return new BufferedInputStream(new java.io.FileInputStream(f));
       }
     } catch (Exception e) {
       // ignore
@@ -125,10 +168,11 @@ public class AppData {
       DocumentFile doc = getSubDirFile(dir, fileName, true);
       if (doc != null) {
         String mode = append ? "wa" : "w";
-        return AppDataContext.getContentResolver().openOutputStream(doc.getUri(), mode);
+        OutputStream os = AppDataContext.getContentResolver().openOutputStream(doc.getUri(), mode);
+        return os != null ? new BufferedOutputStream(os) : null;
       } else {
         File f = getFallbackFile(dir, fileName);
-        return new java.io.FileOutputStream(f, append);
+        return new BufferedOutputStream(new java.io.FileOutputStream(f, append));
       }
     } catch (Exception e) {
       // ignore
@@ -148,7 +192,7 @@ public class AppData {
   public boolean dirExists(String dir) {
     DocumentFile root = getRootDir();
     if (root != null) {
-      DocumentFile subDir = root.findFile(dir);
+      DocumentFile subDir = getSubDir(dir, false);
       if (subDir != null && subDir.exists()) {
         return true;
       }
@@ -228,7 +272,7 @@ public class AppData {
     try {
       DocumentFile root = getRootDir();
       if (root != null) {
-        DocumentFile subDir = root.findFile(dir);
+        DocumentFile subDir = getSubDir(dir, false);
         if (subDir != null) {
           for (DocumentFile file : subDir.listFiles()) {
             if (file.isFile() && file.getName() != null) {
@@ -362,7 +406,7 @@ public class AppData {
     return AppDataContext;
   }
 
-  public java.io.InputStream getInputStreamForPath(String path) {
+  public InputStream getInputStreamForPath(String path) {
     if (path == null) {
       return null;
     }
@@ -391,7 +435,7 @@ public class AppData {
         }
       }
 
-      java.io.InputStream in = getInputStream(dir, cleanName);
+      InputStream in = getInputStream(dir, cleanName);
       if (in == null) {
         String fallbackDir = dir.equals(Persistent.ProgramsDir) ? Persistent.DataDir : Persistent.ProgramsDir;
         in = getInputStream(fallbackDir, cleanName);
@@ -400,14 +444,17 @@ public class AppData {
       if (in == null) {
         try {
           android.net.Uri uri = android.net.Uri.parse(path);
-          in = AppDataContext.getContentResolver().openInputStream(uri);
+          InputStream uriStream = AppDataContext.getContentResolver().openInputStream(uri);
+          if (uriStream != null) {
+            in = new BufferedInputStream(uriStream);
+          }
         } catch (Exception ignored) {}
       }
 
       if (in == null) {
-        java.io.File f = new java.io.File(path);
+        File f = new File(path);
         if (f.exists() && f.isFile()) {
-          in = new java.io.FileInputStream(f);
+          in = new BufferedInputStream(new java.io.FileInputStream(f));
         }
       }
 

@@ -1422,7 +1422,7 @@ public class Persistent {
 
           File tempFile = File.createTempFile("load", ".tmp", Global.DataStorage.getContext().getCacheDir());
           tempFile.deleteOnExit();
-          try (java.io.OutputStream out = new java.io.FileOutputStream(tempFile)) {
+          try (java.io.OutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(tempFile))) {
             byte[] buf = new byte[8192];
             for (int len; (len = stream.read(buf)) > 0; ) {
               out.write(buf, 0, len);
