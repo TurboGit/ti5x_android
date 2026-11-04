@@ -2473,6 +2473,8 @@ class State {
     int ListPC, EndPC;
     int Expecting;
     boolean InvState;
+    final byte [] Prog = Bank[CurBank].Program;
+
     /* following original, state machine is somewhat simpler than full interpreter/disassembler */
     final int ExpectOpcode = 0;
     final int ExpectTwoDigits = 1;
@@ -2484,12 +2486,12 @@ class State {
 
     ProgramLister() {
       ListPC = PC;
-      EndPC = MaxProgramSteps;
+      EndPC = Prog.length;
       for (; ; ) /* omit trailing zero bytes */ {
         if (EndPC == 0)
           break;
         --EndPC;
-        if (Program[EndPC] != 0)
+        if (Prog[EndPC] != 0)
           break;
       }
       Expecting = ExpectOpcode;
@@ -2498,7 +2500,7 @@ class State {
 
     public void run() {
       if (ListPC < MaxProgramSteps) {
-        final int Val = Program[ListPC];
+        final int Val = Prog[ListPC];
         String Symbol = Printer.KeyCodeSym(Val);
         int NextExpecting = ExpectOpcode;
         boolean WasModifier = false;
