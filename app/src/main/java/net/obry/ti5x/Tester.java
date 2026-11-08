@@ -1491,6 +1491,37 @@ class Tester {
     return ok;
   }
 
+  private boolean Test_43() {
+    // Check Disassembler
+    byte[] prog1 = new byte[]{85, 01, 95, 66, 81};
+    String out1 = Disassembler.disassemble(prog1);
+    String exp1 = "   +                           ; 000 85\n" +
+                  "   1                           ; 001 01\n" +
+                  "   =                           ; 002 95\n" +
+                  "   Pause                       ; 003 66\n" +
+                  "   RST                         ; 004 81\n";
+    if (!exp1.equals(out1)) return false;
+
+    byte[] prog2 = new byte[]{76, 11, 0, 42, 9, 60, 58, 9, 76, 24, 29, 6, 42, 1, 0, 72, 1, 97, 1, 15, 22, 71};
+    String out2 = Disassembler.disassemble(prog2);
+    String exp2 = "Lbl A                          ; 000 76 11\n" +
+                  "   0                           ; 002 00\n" +
+                  "   STO 09                      ; 003 42 09\n" +
+                  "   Deg                         ; 005 60\n" +
+                  "   Fix 9                       ; 006 58 09\n" +
+                  "Lbl CE                         ; 008 76 24\n" +
+                  "   CP                          ; 010 29\n" +
+                  "   6                           ; 011 06\n" +
+                  "   STO 01                      ; 012 42 01\n" +
+                  "   0                           ; 014 00\n" +
+                  "   ST* 01                      ; 015 72 01\n" +
+                  "   Dsz 1 E                     ; 017 97 01 15\n" +
+                  "   INV SBR                     ; 020 22 71\n";
+    if (!exp2.equals(out2)) return false;
+
+    return true;
+  }
+
   int Run() {
     Calc = Global.Calc;
     int Total = 0;
@@ -1578,6 +1609,8 @@ class Tester {
     if (!Test_41()) return -41;
     Total++;
     if (!Test_42()) return -42;
+    Total++;
+    if (!Test_43()) return -43;
     Total++;
     Clear();
 

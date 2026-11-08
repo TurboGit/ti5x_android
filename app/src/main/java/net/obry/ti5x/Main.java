@@ -65,6 +65,7 @@ public class Main extends BaseCompatActivity {
   static final int ImportDataRequest = 2;
   static final int SaveProgramRequest = 3;
   static final int ExportDataRequest = 4;
+  static final int ExportProgramRequest = 5;
 
   static final int SwitchSaveAs = android.app.Activity.RESULT_FIRST_USER;
   static final int SwitchAppend = android.app.Activity.RESULT_FIRST_USER + 1;
@@ -523,6 +524,18 @@ public class Main extends BaseCompatActivity {
            );
        break;
 
+     case R.id.export_program_as:
+       SaveAs.Launch
+           (
+               Main.this,
+               ExportProgramRequest,
+               getString(R.string.program),
+               Persistent.ProgramsDir,
+               null,
+               Persistent.TextExt
+           );
+       break;
+
      case R.id.import_data:
        LaunchImportPicker();
        return true;
@@ -974,6 +987,68 @@ public class Main extends BaseCompatActivity {
                       }
                     },
                     getString(R.string.saving)
+                 );
+            } /*Run*/
+          }
+       );
+    ActivityResultActions.put
+       (
+          ExportProgramRequest,
+          new RequestResponseAction() {
+            public void Run
+               (
+                  int ResultCode,
+                  Intent Data
+               ) {
+              final String TheName =
+                 Data.getData().getPath().substring(1) /* ignoring leading slash */
+                    + Persistent.TextExt;
+              final String SaveFile =
+                  Global.DataStorage.GetAppDataProgramsFile(TheName);
+              Global.StartBGTask
+                 (
+                    new Global.Task() {
+                      @Override
+                      public void BGRun() {
+                        try {
+                          Disassembler.exportProgram
+                             (
+                                Global.Calc,
+                                SaveFile
+                             );
+                        } catch (RuntimeException Failed) {
+                          SetStatus(-1, Failed);
+                        }
+                      }
+
+                      @Override
+                      public void PostRun() {
+                        if (TaskStatus == 0) {
+                          Snackbar.make(
+                                findViewById(android.R.id.content),
+                                String.format
+                                   (
+                                      Global.StdLocale,
+                                      getString(R.string.program_exported),
+                                      TheName
+                                   ),
+                                Snackbar.LENGTH_SHORT
+                             ).show();
+                        } else {
+                          Snackbar.make(
+                                findViewById(android.R.id.content),
+                                String.format
+                                   (
+                                      Global.StdLocale,
+                                      getString(R.string.program_export_error),
+                                      TaskFailure.toString()
+                                   ),
+                                Snackbar.LENGTH_LONG
+                             ).show();
+                        }
+                      }
+                    },
+                    getString(R.string.exporting)
                  );
             } /*Run*/
           }

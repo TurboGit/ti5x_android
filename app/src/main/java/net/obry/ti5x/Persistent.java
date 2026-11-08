@@ -86,6 +86,7 @@ public class Persistent {
   static final String LibExt = ".ti5l"; /* for library */
   static final String BankExt = ".ti5b"; /* for library */
   static final String DataExt = ".dat"; /* for data export */
+  static final String TextExt = ".txt"; /* for exported program text */
   static final String ProgramsDir = "Programs"; /* where to save user programs */
   static final String DataDir = "Data"; /* where to save exported data */
   static final String PrinterDir = "Paper"; /* where to save exported paper */
