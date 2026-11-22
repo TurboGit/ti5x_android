@@ -18,7 +18,9 @@ import/export, and `Op 99` self-test.
 
 | Path | Content |
 |---|---|
-| `app/src/main/java/net/obry/ti5x/` | All Java sources (engine and UI are currently mixed, see "Architecture") |
+| `app/src/main/java/net/obry/ti5x/` | Android app sources (engine and UI are currently mixed, see "Architecture") |
+| `engine/` | Pure-Java calculator engine (`net.obry.ti5x.engine`), being extracted from `app/` |
+| `cli/` | Command-line front-end (`net.obry.ti5x.cli.Main`) running programs on the console |
 | `app/src/main/res/`, `app/src/main/assets/` | Android resources, help HTML, fonts |
 | `app/src/main/res/raw/*.ti5l`, `*.ti5p` | **Generated** at build time from `modules/` and `programs/` (git-ignored) |
 | `app/preprocess.gradle` | `preprocess` task (hooked on `preBuild`) that calls `util/libmake` and `util/makeprog` |
@@ -33,12 +35,16 @@ import/export, and `Op 99` self-test.
 
 ```sh
 ./gradlew assembleDebug        # build the APK (runs the preprocess task first)
+./gradlew :engine:test         # engine unit tests (JUnit 5)
+./gradlew :cli:installDist     # CLI, then run cli/build/install/ti5x/bin/ti5x
 ./gradlew clean
 make -C examples               # build examples/*.ti5p
 util/check-assemble-disassemble  # assembler/disassembler round trip
 ```
 
-Requirements: JDK 17+, the Android SDK (`local.properties` → `sdk.dir`), `python3`
+Requirements: a full JDK 17 or 21 (it must include `javac`; a JRE-only
+JDK fails with "does not provide the required capabilities: [JAVA_COMPILER]",
+so set `JAVA_HOME`, e.g. `/usr/lib/jvm/java-21-openjdk-amd64`), the Android SDK (`local.properties` → `sdk.dir`), `python3`
 on the `PATH`, and GhostScript for card rendering. `keystore.properties` is needed
 for signing (see `INSTALL`). Never commit `local.properties`, `keystore.properties`,
 or generated `*.ti5*` files.

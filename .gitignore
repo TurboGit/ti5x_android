@@ -3,6 +3,8 @@
 /local.properties
 /keystore.properties
 /app/build
+/engine/build
+/cli/build
 /.idea
 /build
 /.gradle

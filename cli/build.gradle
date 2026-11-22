@@ -1,0 +1,21 @@
+// ti5x command line: runs TI-59 programs on the console using :engine.
+
+apply plugin: 'application'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+application {
+    mainClass = 'net.obry.ti5x.cli.Main'
+    applicationName = 'ti5x'
+}
+
+dependencies {
+    implementation project(':engine')
+}
