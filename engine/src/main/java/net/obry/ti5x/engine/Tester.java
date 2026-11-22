@@ -15,12 +15,20 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
-import net.obry.ti5x.engine.Disassembler;
 
 class Tester {
+  private final Calculator Engine;
   private State Calc;
+
+  public Tester
+     (
+        Calculator Engine
+     ) {
+    this.Engine = Engine;
+  }
+
 
   private final static String SMALL = "1.-99";
   private final static String ERROR = "9.9999999 99";
@@ -70,11 +78,11 @@ class Tester {
   }
 
   private void deleteExportFile(String filename) {
-    Global.DataStorage.deleteFile(Persistent.DataDir, filename);
+    Engine.Files.deleteFile(Constants.DataDir, filename);
   }
 
   private boolean checkExportFile(String filename, String... expectedLines) {
-    try (java.io.InputStream in = Global.DataStorage.getInputStream(Persistent.DataDir, filename)) {
+    try (java.io.InputStream in = Engine.Files.getInputStream(Constants.DataDir, filename)) {
       if (in == null) {
         return false;
       }
@@ -1433,8 +1441,8 @@ class Tester {
     Calc.SpecialOp(4, false);
     Calc.SpecialOp(6, false);
 
-    if (Global.Print != null) {
-      Global.Print.Advance(true);
+    if (Engine.Print != null) {
+      Engine.Print.Advance(true);
     }
 
     SetX(1516);
@@ -1468,8 +1476,8 @@ class Tester {
     Calc.SpecialOp(4, false);
     Calc.SpecialOp(6, false);
 
-    if (Global.Print != null) {
-      Global.Print.Advance(true);
+    if (Engine.Print != null) {
+      Engine.Print.Advance(true);
     }
 
     SetX(19);
@@ -1524,8 +1532,8 @@ class Tester {
     return true;
   }
 
-  int Run() {
-    Calc = Global.Calc;
+  public int Run() {
+    Calc = Engine.Calc;
     int Total = 0;
 
     if (!Test_1()) return -1;

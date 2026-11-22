@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AppData {
+public class AppData implements net.obry.ti5x.engine.FileStore {
 
   private Context AppDataContext;
   private static final String PREFS_NAME = "Ti5xPrefs";
@@ -390,7 +390,7 @@ public class AppData {
     return GetAppDataPrinterDir() + "/" + Filename;
   }
 
-  String GetAppDataExportFile(String Filename){
+  public String GetAppDataExportFile(String Filename){
     return GetAppDataExportDir() + "/" + Filename;
   }
 

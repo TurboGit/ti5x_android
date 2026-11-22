@@ -17,25 +17,16 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
-import android.annotation.SuppressLint;
-import android.graphics.Bitmap;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-class Printer {
+public class Printer {
 
-  ArrayList<byte[]> Content = new ArrayList<>();
-  private android.content.Context PrtContext;
+  public final ArrayList<byte[]> Content = new ArrayList<>();
+  private final Calculator Engine; /* for the data exporter */
 
   private final static int DotSize = 2;
   private final static int DotGap = 1;
@@ -44,7 +35,7 @@ class Printer {
   private final static int CharHorGap = 1;
   private final static int CharVertGap = 1;
   public final static int PaddingWidth = 10;
-  final static int CharColumns = 20;
+  public final static int CharColumns = 20;
   private final static int CharLines = 125; /* make this configurable? */
 
   public final int LineHeight = (CharHeight + CharVertGap) * (DotSize + DotGap);
@@ -52,8 +43,8 @@ class Printer {
 
   public final int PaperWidth = ColumnWidth * CharColumns + (PaddingWidth * 2);
 
-  private final int PaperColor;
-  private final int InkColor;
+  private int PaperColor = 0xFFFFFFFF; /* ARGB */
+  private int InkColor = 0xFF000000; /* ARGB */
 
   private static final int[][] Chars =
       {
@@ -306,7 +297,7 @@ class Printer {
     BackToTextTable[77] = '∑';
   }
 
-  static String KeyCodeSym
+  public static String KeyCodeSym
       (
           int KeyCode
       ) {
@@ -320,67 +311,34 @@ class Printer {
 
   public Printer
       (
-          android.content.Context ctx
+          Calculator Engine /* null for a printer used only to show the paper */
       ) {
-    final android.content.res.Resources Res = ctx.getResources();
-    //  This context is needed so we can call SavePaper (and other functions) properly
-    PrtContext = ctx;
-    PaperColor = Res.getColor(R.color.paper);
-    InkColor = Res.getColor(R.color.ink);
+    this.Engine = Engine;
     // skip first line
     Content.add(new byte[0]);
   }
 
-  boolean SavePaper(Bitmap Paper, StringBuilder mes) {
-
-    // Clear message
-    mes.setLength(0);
-
-    OutputStream outputStream = null;
-    @SuppressLint("SimpleDateFormat") /* we want a specific format without slash as separator */
-        String outString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss.SSS").format(new Date());
-    String fileName = outString + ".png";
-
-    try {
-      outputStream = Global.DataStorage.getOutputStream(Persistent.PrinterDir, fileName, false);
-      if (outputStream == null) {
-        File file = new File(Global.DataStorage.GetAppDataPrinterFile(fileName));
-        outputStream = new FileOutputStream(file);
-      }
-      boolean ok = Paper.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-    } catch (Exception ex) {
-      //exception handling code
-      ex.printStackTrace();
-      mes.append("Can't Create. " + fileName);
-      return false;
-    } finally {
-      try {
-        if (outputStream != null) {
-          outputStream.flush();
-          outputStream.close();
-          mes.append("Saved to " + fileName);
-          return true;
-        }
-      } catch (java.io.IOException ex) {
-        ex.printStackTrace();
-        mes.append("Error Occurred.");
-        return false;
-      }
-    }
-    return false;
+  public void SetColors
+      (
+          int PaperColor, /* ARGB */
+          int InkColor /* ARGB */
+      ) {
+    /* colors used by renderLine. */
+    this.PaperColor = PaperColor;
+    this.InkColor = InkColor;
   }
 
-  void Advance(boolean ForceFullExport) {
+  public void Advance(boolean ForceFullExport) {
     // advances the paper to the next line.
     Content.add(new byte[0]);
 
-    if (ForceFullExport
-        || (Global.Export != null && !Global.Export.NumbersOnly)) {
-      Global.Export.WriteLine("");
+    final Exporter Export = Engine != null ? Engine.Export : null;
+    if (Export != null && (ForceFullExport || !Export.NumbersOnly)) {
+      Export.WriteLine("");
     }
   }
 
-  int[] renderLine(byte[] PrintReg) {
+  public int[] renderLine(byte[] PrintReg) {
     final int[] Line = new int[PaperWidth * LineHeight];
     for (int i = 0; i < Line.length; ++i) {
       /* initialize background */
@@ -429,21 +387,21 @@ class Printer {
     }
   }
 
-  void Render
+  public void Render
      (
         String Line,
         byte[] PrintReg,
         boolean ForceFullExport
      ) {
-    if ((Global.Export != null && ForceFullExport)
-        || !Global.Export.NumbersOnly) {
+    final Exporter Export = Engine != null ? Engine.Export : null;
+    if (Export != null && (ForceFullExport || !Export.NumbersOnly)) {
       final String Data = Line.isEmpty() ? BackToText(PrintReg) : Line;
-      Global.Export.WriteLine(Data);
+      Export.WriteLine(Data);
     }
     Content.add(PrintReg.clone());
   }
 
-  void Translate
+  public void Translate
      (
         String Chars,
         byte[] Translated
@@ -458,7 +416,7 @@ class Printer {
     }
   }
 
-  String BackToText
+  public String BackToText
      (
         byte[] PrintReg
      ) {

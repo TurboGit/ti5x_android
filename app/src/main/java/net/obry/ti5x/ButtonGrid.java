@@ -17,6 +17,8 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.State;
+
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.view.MotionEvent;

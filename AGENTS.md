@@ -50,33 +50,49 @@ or generated `*.ti5*` files.
 
 ## Architecture
 
-The main classes:
+The calculator engine lives in `engine/` (package `net.obry.ti5x.engine`,
+pure Java). The Android app in `app/` (package `net.obry.ti5x`) holds the UI
+and uses the engine.
 
+Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
+
+- `Calculator.java`: creates and connects the engine parts and the host
+  services. The engine parts reach each other and the host only through it.
 - `State.java`: the whole calculator (X/T registers, the op stack, memories,
   flags, program banks, return stack, the `Interpret` loop, and the
-  program/label/register listers). It runs programs on an `android.os.Handler`
+  program/label/register listers). It runs programs through the `Scheduler`
   (`TaskRunner`, `ContinueTaskRunner`, `DelayedStep`).
-- `engine/…/Number.java`: TI-59 number arithmetic with 13-digit precision and rounding.
+- `Number.java`: TI-59 number arithmetic with 13-digit precision and rounding.
+- `Printer.java`: PC-100C printer emulation (paper content, character set, line rendering).
+- `Importer.java` / `Exporter.java`: data import/export (`Op 96`/`Op 97` extensions).
+- `Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
+- `Card.java`, `CardStore.java`: magnetic card contents (`2nd Write`/bank files).
+- `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
+  must display **43** (the number of tests passed). A negative value `-n` means
+  test `n` failed. `CalculatorTest` runs it in `./gradlew :engine:test`.
+- Host interfaces the app or CLI implement: `Scheduler` (run loop),
+  `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
+  (files), `ErrorSink` (I/O error reports), and `BankStore` (card bank files).
+
+App (`app/src/main/java/net/obry/ti5x/`):
+
+- `Main.java`: the activity. Creates `Global.Engine` (`Calculator`) with `AppHost`
+  (scheduler on the UI `Handler`, error dialogs, bank files), `Display`,
+  `LabelCard`, and `AppData` as the host services.
 - `ButtonGrid.java`: draws the keypad and holds the key-entry state machine
   (`Invoke`: 2nd/Inv, operand collection, learn mode via `State.StoreInstr`).
-- `Display.java`: the LED display view (`SetShowing`, `SetShowingError`, `SetShowingRunning`).
+- `Display.java`: the LED display view. `LabelCard.java`: the label card and help.
 - `Persistent.java`: ZIP + XML load/save of programs, libraries, bank files, and saved state.
-- `Printer.java` / `PrinterActivity.java`: PC-100C printer emulation.
-- `Importer.java` / `Exporter.java`: data import/export (`Op 96`/`Op 97` extensions).
-- `engine/…/Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
-- `engine/…/Card.java`, `CardStore.java`: magnetic card contents (`2nd Write`/bank files).
-- `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
-  must display **43** (the number of tests passed). A negative value `-n` means test `n` failed.
-- `Global.java`: static singletons (`Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) shared across classes.
+- `PrinterActivity.java`: shows and saves the printer paper.
+- `AppData.java`: file access (Storage Access Framework, with a fallback).
+- `Global.java`: static singletons (`Engine`, `Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) for the UI.
 
-A refactoring is in progress to move the engine (State, keypad logic,
-file formats, assembler; Number, Card, CardStore and Disassembler are done) into a pure-Java `:engine` Gradle module, with a
-`:cli` module and the Android `:app` depending on it. When working toward that:
+A refactoring is in progress to move the rest of the engine (keypad logic,
+file formats, assembler) to `:engine`, and to write the `:cli` front-end. Rules:
 
 - Engine code must not import `android.*`, `androidx.*`, or `R`.
 - Engine code may only use Java APIs available on Android API 23.
-- The engine reaches the UI through small host interfaces (display, printer,
-  scheduler, file store, …), never through `Global`.
+- The engine reaches the UI only through the host interfaces, never through `Global`.
 
 ## Domain notes
 

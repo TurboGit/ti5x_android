@@ -20,8 +20,15 @@ package net.obry.ti5x;
 
 import android.view.MenuItem;
 
+import net.obry.ti5x.engine.Calculator;
+import net.obry.ti5x.engine.Exporter;
+import net.obry.ti5x.engine.Importer;
+import net.obry.ti5x.engine.Printer;
+import net.obry.ti5x.engine.State;
+
 final class Global {
 
+  static Calculator Engine; /* the calculator engine, owns Calc, Print, Import and Export */
   static AppData DataStorage;
   static Display Disp;
   static LabelCard Label;
@@ -30,7 +37,6 @@ final class Global {
   static Importer Import;
   static Exporter Export;
   static Printer Print;
-  static Tester Test;
 
   static MenuItem Status;
 

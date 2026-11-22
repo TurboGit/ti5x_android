@@ -23,7 +23,7 @@ import android.graphics.Path;
 
 import java.util.Arrays;
 
-class Display extends android.view.View {
+class Display extends android.view.View implements net.obry.ti5x.engine.DisplaySink {
   /* rendering parameters */
   private static final float DigitWidth = 0.5f; /* as fraction of size */
   private static final float SegmentHalfWidth = 0.05f; /* as fraction of size */

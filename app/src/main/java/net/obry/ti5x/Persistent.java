@@ -18,6 +18,10 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.State;
+import net.obry.ti5x.engine.Printer;
+import net.obry.ti5x.engine.Constants;
+import net.obry.ti5x.engine.DataFormatException;
 import net.obry.ti5x.engine.Disassembler;
 import net.obry.ti5x.engine.Number;
 
@@ -87,13 +91,13 @@ public class Persistent {
   private static final String StateExt = ".ti5s"; /* for saved calculator state */
   static final String ProgExt = ".ti5p"; /* for saved user program */
   static final String LibExt = ".ti5l"; /* for library */
-  static final String BankExt = ".ti5b"; /* for library */
-  static final String DataExt = ".dat"; /* for data export */
+  static final String BankExt = Constants.BankExt;
+  static final String DataExt = Constants.DataExt;
   static final String TextExt = ".txt"; /* for exported program text */
-  static final String ProgramsDir = "Programs"; /* where to save user programs */
-  static final String DataDir = "Data"; /* where to save exported data */
+  static final String ProgramsDir = Constants.ProgramsDir;
+  static final String DataDir = Constants.DataDir;
   static final String PrinterDir = "Paper"; /* where to save exported paper */
-  static final String BankDir = "Banks"; /* where to save bank files */
+  static final String BankDir = Constants.BankDir;
   static final String StateDir = "State"; /* where to save state files */
   static final String[] ExternalCalcDirectories =
       /* where to load programs/libraries from */
@@ -118,16 +122,6 @@ public class Persistent {
   /* loaded library saved separately so it doesn't have to be re-saved
      every time state changes */
 
-  static class DataFormatException extends RuntimeException {
-    /* indicates a problem parsing a saved state file. */
-
-    DataFormatException
-       (
-          String Message
-       ) {
-      super(Message);
-    }
-  }
   public static String EnsureDirExists
      (
         android.content.Context ctx,
@@ -486,13 +480,7 @@ public class Persistent {
                      String.format(Global.StdLocale, "card%02d", BankNr),
                      true
                   );
-            Bank.Card.compress
-               (
-                  android.graphics.Bitmap.CompressFormat.PNG,
-                              /* good enough, won't be large */
-                  100, /* ignored */
-                  CardOut.Out
-               );
+            CardOut.Out.write(Bank.Card);
             CardOut.close();
           }
           if (BankNr != 0 && Bank.Program != null)
@@ -1252,9 +1240,6 @@ public class Persistent {
         case DoingPrinter:
           if (localName.equals("line")) {
             byte[] line = new byte[Printer.CharColumns];
-            if (Global.Print == null && Calc != null && Calc.ctx != null) {
-              Global.Print = new Printer(Calc.ctx);
-            }
             if (Global.Print != null) {
               Global.Print.Translate(ContentStr, line);
               Global.Print.Content.add(line);
@@ -1505,13 +1490,10 @@ public class Persistent {
                    In.getEntry(String.format(Global.StdLocale, "card%02d", BankNr));
                 final ZipEntry HelpEntry =
                    In.getEntry(String.format(Global.StdLocale, "help%02d", BankNr));
-                android.graphics.Bitmap CardImage = null;
+                byte[] CardImage = null;
                 byte[] BankHelp = null;
                 if (CardEntry != null) {
-                  CardImage = android.graphics.BitmapFactory.decodeStream
-                     (
-                        In.getInputStream(CardEntry)
-                     );
+                  CardImage = ReadAll(In.getInputStream(CardEntry));
                 }
                 if (HelpEntry != null) {
                   BankHelp = ReadAll(In.getInputStream(HelpEntry));

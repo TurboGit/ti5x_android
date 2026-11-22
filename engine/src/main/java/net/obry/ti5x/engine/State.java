@@ -16,46 +16,40 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
-import net.obry.ti5x.engine.CardStore;
-import net.obry.ti5x.engine.Number;
-
-import android.app.AlertDialog;
-import android.util.SparseIntArray;
 
 import java.util.Arrays;
 
-class State {
+public class State {
   /* the calculator state, number entry and programs */
 
-  final android.content.Context ctx;
+  public final Calculator Engine; /* host services and the other engine parts */
   /* number-entry state */
-  final static int EntryState = 0;
-  final static int DecimalEntryState = 1;
-  final static int ExponentEntryState = 2;
-  final static int ResultState = 10;
-  int CurState = EntryState;
-  boolean ExponentEntered = false; /* whether the dispay as 00 exp at the end */
-  boolean InvState = false; /* INV has been pressed/executed */
+  public final static int EntryState = 0;
+  public final static int DecimalEntryState = 1;
+  public final static int ExponentEntryState = 2;
+  public final static int ResultState = 10;
+  public int CurState = EntryState;
+  public boolean ExponentEntered = false; /* whether the dispay as 00 exp at the end */
+  public boolean InvState = false; /* INV has been pressed/executed */
   private int ParenCount = 0;
   private boolean FromResult = false;
   // whether the current value is from a result RCL, or a typed number
 
-  static boolean inError = false;
-  boolean TracePrintActivated = false;
+  public static boolean inError = false;
+  public boolean TracePrintActivated = false;
 
-  String CurDisplay; /* current number display */
-  private android.os.Handler BGTask;
+  public String CurDisplay; /* current number display */
   private Runnable DelayTask = null;
   private Runnable ExecuteTask;
   private Runnable RunProg = null;
-  Runnable OnStop = null;
+  public Runnable OnStop = null;
 
-  static class ImportEOFException extends RuntimeException {
+  public static class ImportEOFException extends RuntimeException {
     /* indicates no more data to import. */
 
-    ImportEOFException
+    public ImportEOFException
        (
           String Message
        ) {
@@ -63,63 +57,65 @@ class State {
     }
   }
 
-  static abstract class ImportFeeder {
-    abstract Number Next()
+  public static abstract class ImportFeeder {
+    public abstract Number Next()
        throws
        ImportEOFException,
-       Persistent.DataFormatException;
+       DataFormatException;
     /* returns the next input value or raises ImportEOFException if none. */
 
-    abstract void Reset()
-       throws Persistent.DataFormatException;
+    public abstract void Reset()
+       throws DataFormatException;
 
-    void End() {
+    public State Owner = null; /* set by SetImport */
+
+    public void End() {
       /* stops further invocations of the task. Subclass may add
         further cleanup, but must also invoke this superclass method. */
-      if (Global.Calc != null) {
-        Global.Calc.Import = null;
+      if (Owner != null) {
+        Owner.Import = null;
       }
     }
   }
 
-  ImportFeeder Import = null;
+  public ImportFeeder Import = null;
 
   private java.security.SecureRandom Random = new java.security.SecureRandom();
 
   /* number-display format */
-  static final int FORMAT_FIXED = Number.FORMAT_FIXED;
-  static final int FORMAT_FLOAT = Number.FORMAT_FLOAT;
-  static final int FORMAT_ENG = Number.FORMAT_ENG;
-  int CurFormat;
-  int CurNrDecimals = -1;
+  public static final int FORMAT_FIXED = Number.FORMAT_FIXED;
+  public static final int FORMAT_FLOAT = Number.FORMAT_FLOAT;
+  public static final int FORMAT_ENG = Number.FORMAT_ENG;
+  public int CurFormat;
+  public int CurNrDecimals = -1;
 
   /* Max and Min number that can be represented using a fixed format */
   private final static Number minFixed = new Number(5.0 * Math.pow(10.0, -9.0));
   private final static Number maxFixed = new Number(Math.pow(10.0, 10.0));
 
   /* angle units */
-  static final int ANG_RAD = 1;
-  static final int ANG_DEG = 2;
-  static final int ANG_GRAD = 3;
-  int CurAng;
+  public static final int ANG_RAD = 1;
+  public static final int ANG_DEG = 2;
+  public static final int ANG_GRAD = 3;
+  public int CurAng;
 
   /* pending-operation stack */
-  final static int STACKOP_ADD = 1;
-  final static int STACKOP_SUB = 2;
-  final static int STACKOP_MUL = 3;
-  final static int STACKOP_DIV = 4;
-  final static int STACKOP_MOD = 5;
-  final static int STACKOP_EXP = 6;
-  final static int STACKOP_ROOT = 7;
+  public final static int STACKOP_ADD = 1;
+  public final static int STACKOP_SUB = 2;
+  public final static int STACKOP_MUL = 3;
+  public final static int STACKOP_DIV = 4;
+  public final static int STACKOP_MOD = 5;
+  public final static int STACKOP_EXP = 6;
+  public final static int STACKOP_ROOT = 7;
 
   private static final int[] STACKOP_CODE = {85, 75, 65, 55, 55, 45, 34};
 
-  static class OpStackEntry {
-    Number Operand;
-    int Operator;
-    int ParenFollows;
+  public static class OpStackEntry {
+    public Number Operand;
+    public int Operator;
+    public int ParenFollows;
 
-    OpStackEntry
+    public OpStackEntry
        (
           Number Operand,
           int Operator,
@@ -131,12 +127,12 @@ class State {
     }
   }
 
-  final int MaxOpStack = 8;
+  public final int MaxOpStack = 8;
   private final static int MaxParen = 9;
-  Number X, T;
-  OpStackEntry[] OpStack;
-  int OpStackNext;
-  int PreviousOp = -1;
+  public Number X, T;
+  public OpStackEntry[] OpStack;
+  public int OpStackNext;
+  public int PreviousOp = -1;
   // wether the last entry was an operator requiring 2 operands:
   // 1 + = (should set calculator in error)
 
@@ -144,17 +140,17 @@ class State {
     return Op == 45 || Op == 55 || Op == 65 || Op == 75 || Op == 85;
   }
 
-  static class ProgBank {
-    byte[] Program;
-    SparseIntArray Labels;
+  public static class ProgBank {
+    public byte[] Program;
+    public LabelMap Labels;
     /* mapping from symbolic codes to program locations */
-    android.graphics.Bitmap Card; /* card image to display when bank is selected, can be null */
-    byte[] Help; /* HTML help to display, can be null */
+    public byte[] Card; /* PNG card image to display when bank is selected, can be null */
+    public byte[] Help; /* HTML help to display, can be null */
 
-    ProgBank
+    public ProgBank
        (
           byte[] Program,
-          android.graphics.Bitmap Card,
+          byte[] Card,
           byte[] Help
        ) {
       this.Program = Program;
@@ -164,28 +160,28 @@ class State {
     }
   }
 
-  boolean ProgMode; /* true for program-entry mode, false for calculation mode */
-  final int MaxMemories = 100; /* maximum addressable */
+  public boolean ProgMode; /* true for program-entry mode, false for calculation mode */
+  public final int MaxMemories = 100; /* maximum addressable */
 
-  final int MaxProgramSteps = 1500; /* absolute max supported by emulator (original was 960) */
+  public final int MaxProgramSteps = 1500; /* absolute max supported by emulator (original was 960) */
 
-  final int MaxCardProgramSteps = 1500;
+  public final int MaxCardProgramSteps = 1500;
   /* a SSSM have 5000 steps and a single program can have more than 1000 steps. */
 
-  final int MaxBanks = 100;
-  final int BankNumber = 4;
+  public final int MaxBanks = 100;
+  public final int BankNumber = 4;
   /* 00 is user-entered program, others are loaded from library modules */
-  final int MaxFlags = 10;
-  final Number[] Memory;
-  final Number[] CardMemory;
-  final byte[] Program;
-  final byte[] CardProgram;
-  final boolean[] CardBankUsed; // program or memory used in one of the 4 banks
-  final ProgBank[] Bank; /* Bank[0].Program always points to Program */
-  byte[] ModuleHelp; /* overall help for loaded library module */
-  final boolean[] Flag;
+  public final int MaxFlags = 10;
+  public final Number[] Memory;
+  public final Number[] CardMemory;
+  public final byte[] Program;
+  public final byte[] CardProgram;
+  public final boolean[] CardBankUsed; // program or memory used in one of the 4 banks
+  public final ProgBank[] Bank; /* Bank[0].Program always points to Program */
+  public byte[] ModuleHelp; /* overall help for loaded library module */
+  public final boolean[] Flag;
 
-  final CardStore Store;
+  public final CardStore Store;
 
   /* special flag numbers: */
   private final static int FLAG_ERROR_COND = 7;
@@ -193,10 +189,10 @@ class State {
      by Op 40 to indicate printer present */
   private final static int FLAG_STOP_ON_ERROR = 8; /* if set, program stops on error */
 
-  int PC, CurBank;
+  public int PC, CurBank;
   private int RunPC, RunBank, NextBank;
-  int RegOffset;
-  boolean TaskRunning; /* program currently executing */
+  public int RegOffset;
+  public boolean TaskRunning; /* program currently executing */
   private boolean ProgRunningSlowly; /* executing program pauses to show intermediate result */
   private boolean AllowRunningSlowly;
   private boolean SaveRunningSlowly; /* for one-off pauses */
@@ -211,11 +207,11 @@ class State {
   private static final int STATSREG_FIRST = 1; /* lowest-numbered memory used for stats */
   private static final int STATSREG_LAST = 6; /* highest-numbered memory used for stats */
 
-  static class ReturnStackEntry {
-    int BankNr, Addr;
-    boolean FromInteractive;
+  public static class ReturnStackEntry {
+    public int BankNr, Addr;
+    public boolean FromInteractive;
 
-    ReturnStackEntry
+    public ReturnStackEntry
        (
           int BankNr,
           int Addr,
@@ -227,15 +223,15 @@ class State {
     }
   }
 
-  final int MaxReturnStack = 6;
-  ReturnStackEntry[] ReturnStack; /* for subroutine calls */
-  int ReturnLast; /* top of ReturnStack */
+  public final int MaxReturnStack = 6;
+  public ReturnStackEntry[] ReturnStack; /* for subroutine calls */
+  public int ReturnLast; /* top of ReturnStack */
 
   private String LastShowing = null;
 
-  final byte[] PrintRegister;
+  public final byte[] PrintRegister;
 
-  void Reset
+  public void Reset
      (
         boolean ClearLibs /* wipe out loaded library module as well */
      ) {
@@ -285,17 +281,12 @@ class State {
     ResetEntry();
   }
 
-  void ResetLibs() {
+  public void ResetLibs() {
     /* wipes out loaded library modules */
     for (int i = 1; i < MaxBanks; ++i) {
-      if (Bank[i] != null && Bank[i].Card != null) {
-        /* avoid "bitmap allocation exceeds budget" crashes */
-        if (CurBank == i) {
-          Global.Label.SetHelp(null, null);
-        } else {
-          Bank[i].Card.recycle();
-          Bank[i].Card = null;
-        }
+      if (Bank[i] != null && Bank[i].Card != null && CurBank == i) {
+        /* release the card image shown for this bank */
+        Engine.Help.SetHelp(null, null);
       }
       Bank[i] = null;
     }
@@ -303,11 +294,11 @@ class State {
     PC = 0;
   }
 
-  State
+  public State
      (
-        android.content.Context ctx
+        Calculator Engine
      ) {
-    this.ctx = ctx;
+    this.Engine = Engine;
     OpStack = new OpStackEntry[MaxOpStack];
     Memory = new Number[MaxMemories];
     Program = new byte[MaxProgramSteps];
@@ -318,14 +309,13 @@ class State {
     Bank = new ProgBank[MaxBanks];
     Bank[0] = new ProgBank(Program, null, null);
     Flag = new boolean[MaxFlags];
-    BGTask = new android.os.Handler();
     ExecuteTask = new TaskRunner();
     ReturnStack = new ReturnStackEntry[MaxReturnStack];
     PrintRegister = new byte[Printer.CharColumns];
     Reset(true);
   }
 
-  class DelayedStep implements Runnable {
+  public class DelayedStep implements Runnable {
     public void run() {
       ShowCurProg();
     }
@@ -333,7 +323,7 @@ class State {
 
   private void ClearDelayedStep() {
     if (DelayTask != null) {
-      BGTask.removeCallbacks(DelayTask);
+      Engine.Sched.removeCallbacks(DelayTask);
     }
   }
 
@@ -345,21 +335,21 @@ class State {
     LastShowing = ToDisplay;
     if (!TaskRunning || ProgRunningSlowly) {
       if (InErrorState()) {
-        Global.Disp.SetShowingError(ToDisplay);
+        Engine.Disp.SetShowingError(ToDisplay);
       } else {
-        Global.Disp.SetShowing(ToDisplay);
+        Engine.Disp.SetShowing(ToDisplay);
       }
     }
   }
 
-  void ResetEntry() {
+  public void ResetEntry() {
     CurState = EntryState;
     CurDisplay = "0";
     ExponentEntered = false;
     SetShowing(CurDisplay);
   }
 
-  void Enter(int op) {
+  public void Enter(int op) {
     /* finishes the entry of the current number. */
     if (CurState != ResultState) {
       int Exp;
@@ -388,7 +378,7 @@ class State {
       FromResult = false;
     }
 
-    if (TracePrintActivated && Global.Print != null) {
+    if (TracePrintActivated && Engine.Print != null) {
       TraceDisplay
          // no number when:
             (op != 53     // opening a parenthesis
@@ -399,13 +389,13 @@ class State {
     }
   }
 
-  void SetErrorState
+  public void SetErrorState
      (
         boolean AlsoStopProgram
      ) {
     ClearDelayedStep();
     if (!TaskRunning || ProgRunningSlowly) {
-      Global.Disp.SetShowingError(LastShowing);
+      Engine.Disp.SetShowingError(LastShowing);
     }
     inError = true;
     if (AlsoStopProgram || Flag[FLAG_STOP_ON_ERROR]) {
@@ -413,15 +403,15 @@ class State {
     }
   }
 
-  boolean InErrorState() {
+  public boolean InErrorState() {
     return inError;
   }
 
-  boolean ImportInProgress() {
+  public boolean ImportInProgress() {
     return Import != null;
   }
 
-  void ClearAll() {
+  public void ClearAll() {
     Enter(25);
     inError = false;
     OpStackNext = 0;
@@ -432,7 +422,7 @@ class State {
     ResetEntry();
   }
 
-  void ClearEntry() {
+  public void ClearEntry() {
     if (inError) {
       inError = false;
       SetX(X, true);
@@ -440,7 +430,7 @@ class State {
       ResetEntry();
   }
 
-  void Digit
+  public void Digit
      (
         char TheDigit
      ) {
@@ -493,7 +483,7 @@ class State {
     SetShowing(CurDisplay);
   }
 
-  void DecimalPoint() {
+  public void DecimalPoint() {
     if (CurState == ResultState) {
       ResetEntry();
     }
@@ -532,7 +522,7 @@ class State {
        || CurDisplay.charAt(CurDisplay.length() - 3) == ' ');
   }
 
-  void EnterExponent() {
+  public void EnterExponent() {
     switch (CurState) {
       case EntryState:
       case DecimalEntryState:
@@ -661,21 +651,21 @@ class State {
             ? Math.max(MaxDecimal - BeforeDecimal, 0)
             : Math.min(NrDecimals, MaxDecimal - BeforeDecimal);
 
-        Result = N.formatString(Global.StdLocale, UseNrDecimalsF);
+        Result = N.formatString(Constants.StdLocale, UseNrDecimalsF);
         if (NrDecimals == -1) {
           Result = RemoveTrailingZeros(Result);
         }
                 /* assume there will always be a decimal point? */
-        Result += (Exp < 0 ? "-" : " ") + String.format(Global.StdLocale, "%02d", Math.abs(Exp));
+        Result += (Exp < 0 ? "-" : " ") + String.format(Constants.StdLocale, "%02d", Math.abs(Exp));
         break;
 
       case FORMAT_FIXED:
         if (NrDecimals >= 0) {
           Result = X.formatString
-             (Global.StdLocale, Math.max(Math.min(NrDecimals, 10 - BeforeDecimal), 0));
+             (Constants.StdLocale, Math.max(Math.min(NrDecimals, 10 - BeforeDecimal), 0));
         } else {
           final int UseNrDecimals = Math.max(10 - BeforeDecimal, 0);
-          Result = X.formatString(Global.StdLocale, UseNrDecimals);
+          Result = X.formatString(Constants.StdLocale, UseNrDecimals);
 
           if (UseNrDecimals > 0) {
             Result = RemoveTrailingZeros(Result);
@@ -701,7 +691,7 @@ class State {
     return Result;
   }
 
-  void SetX
+  public void SetX
      (
         Number NewX,
         boolean Trace
@@ -722,7 +712,7 @@ class State {
       TraceDisplay(true, "");
   }
 
-  void ChangeSign() {
+  public void ChangeSign() {
     switch (CurState) {
       case EntryState:
       case DecimalEntryState:
@@ -749,7 +739,7 @@ class State {
     }
   }
 
-  void SetDisplayMode
+  public void SetDisplayMode
      (
         int NewMode,
         int NewNrDecimals
@@ -861,7 +851,7 @@ class State {
     }
   }
 
-  void Operator
+  public void Operator
      (
         int OpCode
      ) {
@@ -893,7 +883,7 @@ class State {
     StackPush(OpCode);
   }
 
-  void LParen() {
+  public void LParen() {
     Enter(53);
 
     if (ParenCount == MaxParen)
@@ -906,7 +896,7 @@ class State {
     }
   }
 
-  void RParen() {
+  public void RParen() {
     Enter(54);
     if (IsOperator(PreviousOp))
       SetErrorState(false);
@@ -929,7 +919,7 @@ class State {
     }
   }
 
-  void Equals() {
+  public void Equals() {
     Enter(95);
     if (IsOperator(PreviousOp))
       SetErrorState(false);
@@ -941,20 +931,20 @@ class State {
     }
   }
 
-  void SetAngMode
+  public void SetAngMode
      (
         int NewMode
      ) {
     CurAng = NewMode;
   }
 
-  void Square() {
+  public void Square() {
     Enter(33);
     X.x2();
     SetX(X, true);
   }
 
-  void Sqrt() {
+  public void Sqrt() {
     Enter(34);
     X.sqrt();
     if (X.isError()) {
@@ -963,7 +953,7 @@ class State {
     SetX(X, true);
   }
 
-  void Reciprocal() {
+  public void Reciprocal() {
     Enter(35);
     X.reciprocal();
     if (X.isError()) {
@@ -972,7 +962,7 @@ class State {
     SetX(X, true);
   }
 
-  void Sin() {
+  public void Sin() {
     Enter(38);
     if (InvState) {
       X.asin(CurAng);
@@ -986,7 +976,7 @@ class State {
     SetX(X, true);
   }
 
-  void Cos() {
+  public void Cos() {
     Enter(39);
     if (InvState) {
       X.acos(CurAng);
@@ -1000,7 +990,7 @@ class State {
     SetX(X, true);
   }
 
-  void Tan() {
+  public void Tan() {
     Enter(30);
     if (InvState) {
       X.atan(CurAng);
@@ -1015,7 +1005,7 @@ class State {
     SetX(X, true);
   }
 
-  void Ln() {
+  public void Ln() {
     Enter(23);
     if (InvState) {
       X.exp();
@@ -1030,7 +1020,7 @@ class State {
     SetX(X, true);
   }
 
-  void Log() {
+  public void Log() {
     Enter(28);
     if (InvState) {
       Number NewX = new Number(10.0);
@@ -1047,7 +1037,7 @@ class State {
     SetX(X, true);
   }
 
-  void Percent() {
+  public void Percent() {
     Enter(20);
 
     if (InvState)
@@ -1067,7 +1057,7 @@ class State {
     SetX(X, true);
   }
 
-  void Pi() {
+  public void Pi() {
     if (InvState) /* extension! */ {
       X.trigScale(CurAng); // ?? check that it is on same order or reciprocal
     } else {
@@ -1076,7 +1066,7 @@ class State {
     SetX(X, true);
   }
 
-  void Int() {
+  public void Int() {
     Enter(59);
     if (InvState) {
       X.fracPart();
@@ -1087,21 +1077,21 @@ class State {
     SetX(X, true);
   }
 
-  void Abs() {
+  public void Abs() {
     Enter(50);
 
     X.abs();
     SetX(X, true);
   }
 
-  void SwapT() {
+  public void SwapT() {
     Enter(32);
     final Number SwapTemp = X;
     SetX(T, true);
     T = SwapTemp;
   }
 
-  void Polar() {
+  public void Polar() {
     Enter(37);
 
     Number NewX, NewY;
@@ -1311,7 +1301,7 @@ class State {
     SetX(NewY, true);
   }
 
-  void D_MS() {
+  public void D_MS() {
     Enter(88);
 
     // Must be done on the displayed value and not X. That is if Fix-01 is set, the number must
@@ -1374,14 +1364,14 @@ class State {
           CurBank != 0 ?
              String.format
                 (
-                   Global.StdLocale,
+                   Constants.StdLocale,
                    "%02d %03d %02d",
                    CurBank,
                    PC,
                    (int) Bank[CurBank].Program[PC]
                 )
              :
-             String.format(Global.StdLocale, "%03d %02d", PC, (int) Program[PC])
+             String.format(Constants.StdLocale, "%03d %02d", PC, (int) Program[PC])
        );
   }
 
@@ -1392,19 +1382,19 @@ class State {
      ) {
     String L4 = (Label.length() == 1 ? "  " + Label + " "
        : (Label.length() == 4 ? Label :
-       String.format(Global.StdLocale, "%4s", Label)));
-    if (TracePrintActivated && Global.Print != null)
+       String.format(Constants.StdLocale, "%4s", Label)));
+    if (TracePrintActivated && Engine.Print != null)
       PrintDisplay(Data, false, false, L4);
   }
 
-  void PrintDisplay
+  public void PrintDisplay
      (
         boolean Data,
         boolean Labelled,
         boolean ForceFullExport,
         String Label
      ) {
-    if (Global.Print != null && CurDisplay != null) {
+    if (Engine.Print != null && CurDisplay != null) {
       final byte[] Translated = new byte[Printer.CharColumns];
       String Disp = (Data ? CurDisplay : "");
       // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
@@ -1420,7 +1410,7 @@ class State {
       }
       String Line = sb.toString();
 
-      Global.Print.Translate(Line, Translated);
+      Engine.Print.Translate(Line, Translated);
 
       if (Labelled) {
         /* clear left-most characters of the last column */
@@ -1431,15 +1421,15 @@ class State {
               Translated,   Printer.CharColumns - 4,
               4
            );
-        Line = Line + "  " + Global.Print.BackToText(Arrays.copyOfRange(PrintRegister,
+        Line = Line + "  " + Engine.Print.BackToText(Arrays.copyOfRange(PrintRegister,
             Printer.CharColumns - 4,
             Printer.CharColumns));
       }
-      Global.Print.Render(Line, Translated, ForceFullExport);
+      Engine.Print.Render(Line, Translated, ForceFullExport);
     }
   }
 
-  void SetProgMode
+  public void SetProgMode
      (
         boolean NewProgMode
      ) {
@@ -1453,14 +1443,14 @@ class State {
     }
   }
 
-  void ClearMemories() {
+  public void ClearMemories() {
     Enter(24); /*?*/
     for (int i = 0; i < MaxMemories; ++i) {
       Memory[i].set(0);
     }
   }
 
-  void ClearProgram() {
+  public void ClearProgram() {
     Enter(29); /*?*/
     for (int i = 0; i < MaxProgramSteps; ++i) {
       Program[i] = (byte) 0;
@@ -1473,13 +1463,13 @@ class State {
     }
       /* wipe any loaded help as well */
     if (CurBank == 0) {
-      Global.Label.SetHelp(null, null);
+      Engine.Help.SetHelp(null, null);
     }
     Bank[0].Card = null;
     Bank[0].Help = null;
   }
 
-  void SelectProgram
+  public void SelectProgram
      (
         int ProgNr,
         boolean Indirect
@@ -1502,8 +1492,8 @@ class State {
           NextBank = ProgNr;
         } else {
           CurBank = ProgNr;
-          if (Global.Label != null) {
-            Global.Label.SetHelp(Bank[ProgNr].Card, Bank[ProgNr].Help);
+          if (Engine.Help != null) {
+            Engine.Help.SetHelp(Bank[ProgNr].Card, Bank[ProgNr].Help);
           }
         }
         /* all done */
@@ -1516,17 +1506,17 @@ class State {
     }
   }
 
-  static final int MEMOP_STO = 1;
-  static final int MEMOP_RCL = 2;
-  static final int MEMOP_ADD = 3;
-  static final int MEMOP_SUB = 4;
-  static final int MEMOP_MUL = 5;
-  static final int MEMOP_DIV = 6;
-  static final int MEMOP_EXC = 7;
+  public static final int MEMOP_STO = 1;
+  public static final int MEMOP_RCL = 2;
+  public static final int MEMOP_ADD = 3;
+  public static final int MEMOP_SUB = 4;
+  public static final int MEMOP_MUL = 5;
+  public static final int MEMOP_DIV = 6;
+  public static final int MEMOP_EXC = 7;
 
   private static final int[] MEMOP_CODE = {42, 43, 44, 44, 49, 49, 48};
 
-  void MemoryOp
+  public void MemoryOp
      (
         int Op,
         int RegNr,
@@ -1746,7 +1736,7 @@ class State {
     return Result;
   }
 
-  void SpecialOp
+  public void SpecialOp
      (
         int OpNr,
         boolean Indirect
@@ -1816,8 +1806,8 @@ class State {
           OK = true;
           break;
           case 5:
-            if (Global.Print != null) {
-              Global.Print.Render("", PrintRegister, true);
+            if (Engine.Print != null) {
+              Engine.Print.Render("", PrintRegister, true);
             }
             OK = true;
             break;
@@ -1826,7 +1816,7 @@ class State {
             OK = true;
             break;
           case 7:
-            if (Global.Print != null) {
+            if (Engine.Print != null) {
               Enter(OpNr);
               final int PlotX = (int) X.getInt();
               if (PlotX >= 0 && PlotX < Printer.CharColumns) {
@@ -1834,7 +1824,7 @@ class State {
                 for (int i = 0; i < Printer.CharColumns; ++i) {
                   Plot[i] = (byte) (i == PlotX ? 51 : 0);
                 }
-                Global.Print.Render("", Plot, true);
+                Engine.Print.Render("", Plot, true);
               } else {
                 SetErrorState(false);
               }
@@ -2025,7 +2015,7 @@ class State {
             break;
           /* 20-39 handled above */
           case 40:
-            if (Global.Print != null) {
+            if (Engine.Print != null) {
               Flag[FLAG_ERROR_COND] = true;
             }
             OK = true;
@@ -2102,7 +2092,7 @@ class State {
             OK = true;
             break;
           case 99: /* extension! Test */
-            int Result = Global.Test.Run();
+            int Result = Engine.Test.Run();
 
             X.set(Result);
             SetX(X, true);
@@ -2121,7 +2111,7 @@ class State {
     }
   }
 
-  void StatsSum() {
+  public void StatsSum() {
     Enter(78);
     if (StatsRegsAvailable()) {
       Number X2 = new Number(X);
@@ -2161,7 +2151,7 @@ class State {
     }
   }
 
-  void StatsResult() {
+  public void StatsResult() {
     if (StatsRegsAvailable()) {
       if (InvState) {
         final Number N_SIGMAX2 = Memory[(RegOffset + STATSREG_SIGMAX2) % 100];
@@ -2210,7 +2200,7 @@ class State {
     }
   }
 
-  void GetNextImport() {
+  public void GetNextImport() {
     /* gets next value from current importer, if any. */
     boolean OK = true;
     boolean EOF = true;
@@ -2224,16 +2214,8 @@ class State {
       } catch (ImportEOFException Done) {
         Import.End();
         break;
-      } catch (Persistent.DataFormatException Bad) {
-          new AlertDialog.Builder(ctx)
-              .setMessage(String.format
-                 (
-                    Global.StdLocale,
-                    ctx.getString(R.string.import_error),
-                    Bad.toString()
-                 ))
-              .setPositiveButton("OK", null)
-              .show();
+      } catch (DataFormatException Bad) {
+        Engine.Errors.ImportError(Bad.toString());
         OK = false;
         Import.End();
         break;
@@ -2248,7 +2230,7 @@ class State {
     }
   }
 
-  void StepPC
+  public void StepPC
      (
         boolean Forward
      ) {
@@ -2265,17 +2247,17 @@ class State {
     }
   }
 
-  void ResetLabels() {
+  public void ResetLabels() {
     /* invalidates labels because of a change to user-entered program contents. */
     Bank[0].Labels = null;
   }
 
-  boolean ProgramWritable() {
+  public boolean ProgramWritable() {
     /* can the user enter code into the currently-selected bank. */
     return CurBank == 0;
   }
 
-  void StoreInstr
+  public void StoreInstr
      (
         int Instr
      ) {
@@ -2290,13 +2272,13 @@ class State {
       ++PC;
       /* give user a chance to see current contents before stepping to next location
          -- this is a nicety the original calculator did not have */
-      BGTask.postDelayed(DelayTask, 250);
+      Engine.Sched.postDelayed(DelayTask, 250);
     } else {
       SetProgMode(false);
     }
   }
 
-  void StorePrevInstr
+  public void StorePrevInstr
      (
         int Instr
      ) {
@@ -2308,21 +2290,21 @@ class State {
     }
   }
 
-  void InsertAtCurInstr() {
+  public void InsertAtCurInstr() {
     System.arraycopy(Program, PC, Program,PC + 1, MaxProgramSteps - 1 - PC);
     Program[PC] = (byte) 0;
     ResetLabels();
     ShowCurProg();
   }
 
-  void DeleteCurInstr() {
+  public void DeleteCurInstr() {
     System.arraycopy(Program,PC + 1, Program, PC, MaxProgramSteps - 1 - PC);
     Program[MaxProgramSteps - 1] = (byte) 0;
     ResetLabels();
     ShowCurProg();
   }
 
-  void StepProgram() {
+  public void StepProgram() {
     SetProgramStarted(false);
     Interpret(true);
     PC = RunPC;
@@ -2333,7 +2315,7 @@ class State {
        of the complete subroutine, stopping when it returns? */
   }
 
-  class TaskRunner implements Runnable {
+  public class TaskRunner implements Runnable {
     public void run() {
       if (TaskRunning && RunProg != null) {
         RunProg.run();
@@ -2345,27 +2327,27 @@ class State {
   private void ContinueTaskRunner() {
     if (TaskRunning) {
       if (ProgRunningSlowly) {
-        Global.Disp.SetShowing(LastShowing);
-        BGTask.postDelayed(ExecuteTask, 600);
+        Engine.Disp.SetShowing(LastShowing);
+        Engine.Sched.postDelayed(ExecuteTask, 600);
       } else {
         /* run as fast as possible */
-        BGTask.post(ExecuteTask);
+        Engine.Sched.post(ExecuteTask);
       }
     }
   }
 
-  class ProgRunner implements Runnable {
+  public class ProgRunner implements Runnable {
     public void run() {
       Interpret(true);
     }
   }
 
-  class LabelLister implements Runnable {
-    class LabelDef {
-      int Code;
-      int Loc;
+  public class LabelLister implements Runnable {
+    public class LabelDef {
+      public int Code;
+      public int Loc;
 
-      LabelDef
+      public LabelDef
          (
             int Code,
             int Loc
@@ -2375,10 +2357,10 @@ class State {
       }
     }
 
-    final LabelDef[] SortedLabels;
-    int Index;
+    public final LabelDef[] SortedLabels;
+    public int Index;
 
-    LabelLister() {
+    public LabelLister() {
       super();
       final java.util.TreeSet<LabelDef> SortedLabelsTemp =
          new java.util.TreeSet<LabelDef>
@@ -2415,7 +2397,7 @@ class State {
         // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
         final String Line = String.format
             (
-                Global.StdLocale,
+                Constants.StdLocale,
                 "      %03d  %02d %3s",
                 ThisLabel.Loc - 1,
                           /* seems to match original, pointing at label symbol
@@ -2423,8 +2405,8 @@ class State {
                 ThisLabel.Code,
                 Printer.KeyCodeSym(ThisLabel.Code)
             );
-        Global.Print.Translate(Line, Translated);
-        Global.Print.Render(Line, Translated, false);
+        Engine.Print.Translate(Line, Translated);
+        Engine.Print.Render(Line, Translated, false);
         ++Index;
       }
       if (Index == SortedLabels.length) {
@@ -2433,12 +2415,12 @@ class State {
     }
   }
 
-  class RegisterLister implements Runnable {
-    int CurReg;
-    final int EndReg;
-    boolean Wrapped;
+  public class RegisterLister implements Runnable {
+    public int CurReg;
+    public final int EndReg;
+    public boolean Wrapped;
 
-    RegisterLister
+    public RegisterLister
        (
           int StartReg
        ) {
@@ -2457,13 +2439,13 @@ class State {
         // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
         final String Line = String.format
             (
-                Global.StdLocale,
+                Constants.StdLocale,
                 "%16s  %02d",
                 FormatNumber(Memory[CurReg], FORMAT_FIXED, -1, true),
                 CurReg /* post-RegOffset number */
             );
-        Global.Print.Translate(Line, Translated);
-        Global.Print.Render(Line, Translated, false);
+        Engine.Print.Translate(Line, Translated);
+        Engine.Print.Render(Line, Translated, false);
         ++CurReg;
       }
       if (Wrapped && CurReg >= EndReg) {
@@ -2472,22 +2454,22 @@ class State {
     }
   }
 
-  class ProgramLister implements Runnable {
-    int ListPC, EndPC;
-    int Expecting;
-    boolean InvState;
-    final byte [] Prog = Bank[CurBank].Program;
+  public class ProgramLister implements Runnable {
+    public int ListPC, EndPC;
+    public int Expecting;
+    public boolean InvState;
+    public final byte [] Prog = Bank[CurBank].Program;
 
     /* following original, state machine is somewhat simpler than full interpreter/disassembler */
-    final int ExpectOpcode = 0;
-    final int ExpectTwoDigits = 1;
-    final int ExpectLoc = 2;
-    final int ExpectRegFlag = 3;
-    final int ExpectTwoDigitsPlusLoc = 4;
-    final int ExpectRegPlusLoc = 5;
-    final int ExpectSym = 6;
+    public final int ExpectOpcode = 0;
+    public final int ExpectTwoDigits = 1;
+    public final int ExpectLoc = 2;
+    public final int ExpectRegFlag = 3;
+    public final int ExpectTwoDigitsPlusLoc = 4;
+    public final int ExpectRegPlusLoc = 5;
+    public final int ExpectSym = 6;
 
-    ProgramLister() {
+    public ProgramLister() {
       ListPC = PC;
       EndPC = Prog.length;
       for (; ; ) /* omit trailing zero bytes */ {
@@ -2511,7 +2493,7 @@ class State {
           case ExpectOpcode:
             if (Val < 10) {
               /* digit entry */
-              Symbol = String.format(Global.StdLocale, " %1d ", Val);
+              Symbol = String.format(Constants.StdLocale, " %1d ", Val);
             }
             switch (Val) {
               case 22: /*INV*/
@@ -2566,7 +2548,7 @@ class State {
             }
             break;
           case ExpectTwoDigits:
-            Symbol = String.format(Global.StdLocale, " %02d", Val);
+            Symbol = String.format(Constants.StdLocale, " %02d", Val);
             break;
           case ExpectLoc:
             if (Val < 10 || Val == 40) {
@@ -2577,18 +2559,18 @@ class State {
             if (Val == 40) {
               NextExpecting = ExpectTwoDigits;
             } else {
-              Symbol = String.format(Global.StdLocale, " %02d", Val);
+              Symbol = String.format(Constants.StdLocale, " %02d", Val);
             }
             break;
           case ExpectTwoDigitsPlusLoc:
-            Symbol = String.format(Global.StdLocale, " %02d", Val);
+            Symbol = String.format(Constants.StdLocale, " %02d", Val);
             NextExpecting = ExpectLoc;
             break;
           case ExpectRegPlusLoc:
             if (Val == 40) {
               NextExpecting = ExpectTwoDigitsPlusLoc;
             } else {
-              Symbol = String.format(Global.StdLocale, " %02d", Val);
+              Symbol = String.format(Constants.StdLocale, " %02d", Val);
               NextExpecting = ExpectLoc;
             }
             break;
@@ -2603,14 +2585,14 @@ class State {
         // Line is the untranslated data, passed to Print.Render to avoid a costly back conversion
         final String Line = String.format
             (
-                Global.StdLocale,
+                Constants.StdLocale,
                 "       %03d  %02d %3s  ",
                 ListPC,
                 Val,
                 Symbol
             );
-        Global.Print.Translate(Line, Translated);
-        Global.Print.Render(Line, Translated, false);
+        Engine.Print.Translate(Line, Translated);
+        Engine.Print.Render(Line, Translated, false);
         Expecting = NextExpecting;
         ++ListPC;
       }
@@ -2621,7 +2603,7 @@ class State {
   }
 
   private void SetShowingRunning() {
-    Global.Disp.SetShowingRunning(Import != null || Global.Export.IsOpen() ? 'c' : 'C');
+    Engine.Disp.SetShowingRunning(Import != null || Engine.Export.IsOpen() ? 'c' : 'C');
   }
 
   private void SetProgramStarted
@@ -2645,9 +2627,9 @@ class State {
     ClearDelayedStep();
     RunBank = CurBank;
     if (InErrorState()) {
-      Global.Disp.SetShowingError(LastShowing);
+      Engine.Disp.SetShowingError(LastShowing);
     } else {
-      Global.Disp.SetShowing(LastShowing);
+      Engine.Disp.SetShowing(LastShowing);
     }
   }
 
@@ -2663,15 +2645,15 @@ class State {
 
   private void StopTask() {
     SetProgramStopped();
-    BGTask.removeCallbacks(ExecuteTask);
+    Engine.Sched.removeCallbacks(ExecuteTask);
     RunProg = null;
   }
 
-  void StartProgram() {
+  public void StartProgram() {
     StartTask(new ProgRunner(), true);
   }
 
-  void StopProgram() {
+  public void StopProgram() {
     if (TaskRunning && OnStop != null) {
       OnStop.run();
     }
@@ -2684,7 +2666,7 @@ class State {
     StopTask();
   }
 
-  void WriteBank() {
+  public void WriteBank() {
     Enter(96);
 
     final int BANK_MEM = 30;
@@ -2704,7 +2686,7 @@ class State {
       N = N - 10;
     }
 
-    final String BankFilename = String.format("%03d%s", CardId, Persistent.BankExt);
+    final String BankFilename = String.format("%03d%s", CardId, Constants.BankExt);
     if (Part > 2
         || ((N < 1 || N > 4)
             && (N != 0 || !InvState || CardId < 0)))
@@ -2718,7 +2700,7 @@ class State {
       //  use it.
 
       if (CardId < 900) {
-        Persistent.LoadBankFile(ctx, N, CardId, BankFilename, Global.Calc, Global.Disp, Global.Buttons);
+        Engine.Banks.LoadBankFile(N, CardId, BankFilename);
       }
 
       if (Store.Contains(CardId)) {
@@ -2745,7 +2727,7 @@ class State {
             BANK_PROG
          );
 
-      Persistent.SaveBankFile(ctx, N, CardId, BankFilename, Global.Calc);
+      Engine.Banks.SaveBankFile(N, CardId, BankFilename);
     }
   }
 
@@ -2754,15 +2736,15 @@ class State {
     StartTask(new LabelLister(), false);
   }
 
-  void StartRegisterListing() {
+  public void StartRegisterListing() {
     StartTask(new RegisterLister((int) Math.abs(X.getInt())), false);
   }
 
-  void StartProgramListing() {
+  public void StartProgramListing() {
     StartTask(new ProgramLister(), false);
   }
 
-  void SetSlowExecution
+  public void SetSlowExecution
      (
         boolean Slow
      ) {
@@ -2775,69 +2757,70 @@ class State {
     }
   }
 
-  void SetImport
+  public void SetImport
      (
         ImportFeeder NewImport
      ) {
     if (Import != null) {
       throw new RuntimeException("attempt to queue multiple ImportFeeders");
     }
+    NewImport.Owner = this;
     Import = NewImport;
   }
 
-  void ClearImport() {
+  public void ClearImport() {
     if (Import != null) {
       Import.End();
       Import = null;
     }
   }
 
-  void ResetImport() {
+  public void ResetImport() {
     if (Import != null) {
       Import.Reset();
     }
   }
 
-  void ResetExport() {
-    if(Global.Export !=null) {
-      Global.Export.Close();
+  public void ResetExport() {
+    if(Engine.Export !=null) {
+      Engine.Export.Close();
     }
   }
 
-  void ImportNew() {
+  public void ImportNew() {
       final int N = (int)Math.abs(X.getInt());
-      final String DataFilename = String.format("%d%s", N, Persistent.DataExt);
-      final String SaveFile = Global.DataStorage.GetAppDataExportFile(DataFilename);
+      final String DataFilename = String.format("%d%s", N, Constants.DataExt);
+      final String SaveFile = Engine.Files.GetAppDataExportFile(DataFilename);
       ClearImport();
       try {
-        Global.Import.ImportData(SaveFile);
-      } catch (Persistent.DataFormatException Failed) {
+        Engine.Import.ImportData(SaveFile);
+      } catch (DataFormatException Failed) {
         SetErrorState(true);
       }
   }
 
-  void ExportNew
+  public void ExportNew
       (
           boolean Append
       )
   {
     final int N = (int)Math.abs(X.getInt());
-    final String DataFilename = String.format("%d%s", N, Persistent.DataExt);
+    final String DataFilename = String.format("%d%s", N, Constants.DataExt);
 
     ResetExport();
     try {
-      Global.Export.Open(DataFilename, Append, true);
-    } catch (Persistent.DataFormatException Failed) {
+      Engine.Export.Open(DataFilename, Append, true);
+    } catch (DataFormatException Failed) {
       SetErrorState(true);
     }
   }
 
-  void ResetReturns() {
+  public void ResetReturns() {
     /* clears the subroutine return stack. */
     ReturnLast = -1;
   }
 
-  void ResetProg() {
+  public void ResetProg() {
     if (InvState) /* extension! */ {
       ClearImport();
       ResetExport();
@@ -2957,18 +2940,18 @@ class State {
   }
 
   /* transfer types */
-  static final int TRANSFER_TYPE_GTO = 1; /* goto that address */
-  static final int TRANSFER_TYPE_CALL = 2; /* call that address, return to current address */
-  static final int TRANSFER_TYPE_INTERACTIVE_CALL = 3;
+  public static final int TRANSFER_TYPE_GTO = 1; /* goto that address */
+  public static final int TRANSFER_TYPE_CALL = 2; /* call that address, return to current address */
+  public static final int TRANSFER_TYPE_INTERACTIVE_CALL = 3;
   /* call that address, return to calculation mode */
-  static final int TRANSFER_TYPE_LEA = 4; /* extension: load that address into X */
+  public static final int TRANSFER_TYPE_LEA = 4; /* extension: load that address into X */
 
   /* location types */
-  static final int TRANSFER_LOC_DIRECT = 1; /* Loc is integer address */
-  static final int TRANSFER_LOC_SYMBOLIC = 2; /* Loc is label keycode */
-  static final int TRANSFER_LOC_INDIRECT = 3; /* Loc is number of register containing address */
+  public static final int TRANSFER_LOC_DIRECT = 1; /* Loc is integer address */
+  public static final int TRANSFER_LOC_SYMBOLIC = 2; /* Loc is label keycode */
+  public static final int TRANSFER_LOC_INDIRECT = 3; /* Loc is number of register containing address */
 
-  void Transfer
+  public void Transfer
      (
         int Type, /* one of the above TRANSFER_TYPE_xxx values */
         int BankNr,
@@ -3029,14 +3012,14 @@ class State {
     }
   }
 
-  void MinMax() {
+  public void MinMax() {
     Enter(75);
     if (X.compareTo(T) > 0) {
       SwapT();
     }
   }
 
-  void Return() {
+  public void Return() {
     /* returns to the last-saved location on the return stack. */
     boolean OK = false;
     do /*once*/ {
@@ -3084,7 +3067,7 @@ class State {
     }
   }
 
-  void SetFlag
+  public void SetFlag
      (
         int FlagNr,
         boolean Ind,
@@ -3108,7 +3091,7 @@ class State {
     }
   }
 
-  void BranchIfFlag
+  public void BranchIfFlag
      (
         int FlagNr,
         boolean FlagNrInd,
@@ -3151,7 +3134,7 @@ class State {
     }
   }
 
-  void CompareBranch
+  public void CompareBranch
      (
         boolean Greater,
         int BankNr,
@@ -3198,7 +3181,7 @@ class State {
       ResetEntry();
   }
 
-  void DecrementSkip
+  public void DecrementSkip
      (
         int Reg,
         boolean RegInd,
@@ -3551,13 +3534,13 @@ class State {
           }
           break;
           case 98: /*Adv*/
-            if (Global.Calc.InvState) /* extension! */ {
-              if (Global.Export != null) {
-                Global.Export.Close();
+            if (InvState) /* extension! */ {
+              if (Engine.Export != null) {
+                Engine.Export.Close();
               }
             } else {
-              if (Global.Print != null) {
-                Global.Print.Advance(true);
+              if (Engine.Print != null) {
+                Engine.Print.Advance(true);
               }
             }
             break;
@@ -3657,12 +3640,12 @@ class State {
     }
   }
 
-  void FillInLabels
+  public void FillInLabels
      (
         int BankNr
      ) {
     if (Bank[BankNr].Labels == null) {
-      Bank[BankNr].Labels = new SparseIntArray();
+      Bank[BankNr].Labels = new LabelMap();
       final boolean SaveInvState = InvState;
       final int SaveRunPC = RunPC;
       final int SaveRunBank = RunBank;
@@ -3679,11 +3662,11 @@ class State {
     }
   }
 
-  void FillInLabels() {
+  public void FillInLabels() {
     FillInLabels(CurBank);
   }
 
-  void ResetInLabels() {
+  public void ResetInLabels() {
     // This is only needed on user's bank 0 when loading a bank-card
     Bank[0].Labels = null;
     FillInLabels(0);

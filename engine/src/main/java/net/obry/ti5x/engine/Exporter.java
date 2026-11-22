@@ -16,30 +16,28 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
-
-import android.app.AlertDialog;
+package net.obry.ti5x.engine;
 
 public class Exporter {
-  private final android.content.Context ctx;
+  private final Calculator Engine; /* for the file store and error reporting */
   private java.io.OutputStream Out;
   private java.io.PrintStream PrintOut;
-  boolean NumbersOnly = true; /* actually initial value irrelevant */
+  public boolean NumbersOnly = true; /* actually initial value irrelevant */
 
-  Exporter
+  public Exporter
      (
-        android.content.Context ctx
+        Calculator Engine
      ) {
-    this.ctx = ctx;
+    this.Engine = Engine;
     Out = null;
     PrintOut = null;
   }
 
-  boolean IsOpen() {
+  public boolean IsOpen() {
     return Out != null;
   }
 
-  void Open
+  public void Open
      (
         String FileName,
         boolean Append,
@@ -48,9 +46,9 @@ public class Exporter {
      throws RuntimeException {
 
     try {
-      Out = Global.DataStorage.getOutputStream(Persistent.DataDir, FileName, Append);
+      Out = Engine.Files.getOutputStream(Constants.DataDir, FileName, Append);
       if (Out == null) {
-        final String FullFilename = Global.DataStorage.GetAppDataExportFile(FileName);
+        final String FullFilename = Engine.Files.GetAppDataExportFile(FileName);
         Out = new java.io.FileOutputStream(FullFilename, Append);
       }
       this.NumbersOnly = NumbersOnly;
@@ -62,7 +60,7 @@ public class Exporter {
     }
   }
 
-  void Flush() {
+  public void Flush() {
     if (Out != null) {
       try {
         if (PrintOut != null) {
@@ -70,22 +68,14 @@ public class Exporter {
         }
         Out.flush();
       } catch (java.io.IOException WriteErr) {
-        new AlertDialog.Builder(ctx)
-            .setMessage(String.format
-                 (
-                    Global.StdLocale,
-                    ctx.getString(R.string.export_error),
-                    WriteErr.toString()
-                 ))
-            .setPositiveButton("OK", null)
-            .show();
+        Engine.Errors.ExportError(WriteErr.toString());
         PrintOut = null;
         Out = null;
       }
     }
   }
 
-  void Close() {
+  public void Close() {
     if (Out != null) {
       try {
         if (PrintOut != null) {
@@ -95,22 +85,14 @@ public class Exporter {
         Out.flush();
         Out.close();
       } catch (java.io.IOException WriteErr) {
-        new AlertDialog.Builder(ctx)
-            .setMessage(String.format
-                 (
-                    Global.StdLocale,
-                    ctx.getString(R.string.export_error),
-                    WriteErr.toString()
-                 ))
-            .setPositiveButton("OK", null)
-            .show();
+        Engine.Errors.ExportError(WriteErr.toString());
       }
       PrintOut = null;
       Out = null;
     }
   }
 
-  void WriteLine
+  public void WriteLine
      (
         String Line
      ) {
@@ -120,15 +102,7 @@ public class Exporter {
         Out.write(Line.getBytes());
         Out.write("\n".getBytes());
       } catch (java.io.IOException WriteErr) {
-        new AlertDialog.Builder(ctx)
-            .setMessage(String.format
-                 (
-                    Global.StdLocale,
-                    ctx.getString(R.string.export_error),
-                    WriteErr.toString()
-                 ))
-            .setPositiveButton("OK", null)
-            .show();
+        Engine.Errors.ExportError(WriteErr.toString());
         Out = null;
       }
     }

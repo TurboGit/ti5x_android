@@ -20,6 +20,7 @@ package net.obry.ti5x;
 import android.app.AlertDialog;
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
@@ -27,6 +28,14 @@ import android.widget.ToggleButton;
 import com.google.android.material.snackbar.Snackbar;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import net.obry.ti5x.engine.Printer;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class PrinterActivity extends BaseActivity {
 
@@ -73,7 +82,7 @@ public class PrinterActivity extends BaseActivity {
     }
 
     StringBuilder mes = new StringBuilder();
-    boolean ok = Global.Print.SavePaper(finalBitmap, mes);
+    boolean ok = SavePaper(finalBitmap, mes);
     if(ok) {
       Snackbar.make(
           findViewById(android.R.id.content),
@@ -131,9 +140,7 @@ public class PrinterActivity extends BaseActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (Global.Print == null) {
-      Global.Print = new Printer(this);
-    }
+    EnsurePrinter();
 
     recycler = findViewById(R.id.printerRecycler);
     recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -206,10 +213,56 @@ public class PrinterActivity extends BaseActivity {
     }
   }
 
-  private Bitmap renderPrinterLine(int line) {
+  private void EnsurePrinter() {
+    /* the printer normally comes from the engine created by Main, but this
+       activity can be restored on its own after the process was killed. */
     if (Global.Print == null) {
-      Global.Print = new Printer(this);
+      Global.Print = new Printer(null);
+      Global.Print.SetColors(getResources().getColor(R.color.paper), getResources().getColor(R.color.ink));
     }
+  }
+
+  private static boolean SavePaper(Bitmap Paper, StringBuilder mes) {
+
+    // Clear message
+    mes.setLength(0);
+
+    OutputStream outputStream = null;
+    @SuppressLint("SimpleDateFormat") /* we want a specific format without slash as separator */
+        String outString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss.SSS").format(new Date());
+    String fileName = outString + ".png";
+
+    try {
+      outputStream = Global.DataStorage.getOutputStream(Persistent.PrinterDir, fileName, false);
+      if (outputStream == null) {
+        File file = new File(Global.DataStorage.GetAppDataPrinterFile(fileName));
+        outputStream = new FileOutputStream(file);
+      }
+      boolean ok = Paper.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+    } catch (Exception ex) {
+      //exception handling code
+      ex.printStackTrace();
+      mes.append("Can't Create. " + fileName);
+      return false;
+    } finally {
+      try {
+        if (outputStream != null) {
+          outputStream.flush();
+          outputStream.close();
+          mes.append("Saved to " + fileName);
+          return true;
+        }
+      } catch (java.io.IOException ex) {
+        ex.printStackTrace();
+        mes.append("Error Occurred.");
+        return false;
+      }
+    }
+    return false;
+  }
+
+  private Bitmap renderPrinterLine(int line) {
+    EnsurePrinter();
     Bitmap bitmap = Bitmap.createBitmap(
         Global.Print.PaperWidth,
         Global.Print.LineHeight,

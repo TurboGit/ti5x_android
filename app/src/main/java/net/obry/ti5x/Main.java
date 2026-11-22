@@ -18,6 +18,8 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.Calculator;
+import net.obry.ti5x.engine.DataFormatException;
 import net.obry.ti5x.engine.Number;
 
 import java.nio.file.Paths;
@@ -839,7 +841,7 @@ public class Main extends BaseCompatActivity {
                         if (Subtask.TaskFailure != null) {
                           SetStatus(-1, Subtask.TaskFailure);
                         }
-                      } catch (Persistent.DataFormatException Failed) {
+                      } catch (DataFormatException Failed) {
                         SetStatus(-1, Failed);
                       }
                     }
@@ -1081,7 +1083,7 @@ public class Main extends BaseCompatActivity {
                       Snackbar.LENGTH_SHORT
                    ).show();
 
-              } catch (Persistent.DataFormatException Failed) {
+              } catch (DataFormatException Failed) {
                 Snackbar.make(
                       findViewById(android.R.id.content),
                       String.format
@@ -1264,11 +1266,13 @@ public class Main extends BaseCompatActivity {
     Global.ProgressMessage =
        (android.widget.TextView) Global.ProgressWidgets.findViewById(R.id.progress_message);
     Global.UIRun = new android.os.Handler();
-    Global.Print = new Printer(this);
-    Global.Calc = new State(this);
-    Global.Import = new Importer();
-    Global.Export = new Exporter(this);
-    Global.Test = new Tester();
+    final AppHost Host = new AppHost(this);
+    Global.Engine = new Calculator(Host, Global.Disp, Global.Label, Global.DataStorage, Host, Host);
+    Global.Print = Global.Engine.Print;
+    Global.Print.SetColors(getResources().getColor(R.color.paper), getResources().getColor(R.color.ink));
+    Global.Calc = Global.Engine.Calc;
+    Global.Import = Global.Engine.Import;
+    Global.Export = Global.Engine.Export;
     BuildActivityResultActions();
     Clipboard = (android.text.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
     registerForContextMenu(Global.Disp);

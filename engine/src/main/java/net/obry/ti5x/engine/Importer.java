@@ -16,21 +16,29 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
-import net.obry.ti5x.engine.Number;
 
 import java.io.IOException;
 
 public class Importer {
 
-  static class ImportDataFeeder extends State.ImportFeeder {
-    java.io.InputStream Data;
-    String FileName;
-    int LineNr, ColNr; /* for reporting locations of errors */
-    boolean WasNL, WasCR, EOF;
+  private final Calculator Engine; /* for the file store and the calculator state */
 
-    ImportDataFeeder
+  public Importer
+     (
+        Calculator Engine
+     ) {
+    this.Engine = Engine;
+  }
+
+  public class ImportDataFeeder extends State.ImportFeeder {
+    public java.io.InputStream Data;
+    public String FileName;
+    public int LineNr, ColNr; /* for reporting locations of errors */
+    public boolean WasNL, WasCR, EOF;
+
+    public ImportDataFeeder
        (
           java.io.InputStream Data,
           String FileName
@@ -49,7 +57,7 @@ public class Importer {
         try {
           // reset() is not supported, so we close and reopen the file
           Data.close();
-          Data = Global.DataStorage.getInputStreamForPath(this.FileName);
+          Data = Engine.Files.getInputStreamForPath(this.FileName);
           if (Data == null) {
             throw new java.io.FileNotFoundException("File not found: " + this.FileName);
           }
@@ -59,11 +67,11 @@ public class Importer {
           WasCR = false;
           EOF = false;
         } catch (IOException Failed) {
-          throw new Persistent.DataFormatException
+          throw new DataFormatException
               (
                   String.format
                       (
-                          Global.StdLocale,
+                          Constants.StdLocale,
                           "Couldn't reset import data file: %s",
                           Failed.toString()
                       )
@@ -84,11 +92,11 @@ public class Importer {
           try {
             ch = Data.read();
           } catch (java.io.IOException Failed) {
-            throw new Persistent.DataFormatException
+            throw new DataFormatException
                (
                   String.format
                      (
-                        Global.StdLocale,
+                        Constants.StdLocale,
                         "Couldn't read input file at line %d, col %d: %s",
                         LineNr,
                         ColNr,
@@ -115,11 +123,11 @@ public class Importer {
             try {
               Result = new Number(LastNum.toString());
             } catch (NumberFormatException Bad) {
-              throw new Persistent.DataFormatException
+              throw new DataFormatException
                  (
                     String.format
                        (
-                          Global.StdLocale,
+                          Constants.StdLocale,
                           "Bad number \"%s\" on line %d, col %d",
                           LastNum.toString(),
                           LineNr,
@@ -158,11 +166,11 @@ public class Importer {
           }
           LastNum.appendCodePoint(ch);
         } else {
-          throw new Persistent.DataFormatException
+          throw new DataFormatException
              (
                 String.format
                    (
-                      Global.StdLocale,
+                      Constants.StdLocale,
                       "Bad character \"%s\" at line %d, col %d",
                       new String(new byte[]{(byte) ch}),
                       LineNr,
@@ -175,30 +183,30 @@ public class Importer {
     }
   }
 
-  void ImportData
+  public void ImportData
      (
         String FileName
      )
-     throws Persistent.DataFormatException {
+     throws DataFormatException {
     /* starts importing numbers from the specified file. */
     java.io.InputStream Data;
     try {
-      Data = Global.DataStorage.getInputStreamForPath(FileName);
+      Data = Engine.Files.getInputStreamForPath(FileName);
       if (Data == null) {
         throw new java.io.FileNotFoundException("File not found: " + FileName);
       }
     } catch (Exception NotFound) {
-      throw new Persistent.DataFormatException
+      throw new DataFormatException
          (
             String.format
                (
-                  Global.StdLocale,
+                  Constants.StdLocale,
                   "Couldn't open input file \"%s\": %s",
                   FileName,
                   NotFound.toString()
                )
          );
     }
-    Global.Calc.SetImport(new ImportDataFeeder(Data, FileName));
+    Engine.Calc.SetImport(new ImportDataFeeder(Data, FileName));
   }
 }

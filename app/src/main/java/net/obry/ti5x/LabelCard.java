@@ -21,7 +21,7 @@ package net.obry.ti5x;
 import android.graphics.RectF;
 import com.google.android.material.snackbar.Snackbar;
 
-class LabelCard extends android.view.View {
+class LabelCard extends android.view.View implements net.obry.ti5x.engine.HelpSink {
   private android.graphics.Bitmap CardImage, NewCardImage;
   private byte[] Help;
   private final int Dark, LEDOff;
@@ -141,10 +141,13 @@ class LabelCard extends android.view.View {
 
   public void SetHelp
      (
-        android.graphics.Bitmap NewCardImage,
+        byte[] NewCardData, /* PNG image, can be null */
         byte[] NewHelp
      ) {
-    this.NewCardImage = NewCardImage;
+    this.NewCardImage =
+       NewCardData != null
+          ? android.graphics.BitmapFactory.decodeByteArray(NewCardData, 0, NewCardData.length)
+          : null;
     if (CardImage != null) {
       SlideOutOldCard();
     } else if (NewCardImage != null) {

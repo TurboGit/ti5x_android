@@ -24,4 +24,13 @@ public final class Constants {
 
   /* locale for all number and text formatting, never locale-specific */
   public static final java.util.Locale StdLocale = java.util.Locale.US;
+
+  /* file extensions */
+  public static final String BankExt = ".ti5b"; /* for card bank files */
+  public static final String DataExt = ".dat"; /* for data export */
+
+  /* directories in the calculator file store */
+  public static final String ProgramsDir = "Programs"; /* user programs */
+  public static final String DataDir = "Data"; /* exported data */
+  public static final String BankDir = "Banks"; /* card bank files */
 }
