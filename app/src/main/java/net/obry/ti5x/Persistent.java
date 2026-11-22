@@ -38,6 +38,10 @@ public class Persistent {
   static final String ProgramsDir = Constants.ProgramsDir;
   static final String DataDir = Constants.DataDir;
   static final String PrinterDir = "Paper"; /* where to save exported paper */
+  static final String CardDir = "Card"; /* label card images */
+  static final String CardImageExt = ".png";
+  static final String CardSourceExt = ".xml";
+  static final String InAppCard = "inapp"; /* card saved by the card editor */
   static final String BankDir = Constants.BankDir;
   static final String StateDir = "State"; /* where to save state files */
   static final String[] ExternalCalcDirectories =

@@ -74,6 +74,8 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   same bytes on every source in `modules/`, `programs/` and `examples/` (needs
   `python3`). Change both together.
 - `Card.java`, `CardStore.java`: magnetic card contents (`2nd Write`/bank files).
+- `CardDef.java`: text of a simple user label card (title, id, A'–E' and A–E labels)
+  as `<carddef>` XML (the `util/rendercard` format), saved as `cardsrcNN` next to `cardNN`.
 - `ProgramFiles.java`: loading and saving of programs (`.ti5p`), libraries
   (`.ti5l`), card banks (`.ti5b`) and the calculator state (ZIP + XML, see
   `file_format.txt`). Host UI state saved with it goes through `UiState`.
@@ -94,7 +96,10 @@ App (`app/src/main/java/net/obry/ti5x/`):
   `LabelCard`, and `AppData` as the host services.
 - `ButtonGrid.java`: draws the keypad, handles touch and click/vibrate
   feedback, and passes key presses to `Global.Engine.Keys`.
-- `Display.java`: the LED display view. `LabelCard.java`: the label card and help.
+- `Display.java`: the LED display view. `LabelCard.java`: the label card and help
+  (tap/long press in Pgm 00 opens `CardEditor`).
+- `CardEditor.java`: in-app editor of the user program label card, saved in
+  `Ti5x/Card/inapp.png` and `.xml`. `CardRenderer.java`: draws a `CardDef` like `util/rendercard`.
 - `Persistent.java`: background load/save tasks, built-in modules from
   `res/raw`, saved state location, and bank file location, on top of `ProgramFiles`.
 - `PrinterActivity.java`: shows and saves the printer paper.

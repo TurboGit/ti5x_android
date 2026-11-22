@@ -24,6 +24,11 @@ graphic to display in the label-card area when the program is selected
 by the user, and the “helpnn” contains an HTML page to be displayed as
 the help for the program.
 
+An optional “cardsrcnn” component holds the <carddef> XML source of the
+“cardnn” image (the format read by util/rendercard). It is written for
+cards made with the in-app card editor so that they can be edited
+again. Readers that do not know it ignore it.
+
 Program Component Format
 ========================
 
@@ -44,7 +49,7 @@ User Program
 ============
 
 A user-program file contains a “prog00” component (required),
-and optionally “card00” and/or “help00” components. Its file
+and optionally “card00” (with its “cardsrc00”) and/or “help00” components. Its file
 extension must be “.ti5p”.
 
 Library Module

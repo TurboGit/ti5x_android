@@ -146,6 +146,7 @@ public class State {
     /* mapping from symbolic codes to program locations */
     public byte[] Card; /* PNG card image to display when bank is selected, can be null */
     public byte[] Help; /* HTML help to display, can be null */
+    public byte[] CardSource; /* <carddef> XML the card was made from, can be null */
 
     public ProgBank
        (
@@ -1466,6 +1467,7 @@ public class State {
       Engine.Help.SetHelp(null, null);
     }
     Bank[0].Card = null;
+    Bank[0].CardSource = null;
     Bank[0].Help = null;
   }
 

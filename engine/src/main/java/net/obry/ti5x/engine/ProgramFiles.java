@@ -164,6 +164,8 @@ public final class ProgramFiles {
           if (StateEntry != null) {
             final byte[] CardImage =
                Entries.get(String.format(Constants.StdLocale, "card%02d", BankNr));
+            final byte[] CardSource =
+               Entries.get(String.format(Constants.StdLocale, "cardsrc%02d", BankNr));
             final byte[] BankHelp =
                Entries.get(String.format(Constants.StdLocale, "help%02d", BankNr));
             if (BankNr != 0) {
@@ -174,6 +176,7 @@ public final class ProgramFiles {
               Calc.Bank[0].Card = CardImage;
               Calc.Bank[0].Help = BankHelp;
             }
+            Calc.Bank[BankNr].CardSource = CardSource;
             Parse
                (
                   new java.io.ByteArrayInputStream(StateEntry),
@@ -506,6 +509,17 @@ public final class ProgramFiles {
                   );
             CardOut.Out.write(Bank.Card);
             CardOut.close();
+          }
+          if (Bank.CardSource != null) {
+            final ZipComponentWriter CardSourceOut =
+               new ZipComponentWriter
+                  (
+                     Out,
+                     String.format(Constants.StdLocale, "cardsrc%02d", BankNr),
+                     true
+                  );
+            CardSourceOut.write(Bank.CardSource);
+            CardSourceOut.close();
           }
           if (BankNr != 0 && Bank.Program != null)
                       /* bank 0 program written out later */ {

@@ -63,6 +63,11 @@
         <activity
             android:name=".PrinterActivity"
             android:theme="@style/AppTheme.Light" />
+        <activity
+            android:name=".CardEditor"
+            android:label="@string/title_card_editor"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/AppTheme.Light" />
     </application>
 
 </manifest>

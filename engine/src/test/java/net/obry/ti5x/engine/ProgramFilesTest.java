@@ -172,6 +172,44 @@ class ProgramFilesTest {
   }
 
   @Test
+  void programCardRoundTrip() {
+    final Calculator Engine = new TestHost().NewCalculator();
+    final State Calc = Engine.Calc;
+    Calc.Program[0] = 76; /* Lbl A */
+    Calc.Program[1] = 11;
+    final byte[] Png = {(byte) 0x89, 'P', 'N', 'G', 1, 2, 3};
+    final CardDef Def = new CardDef();
+    Def.Title = "MY PROGRAM";
+    Def.Id = "MY-01";
+    Def.Base[0] = "x";
+    Calc.Bank[0].Card = Png;
+    Calc.Bank[0].CardSource = Def.ToXml();
+
+    /* saved user program (.ti5p) */
+    final ByteArrayOutputStream Out = new ByteArrayOutputStream();
+    ProgramFiles.Save(Calc, null, false, false, Out);
+    final Calculator Copy = new TestHost().NewCalculator();
+    ProgramFiles.Load(Copy.Calc, null, new ByteArrayInputStream(Out.toByteArray()), false, false);
+    assertArrayEquals(Png, Copy.Calc.Bank[0].Card);
+    assertArrayEquals(Def.ToXml(), Copy.Calc.Bank[0].CardSource);
+    assertEquals("MY-01", CardDef.Parse(Copy.Calc.Bank[0].CardSource).Id);
+
+    /* saved calculator state */
+    final Calculator Restored = new TestHost().NewCalculator();
+    ProgramFiles.Load(Restored.Calc, null, new ByteArrayInputStream(SaveState(Engine)), false, true);
+    assertArrayEquals(Png, Restored.Calc.Bank[0].Card);
+    assertArrayEquals(Def.ToXml(), Restored.Calc.Bank[0].CardSource);
+
+    /* a program without card source clears the previous one */
+    Calc.Bank[0].CardSource = null;
+    final ByteArrayOutputStream NoSource = new ByteArrayOutputStream();
+    ProgramFiles.Save(Calc, null, false, false, NoSource);
+    ProgramFiles.Load(Copy.Calc, null, new ByteArrayInputStream(NoSource.toByteArray()), false, false);
+    assertArrayEquals(Png, Copy.Calc.Bank[0].Card);
+    assertNull(Copy.Calc.Bank[0].CardSource);
+  }
+
+  @Test
   void bankRoundTrip() {
     final Calculator Engine = new TestHost().NewCalculator();
     final State Calc = Engine.Calc;

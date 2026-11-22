@@ -228,6 +228,10 @@ public class AppData implements net.obry.ti5x.engine.FileStore {
       if (cleanName.startsWith("/")) {
         cleanName = cleanName.substring(1);
       }
+      if (cleanName.startsWith(Persistent.CardDir + "/")) {
+        /* label cards are only looked for in their own folder */
+        return deleteFile(Persistent.CardDir, cleanName.substring(Persistent.CardDir.length() + 1));
+      }
       String dir = Persistent.ProgramsDir;
       if (cleanName.regionMatches(true, 0, Persistent.ProgramsDir + "/", 0, Persistent.ProgramsDir.length() + 1)) {
         dir = Persistent.ProgramsDir;
