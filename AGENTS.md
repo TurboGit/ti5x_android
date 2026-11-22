@@ -18,8 +18,8 @@ import/export, and `Op 99` self-test.
 
 | Path | Content |
 |---|---|
-| `app/src/main/java/net/obry/ti5x/` | Android app sources (engine and UI are currently mixed, see "Architecture") |
-| `engine/` | Pure-Java calculator engine (`net.obry.ti5x.engine`), being extracted from `app/` |
+| `app/src/main/java/net/obry/ti5x/` | Android app sources: the user interface on top of the engine (see "Architecture") |
+| `engine/` | Pure-Java calculator engine (`net.obry.ti5x.engine`) used by the app and the CLI |
 | `cli/` | Command-line front-end (`net.obry.ti5x.cli`) running programs on the console |
 | `app/src/main/res/`, `app/src/main/assets/` | Android resources, help HTML, fonts |
 | `app/src/main/res/raw/*.ti5l`, `*.ti5p` | **Generated** at build time from `modules/` and `programs/` (git-ignored) |
