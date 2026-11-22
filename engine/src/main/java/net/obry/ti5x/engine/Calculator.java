@@ -35,6 +35,7 @@ public class Calculator {
   public final Printer Print;
   public final Importer Import;
   public final State Calc;
+  public final Keypad Keys;
   public final Tester Test;
 
   public Calculator
@@ -57,6 +58,7 @@ public class Calculator {
     Print = new Printer(this);
     Import = new Importer(this);
     Calc = new State(this);
+    Keys = new Keypad(this);
     Test = new Tester(this);
   }
 

@@ -63,6 +63,9 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   program/label/register listers). It runs programs through the `Scheduler`
   (`TaskRunner`, `ContinueTaskRunner`, `DelayedStep`).
 - `Number.java`: TI-59 number arithmetic with 13-digit precision and rounding.
+- `Keypad.java`: the key-entry state machine (`Press`/`Release` with key codes
+  11..95 as printed on the keys: 2nd/Inv, operand collection, learn mode via
+  `State.StoreInstr`). Host hooks: `OnNop` (save state) and `OnStatusChange`.
 - `Printer.java`: PC-100C printer emulation (paper content, character set, line rendering).
 - `Importer.java` / `Exporter.java`: data import/export (`Op 96`/`Op 97` extensions).
 - `Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
@@ -70,6 +73,8 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
 - `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
   must display **43** (the number of tests passed). A negative value `-n` means
   test `n` failed. `CalculatorTest` runs it in `./gradlew :engine:test`.
+  `KeypadTest` drives the engine through key presses (see `TestHost` for an
+  in-memory host).
 - Host interfaces the app or CLI implement: `Scheduler` (run loop),
   `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
   (files), `ErrorSink` (I/O error reports), and `BankStore` (card bank files).
@@ -79,16 +84,16 @@ App (`app/src/main/java/net/obry/ti5x/`):
 - `Main.java`: the activity. Creates `Global.Engine` (`Calculator`) with `AppHost`
   (scheduler on the UI `Handler`, error dialogs, bank files), `Display`,
   `LabelCard`, and `AppData` as the host services.
-- `ButtonGrid.java`: draws the keypad and holds the key-entry state machine
-  (`Invoke`: 2nd/Inv, operand collection, learn mode via `State.StoreInstr`).
+- `ButtonGrid.java`: draws the keypad, handles touch and click/vibrate
+  feedback, and passes key presses to `Global.Engine.Keys`.
 - `Display.java`: the LED display view. `LabelCard.java`: the label card and help.
 - `Persistent.java`: ZIP + XML load/save of programs, libraries, bank files, and saved state.
 - `PrinterActivity.java`: shows and saves the printer paper.
 - `AppData.java`: file access (Storage Access Framework, with a fallback).
 - `Global.java`: static singletons (`Engine`, `Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) for the UI.
 
-A refactoring is in progress to move the rest of the engine (keypad logic,
-file formats, assembler) to `:engine`, and to write the `:cli` front-end. Rules:
+A refactoring is in progress to move the rest of the engine (file formats,
+assembler) to `:engine`, and to write the `:cli` front-end. Rules:
 
 - Engine code must not import `android.*`, `androidx.*`, or `R`.
 - Engine code may only use Java APIs available on Android API 23.

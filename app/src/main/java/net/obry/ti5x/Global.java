@@ -67,7 +67,7 @@ final class Global {
 
     StatStr = StatStr + " ";
 
-    if (Global.Buttons.AltState) {
+    if (Global.Engine.Keys.AltState) {
       StatStr = StatStr + "2nd";
     } else {
       StatStr = StatStr + SP.repeat(3);

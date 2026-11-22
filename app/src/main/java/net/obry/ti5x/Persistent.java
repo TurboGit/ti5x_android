@@ -522,20 +522,20 @@ public class Persistent {
         POut.println("<state>");
         if (CalcState) {
           POut.println("    <buttons>");
-          SaveBool(POut, "alt", Buttons.AltState, 8);
+          SaveBool(POut, "alt", Calc.Engine.Keys.AltState, 8);
           SaveBool(POut, "overlay", Buttons.OverlayVisible, 8);
           SaveInt(POut, "selected_button", Buttons.SelectedButton, 8);
-          SaveInt(POut, "digits_needed", Buttons.DigitsNeeded, 8);
-          SaveBool(POut, "accept_symbolic", Buttons.AcceptSymbolic, 8);
-          SaveBool(POut, "accept_ind", Buttons.AcceptInd, 8);
-          SaveBool(POut, "next_literal", Buttons.NextLiteral, 8);
-          SaveInt(POut, "accum_digits", Buttons.AccumDigits, 8);
-          SaveInt(POut, "first_operand", Buttons.FirstOperand, 8);
-          SaveBool(POut, "got_first_operand", Buttons.GotFirstOperand, 8);
-          SaveBool(POut, "got_first_ind", Buttons.GotFirstInd, 8);
-          SaveBool(POut, "is_symbolic", Buttons.IsSymbolic, 8);
-          SaveBool(POut, "got_ind", Buttons.GotInd, 8);
-          SaveInt(POut, "collecting_for_function", Buttons.CollectingForFunction, 8);
+          SaveInt(POut, "digits_needed", Calc.Engine.Keys.DigitsNeeded, 8);
+          SaveBool(POut, "accept_symbolic", Calc.Engine.Keys.AcceptSymbolic, 8);
+          SaveBool(POut, "accept_ind", Calc.Engine.Keys.AcceptInd, 8);
+          SaveBool(POut, "next_literal", Calc.Engine.Keys.NextLiteral, 8);
+          SaveInt(POut, "accum_digits", Calc.Engine.Keys.AccumDigits, 8);
+          SaveInt(POut, "first_operand", Calc.Engine.Keys.FirstOperand, 8);
+          SaveBool(POut, "got_first_operand", Calc.Engine.Keys.GotFirstOperand, 8);
+          SaveBool(POut, "got_first_ind", Calc.Engine.Keys.GotFirstInd, 8);
+          SaveBool(POut, "is_symbolic", Calc.Engine.Keys.IsSymbolic, 8);
+          SaveBool(POut, "got_ind", Calc.Engine.Keys.GotInd, 8);
+          SaveInt(POut, "collecting_for_function", Calc.Engine.Keys.CollectingForFunction, 8);
           POut.println("    </buttons>");
         }
         POut.println("    <calc>");
@@ -933,33 +933,33 @@ public class Persistent {
           final String Name = attributes.getValue("name").intern();
           final String Value = attributes.getValue("value");
           if (Name.equals("alt")) {
-            Buttons.AltState = GetBool(Value);
+            Calc.Engine.Keys.AltState = GetBool(Value);
           } else if (Name.equals("overlay")) {
             Buttons.OverlayVisible = GetBool(Value);
           } else if (Name.equals("selected_button")) {
             Buttons.SelectedButton = GetInt(Value);
           } else if (Name.equals("digits_needed")) {
-            Buttons.DigitsNeeded = GetInt(Value);
+            Calc.Engine.Keys.DigitsNeeded = GetInt(Value);
           } else if (Name.equals("accept_symbolic")) {
-            Buttons.AcceptSymbolic = GetBool(Value);
+            Calc.Engine.Keys.AcceptSymbolic = GetBool(Value);
           } else if (Name.equals("accept_ind")) {
-            Buttons.AcceptInd = GetBool(Value);
+            Calc.Engine.Keys.AcceptInd = GetBool(Value);
           } else if (Name.equals("next_literal")) {
-            Buttons.NextLiteral = GetBool(Value);
+            Calc.Engine.Keys.NextLiteral = GetBool(Value);
           } else if (Name.equals("accum_digits")) {
-            Buttons.AccumDigits = GetInt(Value);
+            Calc.Engine.Keys.AccumDigits = GetInt(Value);
           } else if (Name.equals("first_operand")) {
-            Buttons.FirstOperand = GetInt(Value);
+            Calc.Engine.Keys.FirstOperand = GetInt(Value);
           } else if (Name.equals("got_first_operand")) {
-            Buttons.GotFirstOperand = GetBool(Value);
+            Calc.Engine.Keys.GotFirstOperand = GetBool(Value);
           } else if (Name.equals("got_first_ind")) {
-            Buttons.GotFirstInd = GetBool(Value);
+            Calc.Engine.Keys.GotFirstInd = GetBool(Value);
           } else if (Name.equals("is_symbolic")) {
-            Buttons.IsSymbolic = GetBool(Value);
+            Calc.Engine.Keys.IsSymbolic = GetBool(Value);
           } else if (Name.equals("got_ind")) {
-            Buttons.GotInd = GetBool(Value);
+            Calc.Engine.Keys.GotInd = GetBool(Value);
           } else if (Name.equals("collecting_for_function")) {
-            Buttons.CollectingForFunction = GetInt(Value);
+            Calc.Engine.Keys.CollectingForFunction = GetInt(Value);
           } else {
             throw new DataFormatException
                (
@@ -1422,6 +1422,7 @@ public class Persistent {
     public boolean PreRun() {
       if (CalcState) {
         Buttons.Reset();
+        Calc.Engine.Keys.Reset();
         Calc.Reset(Libs);
       } else if (Libs) {
         Calc.ResetLibs();

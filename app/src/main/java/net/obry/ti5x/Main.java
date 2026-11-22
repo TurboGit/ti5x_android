@@ -1273,6 +1273,8 @@ public class Main extends BaseCompatActivity {
     Global.Calc = Global.Engine.Calc;
     Global.Import = Global.Engine.Import;
     Global.Export = Global.Engine.Export;
+    Global.Engine.Keys.OnNop = () -> Persistent.SaveState(this, false);
+    Global.Engine.Keys.OnStatusChange = Global::setStatusDisplay;
     BuildActivityResultActions();
     Clipboard = (android.text.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
     registerForContextMenu(Global.Disp);
