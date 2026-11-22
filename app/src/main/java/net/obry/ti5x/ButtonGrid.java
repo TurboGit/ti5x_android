@@ -21,7 +21,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.view.MotionEvent;
 
-class ButtonGrid extends android.view.View {
+class ButtonGrid extends android.view.View implements net.obry.ti5x.engine.UiState {
   private static final int NrButtonRows = 9;
   private static final int NrButtonCols = 5;
   private final android.graphics.Typeface MFont =
@@ -617,6 +617,56 @@ class ButtonGrid extends android.view.View {
               TextPaint
            );
       }
+    }
+  }
+
+  /* UiState: keypad display state saved with the calculator state */
+
+  @Override
+  public boolean GetOverlayVisible() {
+    return OverlayVisible;
+  }
+
+  @Override
+  public void SetOverlayVisible(boolean Visible) {
+    OverlayVisible = Visible;
+  }
+
+  @Override
+  public int GetSelectedButton() {
+    return SelectedButton;
+  }
+
+  @Override
+  public void SetSelectedButton(int KeyCode) {
+    SelectedButton = KeyCode;
+  }
+
+  @Override
+  public String GetFeedback() {
+    switch (FeedbackType) {
+      case FEEDBACK_VIBRATE:
+        return FEEDBACK_KIND_VIBRATE;
+      case FEEDBACK_BOTH:
+        return FEEDBACK_KIND_BOTH;
+      case FEEDBACK_NONE:
+        return FEEDBACK_KIND_NONE;
+      default:
+        return FEEDBACK_KIND_CLICK;
+    }
+  }
+
+  @Override
+  public void SetFeedback(String Kind) {
+    /* only records the kind, SetFeedbackType is called once loading is done */
+    if (Kind.equals(FEEDBACK_KIND_NONE)) {
+      FeedbackType = FEEDBACK_NONE;
+    } else if (Kind.equals(FEEDBACK_KIND_VIBRATE)) {
+      FeedbackType = FEEDBACK_VIBRATE;
+    } else if (Kind.equals(FEEDBACK_KIND_BOTH)) {
+      FeedbackType = FEEDBACK_BOTH;
+    } else {
+      FeedbackType = FEEDBACK_CLICK;
     }
   }
 

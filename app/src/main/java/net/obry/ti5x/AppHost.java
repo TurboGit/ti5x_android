@@ -81,7 +81,7 @@ class AppHost implements Scheduler, ErrorSink, BankStore {
 
   @Override
   public void LoadBankFile(int BankNr, int CardId, String FileName) {
-    Persistent.LoadBankFile(ctx, BankNr, CardId, FileName, Global.Calc, Global.Disp, Global.Buttons);
+    Persistent.LoadBankFile(ctx, BankNr, CardId, FileName, Global.Calc);
   }
 
   @Override

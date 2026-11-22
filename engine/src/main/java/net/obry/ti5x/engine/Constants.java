@@ -25,6 +25,12 @@ public final class Constants {
   /* locale for all number and text formatting, never locale-specific */
   public static final java.util.Locale StdLocale = java.util.Locale.US;
 
+  /* number of significant figures used to save numbers */
+  public static final int NrSigFigures = 16;
+
+  /* printer lines kept in the saved state */
+  public static final int MaxPrinterLineSaved = 10000;
+
   /* file extensions */
   public static final String BankExt = ".ti5b"; /* for card bank files */
   public static final String DataExt = ".dat"; /* for data export */

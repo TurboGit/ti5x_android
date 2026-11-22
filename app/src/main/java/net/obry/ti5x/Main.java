@@ -21,6 +21,7 @@ package net.obry.ti5x;
 import net.obry.ti5x.engine.Calculator;
 import net.obry.ti5x.engine.DataFormatException;
 import net.obry.ti5x.engine.Number;
+import net.obry.ti5x.engine.ProgramFiles;
 
 import java.nio.file.Paths;
 import java.util.Calendar;
@@ -153,7 +154,7 @@ public class Main extends BaseCompatActivity {
       java.io.InputStream ReadHelp;
       try {
         ReadHelp = getAssets().open(Path);
-        HelpRaw = Persistent.ReadAll(ReadHelp);
+        HelpRaw = ProgramFiles.ReadAll(ReadHelp);
       } catch (java.io.IOException Failed) {
         throw new RuntimeException("can't read help page: " + Failed);
       }
@@ -820,7 +821,6 @@ public class Main extends BaseCompatActivity {
                               ProgName,
                               IsLib,
                               false,
-                              Global.Disp,
                               Global.Buttons,
                               Global.Calc
                            );

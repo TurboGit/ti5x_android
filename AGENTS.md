@@ -70,11 +70,15 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
 - `Importer.java` / `Exporter.java`: data import/export (`Op 96`/`Op 97` extensions).
 - `Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
 - `Card.java`, `CardStore.java`: magnetic card contents (`2nd Write`/bank files).
+- `ProgramFiles.java`: loading and saving of programs (`.ti5p`), libraries
+  (`.ti5l`), card banks (`.ti5b`) and the calculator state (ZIP + XML, see
+  `file_format.txt`). Host UI state saved with it goes through `UiState`.
 - `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
   must display **43** (the number of tests passed). A negative value `-n` means
   test `n` failed. `CalculatorTest` runs it in `./gradlew :engine:test`.
   `KeypadTest` drives the engine through key presses (see `TestHost` for an
-  in-memory host).
+  in-memory host). `ProgramFilesTest` loads every generated `res/raw` file
+  (skipped if the app was not built) and checks save/load round trips.
 - Host interfaces the app or CLI implement: `Scheduler` (run loop),
   `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
   (files), `ErrorSink` (I/O error reports), and `BankStore` (card bank files).
@@ -87,13 +91,14 @@ App (`app/src/main/java/net/obry/ti5x/`):
 - `ButtonGrid.java`: draws the keypad, handles touch and click/vibrate
   feedback, and passes key presses to `Global.Engine.Keys`.
 - `Display.java`: the LED display view. `LabelCard.java`: the label card and help.
-- `Persistent.java`: ZIP + XML load/save of programs, libraries, bank files, and saved state.
+- `Persistent.java`: background load/save tasks, built-in modules from
+  `res/raw`, saved state location, and bank file location, on top of `ProgramFiles`.
 - `PrinterActivity.java`: shows and saves the printer paper.
 - `AppData.java`: file access (Storage Access Framework, with a fallback).
 - `Global.java`: static singletons (`Engine`, `Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) for the UI.
 
-A refactoring is in progress to move the rest of the engine (file formats,
-assembler) to `:engine`, and to write the `:cli` front-end. Rules:
+A refactoring is in progress to add a Java assembler to `:engine` and to
+write the `:cli` front-end. Rules:
 
 - Engine code must not import `android.*`, `androidx.*`, or `R`.
 - Engine code may only use Java APIs available on Android API 23.
