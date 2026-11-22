@@ -18,6 +18,9 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.CardStore;
+import net.obry.ti5x.engine.Number;
+
 import android.app.AlertDialog;
 import android.util.SparseIntArray;
 
@@ -84,9 +87,9 @@ class State {
   private java.security.SecureRandom Random = new java.security.SecureRandom();
 
   /* number-display format */
-  static final int FORMAT_FIXED = 0;
-  static final int FORMAT_FLOAT = 1;
-  static final int FORMAT_ENG = 2;
+  static final int FORMAT_FIXED = Number.FORMAT_FIXED;
+  static final int FORMAT_FLOAT = Number.FORMAT_FLOAT;
+  static final int FORMAT_ENG = Number.FORMAT_ENG;
   int CurFormat;
   int CurNrDecimals = -1;
 
@@ -2719,7 +2722,7 @@ class State {
       }
 
       if (Store.Contains(CardId)) {
-        Store.Get (CardId).LoadCard(this, Part);
+        Store.Get (CardId).LoadCard(Memory, Program, Part);
         // reset labels to take into account possible new ones in loaded card
         ResetInLabels();
       } else {

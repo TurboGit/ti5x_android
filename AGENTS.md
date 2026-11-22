@@ -28,7 +28,6 @@ import/export, and `Op 99` self-test.
 | `programs/<name>/` | Built-in programs: `prog`, `card`, `help`, and optional `banksrc`/`mem` files |
 | `examples/` | Example programs, built with `make -C examples` |
 | `util/` | Python 3 tools: `assemble`, `disassemble`, `makeprog`, `libmake`, `rendercard` (needs GhostScript), `check-assemble-disassemble`, … |
-| `tests/` | Old stand-alone tests for `Number` (`make -C tests`) |
 | `file_format.txt` | Format of `.ti5p` (program), `.ti5l` (library), and saved state |
 
 ## Building
@@ -57,20 +56,21 @@ The main classes:
   flags, program banks, return stack, the `Interpret` loop, and the
   program/label/register listers). It runs programs on an `android.os.Handler`
   (`TaskRunner`, `ContinueTaskRunner`, `DelayedStep`).
-- `Number.java`: TI-59 number arithmetic with 13-digit precision and rounding.
+- `engine/…/Number.java`: TI-59 number arithmetic with 13-digit precision and rounding.
 - `ButtonGrid.java`: draws the keypad and holds the key-entry state machine
   (`Invoke`: 2nd/Inv, operand collection, learn mode via `State.StoreInstr`).
 - `Display.java`: the LED display view (`SetShowing`, `SetShowingError`, `SetShowingRunning`).
 - `Persistent.java`: ZIP + XML load/save of programs, libraries, bank files, and saved state.
 - `Printer.java` / `PrinterActivity.java`: PC-100C printer emulation.
 - `Importer.java` / `Exporter.java`: data import/export (`Op 96`/`Op 97` extensions).
-- `Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
+- `engine/…/Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
+- `engine/…/Card.java`, `CardStore.java`: magnetic card contents (`2nd Write`/bank files).
 - `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
   must display **43** (the number of tests passed). A negative value `-n` means test `n` failed.
 - `Global.java`: static singletons (`Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) shared across classes.
 
-A refactoring is planned to move the engine (State, Number, keypad logic,
-file formats, assembler) into a pure-Java `:engine` Gradle module, with a
+A refactoring is in progress to move the engine (State, keypad logic,
+file formats, assembler; Number, Card, CardStore and Disassembler are done) into a pure-Java `:engine` Gradle module, with a
 `:cli` module and the Android `:app` depending on it. When working toward that:
 
 - Engine code must not import `android.*`, `androidx.*`, or `R`.
@@ -110,6 +110,7 @@ Follow the existing style:
 
 ## Testing
 
+- Engine unit tests: `./gradlew :engine:test` (JUnit 5, `engine/src/test/`).
 - Calculator behaviour: run `Op 99` and check that the display shows `43`.
   When fixing a calculator bug, add a test case to `Tester.java` (and update the expected count everywhere it is mentioned).
 - Assembler/disassembler changes: run `util/check-assemble-disassemble`.

@@ -17,6 +17,8 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.Disassembler;
+
 class Tester {
   private State Calc;
 

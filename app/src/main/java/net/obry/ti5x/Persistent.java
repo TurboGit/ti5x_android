@@ -18,6 +18,9 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.Disassembler;
+import net.obry.ti5x.engine.Number;
+
 import java.util.zip.ZipEntry;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
@@ -807,6 +810,37 @@ public class Persistent {
       Out.close();
     } catch (java.io.IOException Failed) {
       throw new RuntimeException("ti5x.Persistent.Save error " + Failed.toString());
+    }
+  }
+
+  static void ExportProgramText
+     (
+        State Calc,
+        String ToFile
+     ) {
+    /* saves the currently selected program bank as source text. */
+    java.io.OutputStream Out = null;
+    try {
+      final File f = new File(ToFile);
+      final String ParentName = f.getParentFile() != null ? f.getParentFile().getName() : ProgramsDir;
+      Out = Global.DataStorage.getOutputStream(ParentName, f.getName(), false);
+      if (Out == null) {
+        Out = new java.io.FileOutputStream(ToFile);
+      }
+    } catch (Exception Failed) {
+      throw new RuntimeException("ti5x export program create error " + Failed.toString());
+    }
+
+    final byte[] Program = Calc.Bank[Calc.CurBank].Program != null
+        ? Calc.Bank[Calc.CurBank].Program
+        : Calc.Program;
+    final String Text = Disassembler.disassemble(Program);
+
+    try (java.io.PrintStream PS = new java.io.PrintStream(Out)) {
+      PS.print(Text);
+      PS.flush();
+    } catch (Exception Failed) {
+      throw new RuntimeException("ti5x export program error " + Failed.toString());
     }
   }
 

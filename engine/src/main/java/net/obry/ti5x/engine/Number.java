@@ -15,7 +15,7 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -24,7 +24,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-class Number {
+public class Number {
   private BigDecimal v;
   private boolean error;
   private final static MathContext mc = new MathContext(13, RoundingMode.HALF_DOWN);
@@ -32,6 +32,11 @@ class Number {
   public static final int ANG_RAD = 1;
   public static final int ANG_DEG = 2;
   public static final int ANG_GRAD = 3;
+
+  /* display formats, see scaleExp */
+  public static final int FORMAT_FIXED = 0;
+  public static final int FORMAT_FLOAT = 1;
+  public static final int FORMAT_ENG = 2;
 
   public final static Number ZERO = new Number(0.0);
   public final static Number ONE = new Number(1.0);
@@ -493,10 +498,10 @@ class Number {
 
     if (v.compareTo(B_ZERO) != 0) {
       switch (UsingFormat) {
-        case State.FORMAT_FLOAT:
+        case FORMAT_FLOAT:
           Exp = l.v.setScale(0, RoundingMode.FLOOR).intValue();
           break;
-        case State.FORMAT_ENG:
+        case FORMAT_ENG:
           l.v = l.v.divide(B_THREE, mc);
           Exp = l.v.setScale(0, RoundingMode.FLOOR).intValue() * 3;
           break;

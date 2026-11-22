@@ -18,6 +18,8 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.Number;
+
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
@@ -1011,7 +1013,7 @@ public class Main extends BaseCompatActivity {
                       @Override
                       public void BGRun() {
                         try {
-                          Disassembler.exportProgram
+                          Persistent.ExportProgramText
                              (
                                 Global.Calc,
                                 SaveFile

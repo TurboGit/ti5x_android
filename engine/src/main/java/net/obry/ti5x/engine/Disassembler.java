@@ -16,10 +16,8 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -188,7 +186,7 @@ public class Disassembler {
       out.append(' ');
       lineLength++;
     }
-    out.append(String.format(Global.StdLocale, " ; %03d %s\n", instPC, instOpcodes.toString()));
+    out.append(String.format(Constants.StdLocale, " ; %03d %s\n", instPC, instOpcodes.toString()));
   }
 
   public static void disassemble(byte[] program, StringBuilder out) {
@@ -231,18 +229,18 @@ public class Disassembler {
         currentLineStartPos = out.length();
         instPC = pc;
         instOpcodes.setLength(0);
-        instOpcodes.append(String.format(Global.StdLocale, "%02d", val));
+        instOpcodes.append(String.format(Constants.StdLocale, "%02d", val));
         if (val != 76) { // 76 is Lbl
           out.append("   ");
         }
         atLineStart = false;
       } else {
-        instOpcodes.append(String.format(Global.StdLocale, " %02d", val));
+        instOpcodes.append(String.format(Constants.StdLocale, " %02d", val));
       }
 
       if (expect != null) {
         if ("loc2".equals(expect)) {
-          out.append(String.format(Global.StdLocale, "%03d", loc * 100 + val));
+          out.append(String.format(Constants.StdLocale, "%03d", loc * 100 + val));
           expect = null;
         } else if ("loc".equals(expect)) {
           expect = null;
@@ -260,22 +258,22 @@ public class Disassembler {
             if (c != null && c.sym != null) {
               out.append(c.sym);
             } else {
-              out.append(String.format(Global.StdLocale, "%02d", val));
+              out.append(String.format(Constants.StdLocale, "%02d", val));
             }
             expect = null;
           }
         } else if ("reg".equals(expect)) {
-          out.append(String.format(Global.StdLocale, "%02d", val));
+          out.append(String.format(Constants.StdLocale, "%02d", val));
           expect = null;
         } else if ("flag".equals(expect) || "unitreg".equals(expect)) {
           if (val == 40) {
             out.append("Ind ");
             expect = "reg";
           } else if ("unitreg".equals(expect) || val < 10) {
-            out.append(String.format(Global.StdLocale, "%1d", val));
+            out.append(String.format(Constants.StdLocale, "%1d", val));
             expect = null;
           } else {
-            out.append(String.format(Global.StdLocale, "%02d", val));
+            out.append(String.format(Constants.StdLocale, "%02d", val));
             expect = null;
           }
         } else if ("label".equals(expect)) {
@@ -284,7 +282,7 @@ public class Disassembler {
           if (c != null && c.hassym) {
             out.append(c.sym);
           } else {
-            out.append(String.format(Global.StdLocale, "%02d", val));
+            out.append(String.format(Constants.StdLocale, "%02d", val));
           }
         }
 
@@ -340,7 +338,7 @@ public class Disassembler {
             invState = true;
           }
         } else {
-          out.append(String.format(Global.StdLocale, "%02d", val));
+          out.append(String.format(Constants.StdLocale, "%02d", val));
           finishLine(out, currentLineStartPos, instPC, instOpcodes);
           atLineStart = true;
         }
@@ -353,33 +351,6 @@ public class Disassembler {
 
     if (lastWasDigit) {
       finishLine(out, currentLineStartPos, instPC, instOpcodes);
-    }
-  }
-
-  public static void exportProgram(State calc, String toFile) {
-    OutputStream out = null;
-    try {
-      java.io.File f = new java.io.File(toFile);
-      String parentName = f.getParentFile() != null ? f.getParentFile().getName() : Persistent.ProgramsDir;
-      String fileName = f.getName();
-      out = Global.DataStorage.getOutputStream(parentName, fileName, false);
-      if (out == null) {
-        out = new java.io.FileOutputStream(toFile);
-      }
-    } catch (Exception failed) {
-      throw new RuntimeException("ti5x export program create error " + failed.toString());
-    }
-
-    byte[] program = calc.Bank[calc.CurBank].Program != null
-        ? calc.Bank[calc.CurBank].Program
-        : calc.Program;
-    String text = disassemble(program);
-
-    try (PrintStream ps = new PrintStream(out)) {
-      ps.print(text);
-      ps.flush();
-    } catch (Exception failed) {
-      throw new RuntimeException("ti5x export program error " + failed.toString());
     }
   }
 }

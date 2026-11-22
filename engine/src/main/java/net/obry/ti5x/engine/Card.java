@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package net.obry.ti5x;
+package net.obry.ti5x.engine;
 
 public class Card {
   final int BANK_MEM = 30;
@@ -27,7 +27,7 @@ public class Card {
   private boolean HasMem;
   private boolean HasProg;
 
-  Card (
+  public Card (
       int BankNr
   )
   {
@@ -81,7 +81,8 @@ public class Card {
 
   public void WriteCard
       (
-          State Calc,
+          Number[] Memory, /* calculator data registers */
+          byte[] Program, /* calculator program memory (bank 0) */
           int BankNr,
           int Id
       ) {
@@ -91,8 +92,8 @@ public class Card {
     if (HasMem) {
       int idx = 0;
       for (int k = (4 - BankNr) * BANK_MEM; k < (4 - BankNr + 1) * BANK_MEM; k++) {
-        if (k < Calc.MaxMemories) {
-          MemData[idx++] = new Number(Calc.Memory[k]);
+        if (k < Memory.length) {
+          MemData[idx++] = new Number(Memory[k]);
         }
       }
     }
@@ -100,7 +101,7 @@ public class Card {
     if(HasProg) {
       System.arraycopy
           (
-              Calc.Program, (BankNr - 1) * BANK_PROG,
+              Program, (BankNr - 1) * BANK_PROG,
               ProgData, 0,
               BANK_PROG
           );
@@ -109,15 +110,16 @@ public class Card {
 
   public void LoadCard
       (
-          State Calc,
+          Number[] Memory, /* calculator data registers */
+          byte[] Program, /* calculator program memory (bank 0) */
           int Part
       )
   {
     if(HasMem && (Part == 0 || Part == 2)) {
       int idx = 0;
       for (int k = (4 - this.BankNr) * BANK_MEM; k < (4 - this.BankNr + 1) * BANK_MEM; k++) {
-        if (k < Calc.MaxMemories) {
-          Calc.Memory[k] = new Number(MemData[idx++]);
+        if (k < Memory.length) {
+          Memory[k] = new Number(MemData[idx++]);
         }
       }
     }
@@ -126,7 +128,7 @@ public class Card {
       System.arraycopy
           (
               ProgData, 0,
-              Calc.Program, (this.BankNr - 1) * BANK_PROG,
+              Program, (this.BankNr - 1) * BANK_PROG,
               BANK_PROG
           );
     }

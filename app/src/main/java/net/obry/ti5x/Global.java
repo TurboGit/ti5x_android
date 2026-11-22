@@ -38,7 +38,7 @@ final class Global {
   static final int MaxPrinterLineSaved = 10000;
 
   /* for formatting reals */
-  static final java.util.Locale StdLocale = java.util.Locale.US;
+  static final java.util.Locale StdLocale = net.obry.ti5x.engine.Constants.StdLocale;
   /* for all those places I don't want formatting to be locale-specific */
 
   static android.view.View ProgressWidgets;

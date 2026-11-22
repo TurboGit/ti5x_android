@@ -18,6 +18,8 @@
 
 package net.obry.ti5x;
 
+import net.obry.ti5x.engine.Number;
+
 import java.io.IOException;
 
 public class Importer {
