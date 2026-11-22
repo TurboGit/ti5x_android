@@ -68,7 +68,11 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   `State.StoreInstr`). Host hooks: `OnNop` (save state) and `OnStatusChange`.
 - `Printer.java`: PC-100C printer emulation (paper content, character set, line rendering).
 - `Importer.java` / `Exporter.java`: data import/export (`Op 96`/`Op 97` extensions).
-- `Disassembler.java`: opcodes → source text. `util/assemble` does the reverse.
+- `Disassembler.java`: opcodes → source text.
+- `Assembler.java`: source text → opcodes. A Java port of `util/assemble`
+  (same syntax, errors and output). `AssemblerTest` checks that both give the
+  same bytes on every source in `modules/`, `programs/` and `examples/` (needs
+  `python3`). Change both together.
 - `Card.java`, `CardStore.java`: magnetic card contents (`2nd Write`/bank files).
 - `ProgramFiles.java`: loading and saving of programs (`.ti5p`), libraries
   (`.ti5l`), card banks (`.ti5b`) and the calculator state (ZIP + XML, see
@@ -97,8 +101,7 @@ App (`app/src/main/java/net/obry/ti5x/`):
 - `AppData.java`: file access (Storage Access Framework, with a fallback).
 - `Global.java`: static singletons (`Engine`, `Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) for the UI.
 
-A refactoring is in progress to add a Java assembler to `:engine` and to
-write the `:cli` front-end. Rules:
+The `:cli` front-end is being written on top of the engine. Rules:
 
 - Engine code must not import `android.*`, `androidx.*`, or `R`.
 - Engine code may only use Java APIs available on Android API 23.
@@ -139,7 +142,8 @@ Follow the existing style:
 - Engine unit tests: `./gradlew :engine:test` (JUnit 5, `engine/src/test/`).
 - Calculator behaviour: run `Op 99` and check that the display shows `43`.
   When fixing a calculator bug, add a test case to `Tester.java` (and update the expected count everywhere it is mentioned).
-- Assembler/disassembler changes: run `util/check-assemble-disassemble`.
+- Assembler/disassembler changes: `./gradlew :engine:test` (`AssemblerTest`)
+  and `util/check-assemble-disassemble`.
 - UI changes: test on a device/emulator (portrait and landscape, phone and tablet layouts).
 
 ## Git
