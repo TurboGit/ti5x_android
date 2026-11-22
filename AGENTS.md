@@ -20,7 +20,7 @@ import/export, and `Op 99` self-test.
 |---|---|
 | `app/src/main/java/net/obry/ti5x/` | Android app sources (engine and UI are currently mixed, see "Architecture") |
 | `engine/` | Pure-Java calculator engine (`net.obry.ti5x.engine`), being extracted from `app/` |
-| `cli/` | Command-line front-end (`net.obry.ti5x.cli.Main`) running programs on the console |
+| `cli/` | Command-line front-end (`net.obry.ti5x.cli`) running programs on the console |
 | `app/src/main/res/`, `app/src/main/assets/` | Android resources, help HTML, fonts |
 | `app/src/main/res/raw/*.ti5l`, `*.ti5p` | **Generated** at build time from `modules/` and `programs/` (git-ignored) |
 | `app/preprocess.gradle` | `preprocess` task (hooked on `preBuild`) that calls `util/libmake` and `util/makeprog` |
@@ -101,7 +101,24 @@ App (`app/src/main/java/net/obry/ti5x/`):
 - `AppData.java`: file access (Storage Access Framework, with a fallback).
 - `Global.java`: static singletons (`Engine`, `Calc`, `Disp`, `Buttons`, `Print`, `Label`, …) for the UI.
 
-The `:cli` front-end is being written on top of the engine. Rules:
+Command line (`cli/src/main/java/net/obry/ti5x/cli/`):
+
+- `Main.java`: options (see `ti5x --help`). `Session.java`: loads the
+  program (`.ti5p`, source text or `--opcodes`) and `--lib` modules, presses the
+  `--keys` script when the calculator is idle, reads more key scripts from stdin
+  in interactive mode, and runs the event loop (`ConsoleScheduler`, real time or
+  `--fast`). `ConsoleDisplay` prints the display (`--trace`: one line per
+  change) and the printer output. `ConsoleHost`: files under `--dir`.
+- Key scripts use `engine/…/KeyNames.java` (assembler spellings; second
+  functions include the 2nd press).
+- Examples:
+  ```sh
+  ti5x --trace --fast --max-steps 50 examples/counter/prog
+  ti5x --keys "op 99"                 # built-in tests, shows 43.
+  ti5x --lib app/src/main/res/raw/ml.ti5l --keys "pgm 01 sbr ="
+  ```
+
+Rules for the engine:
 
 - Engine code must not import `android.*`, `androidx.*`, or `R`.
 - Engine code may only use Java APIs available on Android API 23.
@@ -140,6 +157,7 @@ Follow the existing style:
 ## Testing
 
 - Engine unit tests: `./gradlew :engine:test` (JUnit 5, `engine/src/test/`).
+- CLI tests: `./gradlew :cli:test` (`SessionTest` runs whole sessions in memory).
 - Calculator behaviour: run `Op 99` and check that the display shows `43`.
   When fixing a calculator bug, add a test case to `Tester.java` (and update the expected count everywhere it is mentioned).
 - Assembler/disassembler changes: `./gradlew :engine:test` (`AssemblerTest`)
