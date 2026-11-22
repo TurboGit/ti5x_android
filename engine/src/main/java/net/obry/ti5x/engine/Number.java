@@ -524,6 +524,17 @@ public class Number {
     return v.toString();
   }
 
+  public String toStateString() {
+    /* text saved in the calculator state and bank files, reads back as
+       exactly this number with new Number(String). Fixed notation with 16
+       decimals (the format of earlier versions) when that is exact,
+       scientific notation otherwise (e.g. 1.5E-20). */
+    if (v.stripTrailingZeros().scale() <= 16) {
+      return formatString(java.util.Locale.US, 16);
+    }
+    return v.toString();
+  }
+
   public String formatString(java.util.Locale locale, int nrDecimals) {
     final DecimalFormat form = new DecimalFormat();
     final DecimalFormatSymbols decForm = new DecimalFormatSymbols(locale);

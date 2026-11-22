@@ -187,6 +187,18 @@ class NumberTest {
   }
 
   @Test
+  void stateString() {
+    /* fixed notation as before when exact, scientific notation otherwise */
+    assertEquals("3.2500000000000000", new Number(3.25).toStateString());
+    assertEquals("-0.0001230000000000", new Number(-0.000123).toStateString());
+    assertEquals("0.0000000000000000", new Number().toStateString());
+    assertEquals("-1E-20", new Number("-1E-20").toStateString());
+    assertEquals("1.234567890123E-10", new Number("1.234567890123E-10").toStateString());
+    final Number Big = new Number("9.876543210123E+99");
+    assertTrue(Big.isEqual(new Number(Big.toStateString())));
+  }
+
+  @Test
   void formatString() {
     final Number x = new Number(123.456789);
     x.rem(23);

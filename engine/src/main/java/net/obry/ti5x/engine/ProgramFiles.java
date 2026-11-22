@@ -265,7 +265,7 @@ public final class ProgramFiles {
     POut.printf(Constants.StdLocale, String.format(Constants.StdLocale, "%%%ds", Indent), " ");
     POut.printf
        ("<param name=\"%s\" value=\""
-          + Value.formatString(Constants.StdLocale, Constants.NrSigFigures)
+          + Value.toStateString()
           + "\"/>\n", Name);
   }
 
@@ -312,6 +312,25 @@ public final class ProgramFiles {
       Result = Double.parseDouble(Value);
     } catch (NumberFormatException Bad) {
       throw new DataFormatException(String.format(Constants.StdLocale, "bad double value \"%s\"", Value));
+    }
+    return Result;
+  }
+
+  private static ArrayList<Number> ParseNumberList
+     (
+        String Content
+     ) {
+    /* reads memory values: numbers in fixed or scientific notation
+       separated by blanks. */
+    final ArrayList<Number> Result = new ArrayList<>();
+    for (String Token : Content.trim().split("\\s+")) {
+      if (Token.isEmpty())
+        continue;
+      try {
+        Result.add(new Number(Token));
+      } catch (NumberFormatException Bad) {
+        throw new DataFormatException(String.format(Constants.StdLocale, "bad number \"%s\"", Token));
+      }
     }
     return Result;
   }
@@ -385,7 +404,7 @@ public final class ProgramFiles {
 
     for (int k = (4 - N) * 30; k < (4 - N + 1) * 30; k++) {
       if (k < Calc.MaxMemories) {
-        POut.printf("            %s\n", Calc.Memory[k].formatString(Constants.StdLocale, 16));
+        POut.printf("            %s\n", Calc.Memory[k].toStateString());
       }
     }
 
@@ -682,7 +701,7 @@ public final class ProgramFiles {
           SaveBool(POut, "learn_mode", Calc.ProgMode, 8);
           POut.println("        <mem>");
           for (int i = 0; i < Calc.Memory.length; ++i) {
-            POut.printf("            %s\n", Calc.Memory[i].formatString(Constants.StdLocale, 16));
+            POut.printf("            %s\n", Calc.Memory[i].toStateString());
           }
           POut.println("        </mem>");
           POut.print("        <feedback kind=\"");
@@ -1179,7 +1198,7 @@ public final class ProgramFiles {
         case DoingMem:
           if (localName.equals("mem")) {
 
-            ArrayList<Double> m = parseNumbers(ContentStr);
+            ArrayList<Number> m = ParseNumberList(ContentStr);
 
             if (m.size() > Calc.MaxMemories) {
               throw new DataFormatException
@@ -1188,14 +1207,14 @@ public final class ProgramFiles {
                   );
             }
             for (int reg = 0; reg < m.size(); ++reg) {
-              Calc.Memory[reg] = new Number(m.get(reg));
+              Calc.Memory[reg] = m.get(reg);
             }
             ParseState = DoingCalc;
           }
           break;
         case DoingBankMem:
           if (localName.equals("bankmem")) {
-            ArrayList<Double> m = parseNumbers(ContentStr);
+            ArrayList<Number> m = ParseNumberList(ContentStr);
 
             if (m.size() > 30) {
               throw new DataFormatException
@@ -1207,12 +1226,7 @@ public final class ProgramFiles {
             if (BankNr != 0 && CardBankNr != BankNr) {
               Calc.SetErrorState(true);
             } else {
-              Number[] CardMem = new Number[m.size()];
-
-              for (int addr = 0; addr < m.size(); ++addr) {
-                double val = m.get(addr);
-                CardMem[addr] = new Number(val);
-              }
+              final Number[] CardMem = m.toArray(new Number[0]);
               Calc.Store.SetMem(CardId, CardBankNr, CardMem);
             }
 

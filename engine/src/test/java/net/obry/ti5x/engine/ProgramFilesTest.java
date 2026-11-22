@@ -135,6 +135,10 @@ class ProgramFilesTest {
     final State Calc = Engine.Calc;
     Calc.Memory[7] = new Number(3.25);
     Calc.Memory[99] = new Number(-0.000123);
+    Calc.Memory[50] = new Number("-1E-20"); /* lost by the fixed 16 decimals format */
+    Calc.Memory[51] = new Number("1.234567890123E-10"); /* digits lost by the same */
+    Calc.X = new Number("2.5E-30");
+    Calc.T = new Number("-7.000000000001E-12");
     Calc.Program[0] = 85;
     Calc.Program[1] = 1;
     Calc.Program[2] = 95;
@@ -154,6 +158,10 @@ class ProgramFilesTest {
     ProgramFiles.Load(Copy.Calc, null, new ByteArrayInputStream(Saved), false, true);
     assertEquals(3.25, Copy.Calc.Memory[7].get());
     assertEquals(-0.000123, Copy.Calc.Memory[99].get());
+    assertTrue(Calc.Memory[50].isEqual(Copy.Calc.Memory[50]), Copy.Calc.Memory[50].toStateString());
+    assertTrue(Calc.Memory[51].isEqual(Copy.Calc.Memory[51]), Copy.Calc.Memory[51].toStateString());
+    assertTrue(Calc.X.isEqual(Copy.Calc.X), Copy.Calc.X.toStateString());
+    assertTrue(Calc.T.isEqual(Copy.Calc.T), Copy.Calc.T.toStateString());
     assertArrayEquals(Calc.Program, Copy.Calc.Program);
     assertTrue(Copy.Calc.Flag[3]);
     assertEquals(State.ANG_RAD, Copy.Calc.CurAng);
@@ -174,6 +182,7 @@ class ProgramFilesTest {
       Calc.Program[i] = (byte) (i % 100);
     }
     Calc.Memory[95] = new Number(42); /* bank 1 holds memories 90 .. 119 */
+    Calc.Memory[96] = new Number("3.000000000007E-50");
 
     final ByteArrayOutputStream Out = new ByteArrayOutputStream();
     ProgramFiles.SaveBank(Calc, Out, 1, 12);
@@ -188,6 +197,39 @@ class ProgramFilesTest {
           java.util.Arrays.copyOf(Copy.Calc.Program, 240)
        );
     assertEquals(42.0, Copy.Calc.Memory[95].get());
+    assertTrue(Calc.Memory[96].isEqual(Copy.Calc.Memory[96]), Copy.Calc.Memory[96].toStateString());
+  }
+
+  @Test
+  void readsOldNumberFormat() {
+    /* state saved by earlier versions: memories with 16 fixed decimals */
+    final String Xml =
+         "<state>\n    <calc>\n        <mem>\n"
+       + "            3.2500000000000000\n"
+       + "            -0.0001230000000000\n"
+       + "            1234567890123.0000000000000000\n"
+       + "        </mem>\n    </calc>\n</state>\n";
+    final ByteArrayOutputStream Archive = new ByteArrayOutputStream();
+    try (java.util.zip.ZipOutputStream Zip = new java.util.zip.ZipOutputStream(Archive)) {
+      final java.util.zip.ZipEntry Mime = new java.util.zip.ZipEntry("mimetype");
+      final byte[] MimeBytes = ProgramFiles.CalcMimeType.getBytes();
+      final java.util.zip.CRC32 Crc = new java.util.zip.CRC32();
+      Crc.update(MimeBytes);
+      Mime.setMethod(java.util.zip.ZipEntry.STORED);
+      Mime.setSize(MimeBytes.length);
+      Mime.setCrc(Crc.getValue());
+      Zip.putNextEntry(Mime);
+      Zip.write(MimeBytes);
+      Zip.putNextEntry(new java.util.zip.ZipEntry("prog00"));
+      Zip.write(Xml.getBytes());
+    } catch (IOException Failed) {
+      throw new RuntimeException(Failed);
+    }
+    final Calculator Engine = new TestHost().NewCalculator();
+    ProgramFiles.Load(Engine.Calc, null, new ByteArrayInputStream(Archive.toByteArray()), false, true);
+    assertEquals(3.25, Engine.Calc.Memory[0].get());
+    assertEquals(-0.000123, Engine.Calc.Memory[1].get());
+    assertEquals(1234567890123.0, Engine.Calc.Memory[2].get());
   }
 
   @Test
