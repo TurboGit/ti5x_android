@@ -868,6 +868,11 @@ public final class ProgramFiles {
           ParseState = DoingCalc;
           Handled = true;
         } else if (localName.equals("printer")) {
+          if (CalcState) {
+            /* the saved paper replaces the current one (a new printer starts
+               with a blank line, the saved paper too) */
+            Calc.Engine.Print.Content.clear();
+          }
           ParseState = DoingPrinter;
           Handled = true;
         }

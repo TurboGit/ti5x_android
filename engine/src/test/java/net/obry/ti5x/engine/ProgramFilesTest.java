@@ -152,9 +152,6 @@ class ProgramFilesTest {
     final byte[] Saved = SaveState(Engine);
 
     final Calculator Copy = new TestHost().NewCalculator();
-    /* a new printer starts with a blank line and the loaded paper is appended
-       after it, start from empty paper to compare */
-    Copy.Print.Content.clear();
     ProgramFiles.Load(Copy.Calc, null, new ByteArrayInputStream(Saved), false, true);
     assertEquals(3.25, Copy.Calc.Memory[7].get());
     assertEquals(-0.000123, Copy.Calc.Memory[99].get());
@@ -198,6 +195,20 @@ class ProgramFilesTest {
        );
     assertEquals(42.0, Copy.Calc.Memory[95].get());
     assertTrue(Calc.Memory[96].isEqual(Copy.Calc.Memory[96]), Copy.Calc.Memory[96].toStateString());
+  }
+
+  @Test
+  void paperDoesNotGrowOnRestore() {
+    /* the app restores the saved state into a new calculator on each start */
+    Calculator Engine = new TestHost().NewCalculator();
+    Engine.Calc.PrintDisplay(true, false, true, "");
+    final int Lines = Engine.Print.Content.size();
+    for (int i = 0; i < 3; i++) {
+      final byte[] Saved = SaveState(Engine);
+      Engine = new TestHost().NewCalculator();
+      ProgramFiles.Load(Engine.Calc, null, new ByteArrayInputStream(Saved), false, true);
+      assertEquals(Lines, Engine.Print.Content.size(), "after restore " + (i + 1));
+    }
   }
 
   @Test
