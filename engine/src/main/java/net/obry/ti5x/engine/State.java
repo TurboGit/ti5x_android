@@ -755,10 +755,10 @@ public class State {
     final OpStackEntry ThisOp = OpStack[--OpStackNext];
     switch (ThisOp.Operator) {
       case STACKOP_ADD:
-        X.add(ThisOp.Operand);
+        X.romAdd(ThisOp.Operand);
         break;
       case STACKOP_SUB:
-        ThisOp.Operand.sub(X);
+        ThisOp.Operand.romSub(X);
         X = ThisOp.Operand;
         break;
       case STACKOP_MUL:
@@ -1557,10 +1557,10 @@ public class State {
             ExponentEntered = false;
             break;
           case MEMOP_ADD:
-            Memory[RegNr].add(X);
+            Memory[RegNr].romAdd(X);
             break;
           case MEMOP_SUB:
-            Memory[RegNr].sub(X);
+            Memory[RegNr].romSub(X);
             break;
           case MEMOP_MUL:
             /* as on the ROM, the memory is the first operand */
@@ -1651,25 +1651,25 @@ public class State {
             if (RegNr == 0)
               X.add(X);
             else
-              OpStack[RegNr - 1].Operand.add(X);
+              OpStack[RegNr - 1].Operand.romAdd(X);
             break;
           case HIROP_SUB:
             if (RegNr == 0)
               X.set(0);
             else
-              OpStack[RegNr - 1].Operand.sub(X);
+              OpStack[RegNr - 1].Operand.romSub(X);
             break;
           case HIROP_MUL:
             if (RegNr == 0)
               X.x2();
             else
-              OpStack[RegNr - 1].Operand.mult(X);
+              OpStack[RegNr - 1].Operand.romMult(X);
             break;
           case HIROP_DIV:
             if (RegNr == 0)
               X.set(1);
             else
-              OpStack[RegNr - 1].Operand.div(X);
+              OpStack[RegNr - 1].Operand.romDiv(X);
 
             if (X.isError())
               SetErrorState(false);

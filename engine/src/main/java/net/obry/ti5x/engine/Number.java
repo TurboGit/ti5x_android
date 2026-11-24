@@ -215,6 +215,76 @@ public class Number {
     sub(new Number((double) i));
   }
 
+  /* Addition and subtraction done exactly as the TI-59 ROM does them.
+
+     The ROM aligns the operand with the smaller exponent by shifting its
+     13-digit mantissa right, the digits shifted out are lost (there is
+     no guard digit), then adds or subtracts the mantissas and truncates
+     the result to 13 digits. An addition then gives the truncated exact
+     sum, but a subtraction can give a result one more than the truncated
+     one: 33.28601 - 1.404796669725 = 31.88121333028 (exact
+     31.881213330275). */
+
+  public void romAdd(Number Other) {
+    romAddSub(Other, false);
+  }
+
+  public void romSub(Number Other) {
+    romAddSub(Other, true);
+  }
+
+  private void romAddSub(Number Other, boolean Subtract) {
+    final int SignB = Subtract ? -Other.v.signum() : Other.v.signum();
+
+    if (Other.v.signum() == 0) {
+      return;
+    }
+    if (v.signum() == 0) {
+      v = SignB < 0 ? Other.v.abs().negate() : Other.v.abs();
+      return;
+    }
+
+    final int[] ExpA = new int[1];
+    final int[] ExpB = new int[1];
+    long A = mantissa(v, ExpA) * v.signum();
+    long B = mantissa(Other.v, ExpB) * SignB;
+    int Exp = ExpA[0];
+
+    // align the operand with the smaller exponent, truncating it
+    if (ExpA[0] < ExpB[0]) {
+      A = shiftRight(A, ExpB[0] - ExpA[0]);
+      Exp = ExpB[0];
+    } else if (ExpB[0] < ExpA[0]) {
+      B = shiftRight(B, ExpA[0] - ExpB[0]);
+    }
+
+    long Sum = A + B;
+
+    if (Sum == 0) {
+      v = B_ZERO;
+      return;
+    }
+
+    // a carry gives a 14th digit, truncated
+    if (Math.abs(Sum) >= MANT_TOP) {
+      Sum /= 10;
+      Exp++;
+    }
+
+    v = BigDecimal.valueOf(Sum, 12 - Exp);
+  }
+
+  /* shift a signed mantissa right by N digits, truncating its magnitude */
+
+  private static long shiftRight(long M, int N) {
+    if (N >= 13)
+      return 0;
+    long Div = 1;
+    for (int i = 0; i < N; i++)
+      Div *= 10;
+    return M / Div; // Java division truncates toward zero
+  }
+
   public void mult(Number n) {
     v = v.multiply(n.v, mc);
   }

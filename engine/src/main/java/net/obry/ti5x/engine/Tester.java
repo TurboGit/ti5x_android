@@ -1547,17 +1547,22 @@ class Tester {
     return operation(State.STACKOP_MUL, a, b, expected);
   }
 
+  private boolean sub(String a, String b, String expected) {
+    return operation(State.STACKOP_SUB, a, b, expected);
+  }
+
   private boolean div(String a, String b, String expected) {
     return operation(State.STACKOP_DIV, a, b, expected);
   }
 
   private boolean Test_44() {
-    // Multiplication and division as done by the TI-59 ROM (values
+    // Arithmetic as done by the TI-59 ROM (values
     // checked on the ROM emulator). Multiplication: repeated addition
     // into a 13-digit accumulator, the 13th digit of the second operand
     // is lost when an addition overflows. Division: the divisor loses
     // its last digits as it is shifted, the quotient can be one more
-    // than the truncated one.
+    // than the truncated one. Subtraction: the operand with the smaller
+    // exponent is truncated as it is aligned.
     if (!mult("24298", "107766.3599999", "2618507015.255")) return false;
     if (!mult("107766.3599999", "24298", "2618507015.277")) return false;
     if (!mult("7", "4.290839263685", "30.03587484577")) return false;
@@ -1568,6 +1573,8 @@ class Tester {
     if (!div("10", "17.897541921", ".5587359450891")) return false;
     if (!div("1889.95", "1.32892184", "1422.167913201")) return false;
     if (!div("2", "3", ".6666666666666")) return false;
+    if (!sub("33.28601", "1.404796669725", "31.88121333028")) return false;
+    if (!sub("1", ".9999999999999", "1E-12")) return false;
 
     // Prd: the memory is the first operand
     Clear();
