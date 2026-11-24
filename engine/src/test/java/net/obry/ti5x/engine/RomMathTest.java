@@ -22,7 +22,9 @@
 package net.obry.ti5x.engine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
@@ -99,6 +101,89 @@ class RomMathTest {
       assertNotNull(R);
       assertEquals(0, new BigDecimal((String) C[2]).compareTo(R), "sin " + C[0] + " = " + C[2] + ", got " + R);
     }
+  }
+
+  /* function, angular unit, x, y, result computed by the ROM (keyboard
+     of the reference emulator) */
+
+  private static final Object[][] ROM_FUNCTIONS = {
+      {"Cos", Number.ANG_DEG, "2.5", "", "0.9990482215833"},
+      {"Tan", Number.ANG_RAD, "2.5", "", "-0.7470222972388"},
+      {"Ln", 0, "2.5", "", "0.9162907318742"},
+      {"Log", 0, "2.5", "", "0.397940008672"},
+      {"Exp", 0, "0.25", "", "1.284025416687"},
+      {"Exp10", 0, "0.25", "", "1.778279410035"},
+      {"Pow", 0, "2.5", "2.7", "11.86965301456"},
+      {"Root", 0, "2.5", "3", "1.357208808296"},
+      {"Cos", Number.ANG_DEG, "123.456", "", "-0.5512964442861"},
+      {"Tan", Number.ANG_RAD, "123.456", "", "1.351805082139"},
+      {"Ln", 0, "123.456", "", "4.815884817283"},
+      {"Log", 0, "123.456", "", "2.091512201627"},
+      {"Exp", 0, "12.3456", "", "229946.0511098"},
+      {"Exp10", 0, "12.3456", "", "2216154325833"},
+      {"Pow", 0, "123.456", "2.7", "443693.3752948"},
+      {"Root", 0, "123.456", "3", "4.979327984671"},
+      {"Asin", Number.ANG_DEG, "0.5", "", "29.99999999993"},
+      {"Acos", Number.ANG_GRAD, "0.5", "", "66.66666666664"},
+      {"Atan", Number.ANG_DEG, "0.5", "", "26.56505117705"},
+      {"Asin", Number.ANG_DEG, "0.1234567891", "", "7.091646025263"},
+      {"Acos", Number.ANG_GRAD, "0.1234567891", "", "92.1203933052"},
+      {"Atan", Number.ANG_DEG, "0.1234567891", "", "7.037940705426"},
+  };
+
+  private static BigDecimal Function(String F, int Angle, BigDecimal X, BigDecimal Y) {
+    switch (F) {
+      case "Cos": return Rom.Cos(X, Angle);
+      case "Tan": return Rom.Tan(X, Angle);
+      case "Asin": return Rom.Asin(X, Angle);
+      case "Acos": return Rom.Acos(X, Angle);
+      case "Atan": return Rom.Atan(X, Angle);
+      case "Ln": return Rom.Ln(X);
+      case "Log": return Rom.Log(X);
+      case "Exp": return Rom.Exp(X);
+      case "Exp10": return Rom.Exp10(X);
+      case "Pow": return Rom.Pow(X, Y);
+      case "Root": return Rom.Root(X, Y);
+      default: throw new IllegalArgumentException(F);
+    }
+  }
+
+  @Test
+  void functions() {
+    assumeTrue(Rom != null, "no ROM in " + RomDir());
+    for (Object[] C : ROM_FUNCTIONS) {
+      final String Y = (String) C[3];
+      final BigDecimal R = Function((String) C[0], (Integer) C[1], new BigDecimal((String) C[2]),
+         Y.isEmpty() ? null : new BigDecimal(Y));
+      assertNotNull(R);
+      assertEquals(0, new BigDecimal((String) C[4]).compareTo(R), C[0] + " " + C[2] + " " + Y + " = " + C[4] + ", got " + R);
+      assertFalse(Rom.LastError, C[0] + " " + C[2]);
+    }
+  }
+
+  @Test
+  void polar() {
+    assumeTrue(Rom != null, "no ROM in " + RomDir());
+    // 5 x<>t 30 P->R in degrees: y = 2.5, x = 4.330127018927
+    BigDecimal[] R = Rom.Polar(false, new BigDecimal(5), new BigDecimal(30), Number.ANG_DEG);
+    assertEquals(0, new BigDecimal("2.5").compareTo(R[0]), R[0].toString());
+    assertEquals(0, new BigDecimal("4.330127018927").compareTo(R[1]), R[1].toString());
+    // x = 5.330127018927, y = 1: angle 10.62589805097, radius 5.423122166967
+    R = Rom.Polar(true, new BigDecimal("5.330127018927"), BigDecimal.ONE, Number.ANG_DEG);
+    assertEquals(0, new BigDecimal("10.62589805097").compareTo(R[0]), R[0].toString());
+    assertEquals(0, new BigDecimal("5.423122166967").compareTo(R[1]), R[1].toString());
+  }
+
+  @Test
+  void errors() {
+    assumeTrue(Rom != null, "no ROM in " + RomDir());
+    // ln of a negative number: ln |x| and the error
+    assertEquals(0, new BigDecimal("0.69314718056").compareTo(Rom.Ln(new BigDecimal(-2))));
+    assertTrue(Rom.LastError);
+    assertEquals(0, new BigDecimal(2).compareTo(Rom.Asin(new BigDecimal(2), Number.ANG_DEG)));
+    assertTrue(Rom.LastError);
+    Rom.Ln(new BigDecimal(2));
+    assertFalse(Rom.LastError);
   }
 
   @Test

@@ -731,9 +731,14 @@ class Tester {
     if (!check(ERROR, true))
       return false;
 
-    //     -y**-x -> y**-x (flashing)
+    //     -y**-x -> y**-x (flashing), as the ROM: (-8)^-2 = .015625
     exp(-8, -2, false);
-    if (!check("64.", true))
+    if (!check("0.015625", true))
+      return false;
+
+    //     -y**x -> y**x (flashing), as the ROM: (-8)^3 = 512
+    exp(-8, 3, false);
+    if (!check("512.", true))
       return false;
 
     // inv -y**-x -> inv y**-x (flashing)

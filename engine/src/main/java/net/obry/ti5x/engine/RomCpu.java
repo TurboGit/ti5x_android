@@ -93,12 +93,19 @@ class RomCpu {
   int RegAddr;
   int RamAddr, RamOp;
 
+  /* the last RAM register written (-1: none) */
+  int LastRamWrite = -1;
+
   int[][] Scom = new int[16][16];
+
+  /* TI-59 (true) or TI-58 */
+  final boolean Ti59;
   int[][] Ram = new int[120][16];
 
-  RomCpu(int[] Rom, int[][] Constant) {
+  RomCpu(int[] Rom, int[][] Constant, boolean Ti59) {
     this.Rom = Rom;
     this.Constant = Constant;
+    this.Ti59 = Ti59;
     Reset();
   }
 
@@ -107,6 +114,7 @@ class RomCpu {
   RomCpu(RomCpu From) {
     this.Rom = From.Rom;
     this.Constant = From.Constant;
+    this.Ti59 = From.Ti59;
     CopyFrom(From);
   }
 
@@ -117,6 +125,7 @@ class RomCpu {
     KR = From.KR; SR = From.SR; fA = From.fA; fB = From.fB;
     Ext = From.Ext; Preg = From.Preg;
     Sout = From.Sout.clone();
+    SoutDirty = true;
     Flags = From.Flags; R5 = From.R5; Digit = From.Digit; Addr = From.Addr;
     RegAddr = From.RegAddr; RamAddr = From.RamAddr; RamOp = From.RamOp;
     Scom = new int[16][];
@@ -134,8 +143,12 @@ class RomCpu {
     Sout = new int[16];
     R5 = Digit = Addr = RegAddr = RamAddr = RamOp = 0;
     Flags = FLG_COND | FLG_DISP;
-    // TI-58 mode as the reference emulator by default: D7-KR diode
-    Key[7] |= 1 << KR_BIT;
+    if (Ti59)
+      // TI-59: D10-KR card switch normally closed
+      Key[10] |= 1 << KR_BIT;
+    else
+      // TI-58: D7-KR diode
+      Key[7] |= 1 << KR_BIT;
   }
 
   /* ROM dump: lines "AAAA: XXXX XXXX ..." (hexadecimal) */
@@ -183,13 +196,40 @@ class RomCpu {
     return Constant;
   }
 
-  /* the ALU on 16 BCD digits, as emul.c (C unsigned char arithmetic) */
+  /* Sout has nonzero digits */
+  private boolean SoutDirty = false;
+
+  private void ClearSout() {
+    if (SoutDirty) {
+      java.util.Arrays.fill(Sout, 0);
+      SoutDirty = false;
+    }
+  }
+
+  /* the ALU on 16 BCD digits, as emul.c (C unsigned char arithmetic).
+
+     All the digits go to Sout (the IO bus), but Sout is only used when
+     the result goes to IO or is stored (SCOM or RAM): else only the
+     digits of the mask are computed, the carry starting at the first one. */
 
   private void Alu(int[] Dst, int[] SrcX, int[] SrcY, int[] Mask, int Op) {
+    final int Start = Mask[0], End = Mask[1], CPos = Mask[2], CVal = Mask[3];
+    final boolean FullOut = (Flags & (FLG_IO_VALID | FLG_STORE | FLG_RAM_OP | FLG_RAM_WRITE)) != 0;
+    final int From, To;
+    if (FullOut) {
+      From = 0;
+      To = 15;
+      SoutDirty = true;
+    } else {
+      if (Start < 0)
+        return;
+      MaskAlu(Dst, SrcX, SrcY, Start, End, CPos, CVal, Op);
+      return;
+    }
+    final boolean Subtract = Op >= ALU_SUB;
     int Carry = 0;
     int Shl = 0;
-    final int Start = Mask[0], End = Mask[1], CPos = Mask[2], CVal = Mask[3];
-    for (int i = 0; i <= 15; i++) {
+    for (int i = From; i <= To; i++) {
       int Sum = 0, Shr;
       if (i == Start)
         Shl = Carry = 0;
@@ -199,13 +239,14 @@ class RomCpu {
         Sum |= CVal;
       Shr = Sum;
       Sum = (Sum + Carry) & 0xFF;
-      if (Op >= ALU_SUB)
+      if (Subtract)
         Sum = (-Sum) & 0xFF;
       if (SrcX != null) {
         Sum = (Sum + SrcX[i]) & 0xFF;
         Shr |= SrcX[i];
       }
-      Sout[i] = Sum & 0x0F;
+      if (FullOut)
+        Sout[i] = Sum & 0x0F;
       if (i == 0) {
         Carry = (Sum >= 0x10) ? 1 : 0;
         if (Carry != 0)
@@ -213,10 +254,10 @@ class RomCpu {
       } else {
         Carry = (Sum >= 10) ? 1 : 0;
         if (Carry != 0) {
-          if (Op < ALU_SUB)
-            Sum = (Sum - 10) & 0xFF;
-          else
+          if (Subtract)
             Sum = (Sum + 10) & 0xFF;
+          else
+            Sum = (Sum - 10) & 0xFF;
         }
       }
       if (Start >= 0 && i >= Start && i <= End) {
@@ -240,6 +281,51 @@ class RomCpu {
     }
   }
 
+  /* the ALU on the digits of the mask only (Sout not needed) */
+
+  private void MaskAlu(int[] Dst, int[] SrcX, int[] SrcY, int Start, int End, int CPos, int CVal, int Op) {
+    final boolean Subtract = Op >= ALU_SUB;
+    int Carry = 0;
+    int Shl = 0;
+    for (int i = Start; i <= End; i++) {
+      int Y = SrcY != null ? SrcY[i] : 0;
+      if (i == CPos)
+        Y |= CVal;
+      final int X = SrcX != null ? SrcX[i] : 0;
+      int Sum = (Y + Carry) & 0xFF;
+      if (Subtract)
+        Sum = (-Sum) & 0xFF;
+      Sum = (Sum + X) & 0xFF;
+      if (i == 0) {
+        Carry = (Sum >= 0x10) ? 1 : 0;
+        if (Carry != 0)
+          Sum &= 0x0F;
+      } else if (Sum >= 10) {
+        Carry = 1;
+        Sum = (Subtract ? Sum + 10 : Sum - 10) & 0xFF;
+      } else {
+        Carry = 0;
+      }
+      if (i == Start)
+        R5 = Sum;
+      if (Dst != null) {
+        if (Op == ALU_SHL) {
+          Dst[i] = Shl;
+        } else if (Op == ALU_SHR) {
+          if (i > Start)
+            Dst[i - 1] = Y | X;
+          if (i == End)
+            Dst[i] = 0;
+        } else {
+          Dst[i] = Sum;
+        }
+        Shl = Sum;
+      }
+    }
+    if ((Op & ALU_SHL) == 0 && Carry != 0)
+      Flags &= ~FLG_COND;
+  }
+
   private static void Xch(int[] S1, int[] S2, int[] Mask) {
     if (Mask[0] < 0)
       return;
@@ -252,6 +338,19 @@ class RomCpu {
 
   private int[] Const() {
     return Constant[((KR >> 5) & 0x78) | ((KR >> 4) & 0x07)];
+  }
+
+  /* instruction cycles skipped by the last Execute (WAIT) */
+  private int Skipped = 0;
+
+  /* executes the next instruction, returns the number of instruction
+     cycles it took as counted by the reference emulator (0 for a PREG
+     jump) */
+
+  int Step() {
+    Skipped = 0;
+    final int Counted = Execute() != 0 ? 1 : 0;
+    return Counted + Skipped;
   }
 
   /* executes the instruction at Addr: 0 for a PREG jump, else nonzero */
@@ -280,7 +379,7 @@ class RomCpu {
     if ((Flags & FLG_IO_VALID) != 0)
       Flags &= ~FLG_IO_VALID;
     else
-      java.util.Arrays.fill(Sout, 0);
+      ClearSout();
 
     if ((Opcode & 0x1000) != 0) {
       // jump
@@ -356,12 +455,21 @@ class RomCpu {
       }
       case 0x0A00:
         switch (Opcode & 0x000F) {
-          case 0x0:
-            if (Digit != ((Opcode >> 4) & 0x000F)) {
-              Flags |= FLG_HOLD;
-              return 12;
+          case 0x0: {
+            final int Wanted = (Opcode >> 4) & 0x000F;
+            if (Digit != Wanted) {
+              if (Preg != 0 || (KR & 0x2) != 0) {
+                Flags |= FLG_HOLD;
+                return 12;
+              }
+              /* the instruction would be run again until the digit
+                 counter is Wanted, nothing else changes meanwhile: skip
+                 these cycles (they are counted, see Step) */
+              Skipped += (Digit - Wanted) & 15;
+              Digit = Wanted;
             }
             break;
+          }
           case 0x1: Flags &= ~FLG_IDLE; break;
           case 0x2: fA = 0; break;
           case 0x3: break;
@@ -438,7 +546,7 @@ class RomCpu {
             if ((Flags & FLG_RECALL) != 0) {
               Flags &= ~FLG_RECALL;
               Alu(Dst, null, Scom[RegAddr], Mask, ALU_ADD);
-            } else if ((Flags & FLG_RAM_READ) != 0 && RamAddr < 60) {
+            } else if ((Flags & FLG_RAM_READ) != 0 && (Ti59 || RamAddr < 60)) {
               Flags &= ~FLG_RAM_READ;
               Alu(Dst, null, Ram[RamAddr], Mask, ALU_ADD);
             } else {
@@ -511,7 +619,7 @@ class RomCpu {
           if (RamOp == 2) {
             java.util.Arrays.fill(Ram[RamAddr], 0);
           } else if (RamOp == 4) {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 10 && RamAddr + i < 120; i++)
               java.util.Arrays.fill(Ram[RamAddr + i], 0);
           } else if (RamOp == 1) {
             Flags |= FLG_RAM_WRITE;
@@ -521,9 +629,10 @@ class RomCpu {
         } else if ((Flags & FLG_RAM_WRITE) != 0) {
           Flags &= ~FLG_RAM_WRITE;
           System.arraycopy(Sout, 0, Ram[RamAddr], 0, 16);
+          LastRamWrite = RamAddr;
         }
         if ((Flags & FLG_IO_VALID) == 0)
-          java.util.Arrays.fill(Sout, 0);
+          ClearSout();
         break;
       }
     }

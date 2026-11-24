@@ -512,6 +512,9 @@ public class Number {
   }
 
   public void cos(int Angle) {
+    if (Rom != null && FromRom(Rom.Cos(v, Angle)))
+      return;
+
     NormalizeAngle(Angle);
 
     if (v.compareTo(HALF_PI) == 0 || v.compareTo(HALF3_PI) == 0)
@@ -521,6 +524,9 @@ public class Number {
   }
 
   public void acos(int Value) {
+    if (Rom != null && FromRom(Rom.Acos(v, Value)))
+      return;
+
     if (v.compareTo(B_ONE.negate()) < 0 || v.compareTo(B_ONE) > 0)
       error = true;
     else
@@ -530,14 +536,20 @@ public class Number {
   /* when set, the functions done by the original TI-59 ROM (see RomMath) */
   public static RomMath Rom = null;
 
+  /* sets the result of a ROM function, false if the ROM is not used */
+
+  private boolean FromRom(BigDecimal R) {
+    if (R == null)
+      return false;
+    v = R;
+    if (Rom.LastError)
+      error = true;
+    return true;
+  }
+
   public void sin(int Angle) {
-    if (Rom != null) {
-      final BigDecimal R = Rom.Sin(v, Angle);
-      if (R != null) {
-        v = R;
-        return;
-      }
-    }
+    if (Rom != null && FromRom(Rom.Sin(v, Angle)))
+      return;
 
     NormalizeAngle(Angle);
 
@@ -548,6 +560,9 @@ public class Number {
   }
 
   public void asin(int Value) {
+    if (Rom != null && FromRom(Rom.Asin(v, Value)))
+      return;
+
     if (v.compareTo(B_ONE.negate()) < 0 || v.compareTo(B_ONE) > 0)
       error = true;
     else
@@ -555,6 +570,9 @@ public class Number {
   }
 
   public void tan(int Angle) {
+    if (Rom != null && FromRom(Rom.Tan(v, Angle)))
+      return;
+
     NormalizeAngle(Angle);
 
     if (v.compareTo(HALF_PI) == 0 || v.compareTo(HALF3_PI) == 0) {
@@ -567,6 +585,9 @@ public class Number {
   }
 
   public void atan(int Angle) {
+    if (Rom != null && FromRom(Rom.Atan(v, Angle)))
+      return;
+
     v = new BigDecimal(Math.atan(v.doubleValue()), mc).divide(trigScale2(Angle), mc);
   }
 
@@ -579,6 +600,9 @@ public class Number {
   }
 
   public void log() {
+    if (Rom != null && FromRom(Rom.Log(v)))
+      return;
+
     final int check = v.compareTo(B_ZERO);
 
     if (check < 0) {
@@ -593,6 +617,9 @@ public class Number {
   }
 
   public void ln() {
+    if (Rom != null && FromRom(Rom.Ln(v)))
+      return;
+
     final int check = v.compareTo(B_ZERO);
 
     if (check < 0) {
@@ -658,20 +685,54 @@ public class Number {
   }
 
   public void pow(Number n) {
+    if (Rom != null && FromRom(Rom.Pow(v, n.v)))
+      return;
+
     if (v.signum() == 0 && n.v.signum() < 0) {
       v = B_ERROR;
       error = true;
-    } else if (v.signum() < 0 && n.v.signum() == 0) {
-      v = B_ONE;
-      error = true;
-    } else if (v.signum() < 0 && n.v.signum() <= 0) {
-      set(Math.pow(Math.abs(v.doubleValue()), Math.abs(n.v.doubleValue())));
+    } else if (v.signum() < 0) {
+      /* as the ROM: a negative base gives |y|^x and the error, whatever
+         x is: (-8)^3 = 512, (-8)^-2 = .015625 (flashing) */
+      if (n.v.signum() == 0)
+        v = B_ONE;
+      else
+        set(Math.pow(Math.abs(v.doubleValue()), n.v.doubleValue()));
       error = true;
     } else
       set(Math.pow(v.doubleValue(), n.v.doubleValue()));
   }
 
+  /* 10^x and the X root of this number: only done by the ROM, false if
+     it is not used */
+
+  public boolean romExp10() {
+    return Rom != null && FromRom(Rom.Exp10(v));
+  }
+
+  public boolean romRoot(Number X) {
+    return Rom != null && FromRom(Rom.Root(v, X.v));
+  }
+
+  /* P->R (Inv false) or R->P (Inv true) by the ROM: returns the new X
+     and T, null if the ROM is not used. The new X has the error flag. */
+
+  public static Number[] romPolar(boolean Inv, Number T, Number X, int Angle) {
+    if (Rom == null)
+      return null;
+    final BigDecimal[] R = Rom.Polar(Inv, T.v, X.v, Angle);
+    if (R == null)
+      return null;
+    final Number NewX = new Number(R[0]);
+    final Number NewT = new Number(R[1]);
+    NewX.error = Rom.LastError;
+    return new Number[] {NewX, NewT};
+  }
+
   public void exp() {
+    if (Rom != null && FromRom(Rom.Exp(v)))
+      return;
+
     set(Math.exp(v.doubleValue()));
   }
 

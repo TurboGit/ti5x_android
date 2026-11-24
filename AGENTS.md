@@ -85,6 +85,13 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   `KeypadTest` drives the engine through key presses (see `TestHost` for an
   in-memory host). `ProgramFilesTest` loads every generated `res/raw` file
   (skipped if the app was not built) and checks save/load round trips.
+- `RomCpu.java` / `RomMath.java`: experimental coprocessor running the
+  original TI-59 ROM (a Java port of the CPU of the reference emulator,
+  `workspace/emul`). The ROM is not part of ti5x: `dump.txt` and `Const.c`
+  are loaded from a directory (CLI `--rom DIR`). When `Number.Rom` is set,
+  the trigonometric, logarithmic and power functions, 10^x, roots and
+  P→R/R→P are computed by the ROM. `RomMathTest` runs when the files are
+  found (`TI59_ROM` or `workspace/emul`).
 - Host interfaces the app or CLI implement: `Scheduler` (run loop),
   `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
   (files), `ErrorSink` (I/O error reports), and `BankStore` (card bank files).

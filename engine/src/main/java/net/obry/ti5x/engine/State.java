@@ -788,6 +788,14 @@ public class State {
         }
         break;
       case STACKOP_ROOT:
+        if (ThisOp.Operand.romRoot(X)) {
+          X = ThisOp.Operand;
+          if (X.isError()) {
+            SetX(X, false);
+            SetErrorState(false);
+          }
+          break;
+        }
         if (X.getSignum() == 0) {
           if (ThisOp.Operand.getSignum() == 0
              || ThisOp.Operand.compareTo(Number.ONE) == 0
@@ -1026,9 +1034,11 @@ public class State {
   public void Log() {
     Enter(28);
     if (InvState) {
-      Number NewX = new Number(10.0);
-      NewX.pow(X);
-      X = NewX;
+      if (!X.romExp10()) {
+        Number NewX = new Number(10.0);
+        NewX.pow(X);
+        X = NewX;
+      }
     } else {
       X.log();
     }
@@ -1096,6 +1106,16 @@ public class State {
 
   public void Polar() {
     Enter(37);
+
+    final Number[] Rom = Number.romPolar(InvState, T, X, CurAng);
+    if (Rom != null) {
+      T = Rom[1];
+      final boolean Error = Rom[0].isError();
+      SetX(Rom[0], true);
+      if (Error)
+        SetErrorState(false);
+      return;
+    }
 
     Number NewX, NewY;
     Number OldX, OldT;

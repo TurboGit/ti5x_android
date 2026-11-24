@@ -42,11 +42,17 @@ public class RomMath {
   private static final int IDLE_LOOP = 0x063C;
 
   private static final int KEY_HOLD = 3000;
+
+  /* how long a key is held in KeyCall: long enough for the keyboard scan
+     to see it */
+  static int KeyTap = Integer.getInteger("ti5x.keytap", 200);
   private static final int MAX_STEPS = 1_000_000;
 
-  /* data registers in RAM: Rnn is RAM[59 - nn] */
-  private static final int R00 = 59;
-  private static final int R01 = 58;
+  /* data registers in RAM (Rnn is RAM[119 - nn] on a TI-59 with the
+     default partition) used to pass the arguments (R00, R02) and the
+     results (R01, R03) */
+  static final int[] IN = {119, 117};
+  static final int[] OUT = {118, 116};
 
   private final int[] Rom;
   private final int[][] Constant;
@@ -65,15 +71,13 @@ public class RomMath {
   public RomMath(InputStream RomDump, InputStream Constants) throws IOException {
     Rom = RomCpu.LoadRom(RomDump);
     Constant = RomCpu.LoadConstants(Constants);
-    Booted = new RomCpu(Rom, Constant);
+    Booted = new RomCpu(Rom, Constant, true);
     Settle(Booted);
   }
 
   private static void Run(RomCpu Cpu, int N) {
-    while (N > 0) {
-      if (Cpu.Execute() != 0)
-        N--;
-    }
+    while (N > 0)
+      N -= Cpu.Step();
   }
 
   /* runs until the calculator has been idle for a while (as the
@@ -82,9 +86,10 @@ public class RomMath {
   private static void Settle(RomCpu Cpu) {
     int Idle = 0;
     while (Idle < 60000) {
-      if (Cpu.Execute() != 0) {
+      final int N = Cpu.Step();
+      if (N != 0) {
         if ((Cpu.Flags & RomCpu.FLG_IDLE) != 0)
-          Idle++;
+          Idle += N;
         else
           Idle = 0;
       }
@@ -107,7 +112,7 @@ public class RomMath {
   }
 
   /* the snapshot of the CPU running Program (opcodes) just before it
-     reads R00 */
+     reads its first argument (R00 or R02) */
 
   private synchronized Start StartOf(int[] Program) {
     final String Name = java.util.Arrays.toString(Program);
@@ -124,16 +129,17 @@ public class RomMath {
     PressKey(Cpu, KEY_RST);
     Press(Cpu, KEY_RS);
     int Steps = 0;
+    boolean Pressed = true;
     while (true) {
-      if (Cpu.Execute() != 0) {
-        Steps++;
-        if (Steps == KEY_HOLD)
-          Release(Cpu, KEY_RS);
+      Steps += Cpu.Step();
+      if (Pressed && Steps >= KEY_HOLD) {
+        Release(Cpu, KEY_RS);
+        Pressed = false;
       }
-      if ((Cpu.Flags & RomCpu.FLG_RAM_READ) != 0 && Cpu.RamAddr == R00)
+      if ((Cpu.Flags & RomCpu.FLG_RAM_READ) != 0 && (Cpu.RamAddr == IN[0] || Cpu.RamAddr == IN[1]))
         break;
       if (Steps > MAX_STEPS)
-        throw new IllegalStateException("ROM program does not read R00");
+        throw new IllegalStateException("ROM program does not read its argument");
     }
     S = new Start();
     S.Cpu = Cpu;
@@ -142,28 +148,54 @@ public class RomMath {
     return S;
   }
 
-  /* runs Program with X in R00, returns R01 (null if the ROM does not stop) */
 
-  private BigDecimal Call(int[] Program, BigDecimal X) {
+  /* the CPU when the last call stopped */
+  RomCpu LastCpu;
+
+  /* the calculator was in error (flashing display) after the last call */
+  public boolean LastError;
+
+  /* error flag of the ROM */
+  private static final int FB_ERROR = 0x0200;
+
+  /* runs Program with Args in R00 (and R02), returns R01 (and R03), null
+     if the ROM does not stop */
+
+  BigDecimal[] Call(int[] Program, int Results, BigDecimal... Args) {
     final Start S = StartOf(Program);
     final RomCpu Cpu = new RomCpu(S.Cpu);
-    ToRam(X, Cpu.Ram[R00]);
+    for (int i = 0; i < Args.length; i++)
+      ToRam(Args[i], Cpu.Ram[IN[i]]);
 
     long Steps = 0;
     boolean Pressed = S.KeyHold > 0;
-    while (Cpu.Addr != IDLE_LOOP) {
-      if (Cpu.Execute() != 0) {
-        Steps++;
-        if (Pressed && Steps == S.KeyHold) {
-          Release(Cpu, KEY_RS);
-          Pressed = false;
-        }
+    final int Last = OUT[Results - 1];
+    Cpu.LastRamWrite = -1;
+    /* done when the last result is stored, or when the program stops
+       (error) */
+    while (Cpu.Addr != IDLE_LOOP && Cpu.LastRamWrite != Last) {
+      Steps += Cpu.Step();
+      if (Pressed && Steps >= S.KeyHold) {
+        Release(Cpu, KEY_RS);
+        Pressed = false;
       }
-      if (Steps > MAX_STEPS)
+      if (Steps > MAX_STEPS) {
+        LastError = true;
         return null;
+      }
     }
     LastSteps = Steps;
-    return FromRam(Cpu.Ram[R01]);
+    LastCpu = Cpu;
+    LastError = (Cpu.fB & FB_ERROR) != 0;
+    final BigDecimal[] R = new BigDecimal[Results];
+    for (int i = 0; i < Results; i++)
+      R[i] = FromRam(Cpu.Ram[OUT[i]]);
+    return R;
+  }
+
+  private BigDecimal Call(int[] Program, BigDecimal X) {
+    final BigDecimal[] R = Call(Program, 1, X);
+    return R == null ? null : R[0];
   }
 
   /* a data register: mantissa digits 15..3, exponent digits 2..1, digit 0
@@ -202,6 +234,11 @@ public class RomMath {
     return new BigDecimal(M, 12 - Exp);
   }
 
+  /* key codes of the program steps */
+  private static final int OP_INV = 22, OP_LNX = 23, OP_LOG = 28, OP_TAN = 30,
+     OP_SIN = 38, OP_COS = 39, OP_STO = 42, OP_RCL = 43, OP_YX = 45,
+     OP_EQ = 95, OP_RS = 91;
+
   private static int AngleOp(int Angle) {
     switch (Angle) {
       case Number.ANG_RAD:
@@ -213,9 +250,100 @@ public class RomMath {
     }
   }
 
-  /* sin(X) as the ROM computes it, X in the given angular unit */
+  /* Mode RCL 00 [INV] Op STO 01 R/S */
 
-  public BigDecimal Sin(BigDecimal X, int Angle) {
-    return Call(new int[] {AngleOp(Angle), 43, 0, 38, 42, 1, 91}, X);
+  private BigDecimal Unary(int Angle, boolean Inv, int Op, BigDecimal X) {
+    final int[] P = Inv
+       ? new int[] {AngleOp(Angle), OP_RCL, 0, OP_INV, Op, OP_STO, 1, OP_RS}
+       : new int[] {AngleOp(Angle), OP_RCL, 0, Op, OP_STO, 1, OP_RS};
+    final BigDecimal[] R = Call(P, 1, X);
+    return R == null ? null : R[0];
+  }
+
+  /* the functions as the ROM computes them, null if the ROM did not stop;
+     LastError tells if the calculator was in error */
+
+  public BigDecimal Sin(BigDecimal X, int Angle) { return Unary(Angle, false, OP_SIN, X); }
+  public BigDecimal Cos(BigDecimal X, int Angle) { return Unary(Angle, false, OP_COS, X); }
+  public BigDecimal Tan(BigDecimal X, int Angle) { return Unary(Angle, false, OP_TAN, X); }
+  public BigDecimal Asin(BigDecimal X, int Angle) { return Unary(Angle, true, OP_SIN, X); }
+  public BigDecimal Acos(BigDecimal X, int Angle) { return Unary(Angle, true, OP_COS, X); }
+  public BigDecimal Atan(BigDecimal X, int Angle) { return Unary(Angle, true, OP_TAN, X); }
+  public BigDecimal Ln(BigDecimal X) { return Unary(Number.ANG_DEG, false, OP_LNX, X); }
+  public BigDecimal Exp(BigDecimal X) { return Unary(Number.ANG_DEG, true, OP_LNX, X); }
+  public BigDecimal Log(BigDecimal X) { return Unary(Number.ANG_DEG, false, OP_LOG, X); }
+  public BigDecimal Exp10(BigDecimal X) { return Unary(Number.ANG_DEG, true, OP_LOG, X); }
+
+  /* Y^X and the X root of Y: RCL 00 [INV] y^x RCL 02 = STO 01 R/S */
+
+  private BigDecimal Binary(boolean Inv, BigDecimal Y, BigDecimal X) {
+    final int[] P = Inv
+       ? new int[] {60, OP_RCL, 0, OP_INV, OP_YX, OP_RCL, 2, OP_EQ, OP_STO, 1, OP_RS}
+       : new int[] {60, OP_RCL, 0, OP_YX, OP_RCL, 2, OP_EQ, OP_STO, 1, OP_RS};
+    final BigDecimal[] R = Call(P, 1, Y, X);
+    return R == null ? null : R[0];
+  }
+
+  public BigDecimal Pow(BigDecimal Y, BigDecimal X) { return Binary(false, Y, X); }
+  public BigDecimal Root(BigDecimal Y, BigDecimal X) { return Binary(true, Y, X); }
+
+  /* key matrix codes (row in the low nibble) */
+  private static final int K_2ND = 0x12, K_INV = 0x22, K_XT = 0x23, K_STO = 0x24,
+     K_RCL = 0x34, K_MUL = 0x66, K_SUB = 0x67, K_ADD = 0x68;
+  private static final int[] K_DIGIT = {0x29, 0x28, 0x38, 0x58, 0x27, 0x37, 0x57, 0x26, 0x36, 0x56};
+
+  /* runs the key sequence from the idle calculator with Args in R00 (and
+     R02), returns R01 (and R03): for the functions that the ROM does
+     not run in a program in the reference emulator (P->R) */
+
+  BigDecimal[] KeyCall(int[] Keys, int Results, BigDecimal... Args) {
+    final RomCpu Cpu = new RomCpu(Booted);
+    for (int i = 0; i < Args.length; i++)
+      ToRam(Args[i], Cpu.Ram[IN[i]]);
+    long Steps = 0;
+    for (int Key : Keys) {
+      Press(Cpu, Key);
+      int Hold = 0;
+      while (Hold < KeyTap) {
+        final int N = Cpu.Step();
+        Hold += N;
+        Steps += N;
+      }
+      Release(Cpu, Key);
+      while (Cpu.Addr != IDLE_LOOP) {
+        Steps += Cpu.Step();
+        if (Steps > MAX_STEPS) {
+          LastError = true;
+          return null;
+        }
+      }
+    }
+    LastSteps = Steps;
+    LastCpu = Cpu;
+    LastError = (Cpu.fB & FB_ERROR) != 0;
+    final BigDecimal[] R = new BigDecimal[Results];
+    for (int i = 0; i < Results; i++)
+      R[i] = FromRam(Cpu.Ram[OUT[i]]);
+    return R;
+  }
+
+  /* P->R (Inv false: T = radius, X = angle, gives X = y, T = x) and R->P
+     (Inv true: T = x, X = y, gives X = angle, T = radius), returns {X, T}:
+     keys Mode RCL 02 x<>t RCL 00 [INV] 2nd P->R STO 01 x<>t STO 03 (in a
+     program the reference emulator ends P->R in error) */
+
+  public BigDecimal[] Polar(boolean Inv, BigDecimal T, BigDecimal X, int Angle) {
+    final int Mode = Angle == Number.ANG_RAD ? K_SUB : Angle == Number.ANG_GRAD ? K_ADD : K_MUL;
+    final java.util.List<Integer> K = new java.util.ArrayList<>();
+    for (int k : new int[] {K_2ND, Mode, K_RCL, K_DIGIT[0], K_DIGIT[2], K_XT, K_RCL, K_DIGIT[0], K_DIGIT[0]})
+      K.add(k);
+    if (Inv)
+      K.add(K_INV);
+    for (int k : new int[] {K_2ND, K_XT, K_STO, K_DIGIT[0], K_DIGIT[1], K_XT, K_STO, K_DIGIT[0], K_DIGIT[3]})
+      K.add(k);
+    final int[] Keys = new int[K.size()];
+    for (int i = 0; i < Keys.length; i++)
+      Keys[i] = K.get(i);
+    return KeyCall(Keys, 2, X, T);
   }
 }
