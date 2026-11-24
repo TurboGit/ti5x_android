@@ -512,7 +512,7 @@ public class Number {
   }
 
   public void cos(int Angle) {
-    if (Rom != null && FromRom(Rom.Cos(v, Angle)))
+    if (Rom() != null && FromRom(Rom().Cos(v, Angle)))
       return;
 
     NormalizeAngle(Angle);
@@ -524,7 +524,7 @@ public class Number {
   }
 
   public void acos(int Value) {
-    if (Rom != null && FromRom(Rom.Acos(v, Value)))
+    if (Rom() != null && FromRom(Rom().Acos(v, Value)))
       return;
 
     if (v.compareTo(B_ONE.negate()) < 0 || v.compareTo(B_ONE) > 0)
@@ -533,8 +533,21 @@ public class Number {
       v = new BigDecimal(Math.acos(v.doubleValue()), mc).divide(trigScale2(Value), mc);
   }
 
-  /* when set, the functions done by the original TI-59 ROM (see RomMath) */
-  public static RomMath Rom = null;
+  /* the functions done by the original TI-59 ROM (see RomMath): the ROM
+     of ti5x by default, created when first used; none after SetRom(null) */
+  private static RomMath TheRom = null;
+  private static boolean UseRom = true;
+
+  public static synchronized RomMath Rom() {
+    if (UseRom && TheRom == null)
+      TheRom = new RomMath();
+    return UseRom ? TheRom : null;
+  }
+
+  public static synchronized void SetRom(RomMath R) {
+    TheRom = R;
+    UseRom = R != null;
+  }
 
   /* sets the result of a ROM function, false if the ROM is not used */
 
@@ -542,13 +555,13 @@ public class Number {
     if (R == null)
       return false;
     v = R;
-    if (Rom.LastError)
+    if (Rom().LastError)
       error = true;
     return true;
   }
 
   public void sin(int Angle) {
-    if (Rom != null && FromRom(Rom.Sin(v, Angle)))
+    if (Rom() != null && FromRom(Rom().Sin(v, Angle)))
       return;
 
     NormalizeAngle(Angle);
@@ -560,7 +573,7 @@ public class Number {
   }
 
   public void asin(int Value) {
-    if (Rom != null && FromRom(Rom.Asin(v, Value)))
+    if (Rom() != null && FromRom(Rom().Asin(v, Value)))
       return;
 
     if (v.compareTo(B_ONE.negate()) < 0 || v.compareTo(B_ONE) > 0)
@@ -570,7 +583,7 @@ public class Number {
   }
 
   public void tan(int Angle) {
-    if (Rom != null && FromRom(Rom.Tan(v, Angle)))
+    if (Rom() != null && FromRom(Rom().Tan(v, Angle)))
       return;
 
     NormalizeAngle(Angle);
@@ -585,7 +598,7 @@ public class Number {
   }
 
   public void atan(int Angle) {
-    if (Rom != null && FromRom(Rom.Atan(v, Angle)))
+    if (Rom() != null && FromRom(Rom().Atan(v, Angle)))
       return;
 
     v = new BigDecimal(Math.atan(v.doubleValue()), mc).divide(trigScale2(Angle), mc);
@@ -600,7 +613,7 @@ public class Number {
   }
 
   public void log() {
-    if (Rom != null && FromRom(Rom.Log(v)))
+    if (Rom() != null && FromRom(Rom().Log(v)))
       return;
 
     final int check = v.compareTo(B_ZERO);
@@ -617,7 +630,7 @@ public class Number {
   }
 
   public void ln() {
-    if (Rom != null && FromRom(Rom.Ln(v)))
+    if (Rom() != null && FromRom(Rom().Ln(v)))
       return;
 
     final int check = v.compareTo(B_ZERO);
@@ -685,7 +698,7 @@ public class Number {
   }
 
   public void pow(Number n) {
-    if (Rom != null && FromRom(Rom.Pow(v, n.v)))
+    if (Rom() != null && FromRom(Rom().Pow(v, n.v)))
       return;
 
     if (v.signum() == 0 && n.v.signum() < 0) {
@@ -707,17 +720,18 @@ public class Number {
      it is not used */
 
   public boolean romExp10() {
-    return Rom != null && FromRom(Rom.Exp10(v));
+    return Rom() != null && FromRom(Rom().Exp10(v));
   }
 
   public boolean romRoot(Number X) {
-    return Rom != null && FromRom(Rom.Root(v, X.v));
+    return Rom() != null && FromRom(Rom().Root(v, X.v));
   }
 
   /* P->R (Inv false) or R->P (Inv true) by the ROM: returns the new X
      and T, null if the ROM is not used. The new X has the error flag. */
 
   public static Number[] romPolar(boolean Inv, Number T, Number X, int Angle) {
+    final RomMath Rom = Rom();
     if (Rom == null)
       return null;
     final BigDecimal[] R = Rom.Polar(Inv, T.v, X.v, Angle);
@@ -730,7 +744,7 @@ public class Number {
   }
 
   public void exp() {
-    if (Rom != null && FromRom(Rom.Exp(v)))
+    if (Rom() != null && FromRom(Rom().Exp(v)))
       return;
 
     set(Math.exp(v.doubleValue()));

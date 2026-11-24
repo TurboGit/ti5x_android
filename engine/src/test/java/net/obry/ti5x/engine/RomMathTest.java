@@ -1,9 +1,8 @@
 /*
     ti5x calculator emulator -- tests of the ROM coprocessor
 
-    The ROM is not part of ti5x: these tests run only when its files
-    (dump.txt and Const.c) are found, in the directory given by the
-    TI59_ROM environment variable or in workspace/emul.
+    The expected values were computed by the reference emulator
+    (workspace/emul) running the same ROM.
 
     Copyright 2026 Pascal Obry <pascal@obry.net>.
 
@@ -25,12 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -40,20 +34,9 @@ class RomMathTest {
 
   private static RomMath Rom;
 
-  private static File RomDir() {
-    final String Env = System.getenv("TI59_ROM");
-    return Env != null ? new File(Env) : new File("../workspace/emul");
-  }
-
   @BeforeAll
-  static void Load() throws IOException {
-    final File Dir = RomDir();
-    if (!new File(Dir, "dump.txt").exists() || !new File(Dir, "Const.c").exists())
-      return;
-    try (InputStream Dump = new FileInputStream(new File(Dir, "dump.txt"));
-         InputStream Consts = new FileInputStream(new File(Dir, "Const.c"))) {
-      Rom = new RomMath(Dump, Consts);
-    }
+  static void Load() {
+    Rom = new RomMath();
   }
 
   /* x, angular unit, sin(x) computed by the ROM (reference emulator) */
@@ -95,7 +78,6 @@ class RomMathTest {
 
   @Test
   void sin() {
-    assumeTrue(Rom != null, "no ROM in " + RomDir());
     for (Object[] C : ROM_SIN) {
       final BigDecimal R = Rom.Sin(new BigDecimal((String) C[0]), (Integer) C[1]);
       assertNotNull(R);
@@ -150,7 +132,6 @@ class RomMathTest {
 
   @Test
   void functions() {
-    assumeTrue(Rom != null, "no ROM in " + RomDir());
     for (Object[] C : ROM_FUNCTIONS) {
       final String Y = (String) C[3];
       final BigDecimal R = Function((String) C[0], (Integer) C[1], new BigDecimal((String) C[2]),
@@ -163,7 +144,6 @@ class RomMathTest {
 
   @Test
   void polar() {
-    assumeTrue(Rom != null, "no ROM in " + RomDir());
     // 5 x<>t 30 P->R in degrees: y = 2.5, x = 4.330127018927
     BigDecimal[] R = Rom.Polar(false, new BigDecimal(5), new BigDecimal(30), Number.ANG_DEG);
     assertEquals(0, new BigDecimal("2.5").compareTo(R[0]), R[0].toString());
@@ -176,7 +156,6 @@ class RomMathTest {
 
   @Test
   void errors() {
-    assumeTrue(Rom != null, "no ROM in " + RomDir());
     // ln of a negative number: ln |x| and the error
     assertEquals(0, new BigDecimal("0.69314718056").compareTo(Rom.Ln(new BigDecimal(-2))));
     assertTrue(Rom.LastError);

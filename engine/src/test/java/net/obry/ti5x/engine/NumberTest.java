@@ -26,9 +26,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Locale;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class NumberTest {
+
+  /* these tests check the functions of ti5x without the ROM (--no-rom),
+     see RomMathTest for the ROM */
+
+  private static RomMath Saved;
+
+  @BeforeAll
+  static void NoRom() {
+    Saved = Number.Rom();
+    Number.SetRom(null);
+  }
+
+  @AfterAll
+  static void RestoreRom() {
+    Number.SetRom(Saved);
+  }
 
   private static String str(Number n) {
     return String.valueOf(n.get());

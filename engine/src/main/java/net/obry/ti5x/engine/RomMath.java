@@ -7,7 +7,7 @@
     R00, and the result is read from R01. The results are then exactly
     the ones of the TI-59, with all the ROM algorithms.
 
-    The ROM is not part of ti5x, it is loaded from files (see RomCpu).
+    The ROM is in RomData, another dump can be loaded from files.
 
     Copyright 2026 Pascal Obry <pascal@obry.net>.
 
@@ -68,9 +68,21 @@ public class RomMath {
   /* number of ROM instructions run by the last call */
   public long LastSteps;
 
+  /* the ROM of ti5x (RomData) */
+
+  public RomMath() {
+    this(RomData.Rom(), RomData.Constants());
+  }
+
+  /* a ROM dump (dump.txt) and its constants (Const.c) */
+
   public RomMath(InputStream RomDump, InputStream Constants) throws IOException {
-    Rom = RomCpu.LoadRom(RomDump);
-    Constant = RomCpu.LoadConstants(Constants);
+    this(RomCpu.LoadRom(RomDump), RomCpu.LoadConstants(Constants));
+  }
+
+  private RomMath(int[] Rom, int[][] Constant) {
+    this.Rom = Rom;
+    this.Constant = Constant;
     Booted = new RomCpu(Rom, Constant, true);
     Settle(Booted);
   }

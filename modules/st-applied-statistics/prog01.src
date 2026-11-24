@@ -42,7 +42,7 @@ lbl =
    ee
    inv ee
    x⇌t
-   377.2580953 ; real value is 377.2580954, adjusted until sin/cos match the ROM
+   377.2580954
    x=t write
    0
    1/x

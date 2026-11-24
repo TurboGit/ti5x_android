@@ -44,9 +44,9 @@ public final class Main {
      + "  --max-steps N      stop a running program after N steps\n"
      + "  --no-printer       don't show the printer output (PRT lines)\n"
      + "  --dir DIR          directory for the Data/ and Banks/ files (default .)\n"
-     + "  --rom DIR          compute the trigonometric, logarithmic and power\n"
-     + "                     functions and P->R with the original ROM\n"
-     + "                     (experimental): DIR has the ROM dump.txt and the\n"
+     + "  --no-rom           don't use the original TI-59 ROM for the\n"
+     + "                     trigonometric, logarithmic and power functions\n"
+     + "  --rom DIR          use another ROM: DIR has the ROM dump.txt and the\n"
      + "                     constants Const.c\n"
      + "  -h, --help         show this help\n"
      + "\n"
@@ -132,11 +132,14 @@ public final class Main {
           case "--dir":
             S.BaseDir = new File(Value(Args, ++i));
             break;
+          case "--no-rom":
+            net.obry.ti5x.engine.Number.SetRom(null);
+            break;
           case "--rom": {
             final File Dir = new File(Value(Args, ++i));
             try (java.io.InputStream Dump = new java.io.FileInputStream(new File(Dir, "dump.txt"));
                  java.io.InputStream Consts = new java.io.FileInputStream(new File(Dir, "Const.c"))) {
-              net.obry.ti5x.engine.Number.Rom = new net.obry.ti5x.engine.RomMath(Dump, Consts);
+              net.obry.ti5x.engine.Number.SetRom(new net.obry.ti5x.engine.RomMath(Dump, Consts));
             } catch (java.io.IOException Failed) {
               throw new IllegalArgumentException("cannot load the ROM: " + Failed.getMessage());
             }
