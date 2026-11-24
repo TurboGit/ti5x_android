@@ -803,19 +803,19 @@ public class State {
     final OpStackEntry ThisOp = OpStack[--OpStackNext];
     switch (ThisOp.Operator) {
       case STACKOP_ADD:
-        X.romAdd(ThisOp.Operand);
+        X.add(ThisOp.Operand);
         break;
       case STACKOP_SUB:
-        ThisOp.Operand.romSub(X);
+        ThisOp.Operand.sub(X);
         X = ThisOp.Operand;
         break;
       case STACKOP_MUL:
         /* the first operand drives the ROM multiplication */
-        ThisOp.Operand.romMult(X);
+        ThisOp.Operand.mult(X);
         X = ThisOp.Operand;
         break;
       case STACKOP_DIV:
-        ThisOp.Operand.romDiv(X);
+        ThisOp.Operand.div(X);
         X = ThisOp.Operand;
         if (X.isError()) {
           SetX(X, false);
@@ -1634,17 +1634,17 @@ public class State {
             ExponentEntered = false;
             break;
           case MEMOP_ADD:
-            Memory[RegNr].romAdd(X);
+            Memory[RegNr].add(X);
             break;
           case MEMOP_SUB:
-            Memory[RegNr].romSub(X);
+            Memory[RegNr].sub(X);
             break;
           case MEMOP_MUL:
             /* as on the ROM, the memory is the first operand */
-            Memory[RegNr].romMult(X);
+            Memory[RegNr].mult(X);
             break;
           case MEMOP_DIV:
-            Memory[RegNr].romDiv(X);
+            Memory[RegNr].div(X);
             if (Memory[RegNr].isError())
               SetErrorState(false);
             break;
@@ -1733,25 +1733,25 @@ public class State {
             if (RegNr == 0)
               X.add(X);
             else
-              OpStack[RegNr - 1].Operand.romAdd(Arg);
+              OpStack[RegNr - 1].Operand.add(Arg);
             break;
           case HIROP_SUB:
             if (RegNr == 0)
               X.set(0);
             else
-              OpStack[RegNr - 1].Operand.romSub(Arg);
+              OpStack[RegNr - 1].Operand.sub(Arg);
             break;
           case HIROP_MUL:
             if (RegNr == 0)
               X.x2();
             else
-              OpStack[RegNr - 1].Operand.romMult(Arg);
+              OpStack[RegNr - 1].Operand.mult(Arg);
             break;
           case HIROP_DIV:
             if (RegNr == 0)
               X.set(1);
             else
-              OpStack[RegNr - 1].Operand.romDiv(Arg);
+              OpStack[RegNr - 1].Operand.div(Arg);
 
             if (X.isError())
               SetErrorState(false);
@@ -2184,7 +2184,7 @@ public class State {
             }
             OK = true;
             break;
-          case 95: /* extension! switch between ROM mode and emulator mode */
+          case 95: /* extension! switch between ROM mode and classic mode */
             Number.SetRomMode(!Number.RomMode());
             X.set(Number.RomMode() ? 1 : 0);
             SetX(X, true);

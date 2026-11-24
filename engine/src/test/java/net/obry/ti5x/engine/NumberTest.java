@@ -32,8 +32,9 @@ import org.junit.jupiter.api.Test;
 
 class NumberTest {
 
-  /* these tests check the functions of ti5x without the ROM (--no-rom),
-     see RomMathTest for the ROM */
+  /* these tests check the classic mode (Op 95, --no-rom): the arithmetic
+     rounded to 13 digits and the functions of ti5x; see RomArithmeticTest
+     and RomMathTest for the ROM mode */
 
   private static RomMath Saved;
 
@@ -135,8 +136,8 @@ class NumberTest {
     assertFalse(x.isError());
     x.set(-5);
     x.sqrt();
-    /* the ROM truncates the square root: 2.23606797749979 */
-    assertEquals("2.236067977499", str(x));
+    /* classic mode: rounded (the ROM truncates: 2.236067977499) */
+    assertEquals("2.2360679775", str(x));
     assertTrue(x.isError());
   }
 

@@ -1745,6 +1745,18 @@ class Tester {
   }
 
   public int Run() {
+    /* the tests check the TI-59 results: always run in ROM mode, the
+       classic mode (Op 95) is restored after */
+    final boolean RomMode = Number.RomMode();
+    Number.SetRomMode(true);
+    try {
+      return RunTests();
+    } finally {
+      Number.SetRomMode(RomMode);
+    }
+  }
+
+  private int RunTests() {
     Calc = Engine.Calc;
     int Total = 0;
 

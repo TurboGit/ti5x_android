@@ -745,7 +745,7 @@ public final class ProgramFiles {
           SaveInt(POut, "PC", Calc.PC, 8);
           SaveInt(POut, "bank", Calc.CurBank, 8);
           SaveInt(POut, "regoffset", Calc.RegOffset, 8);
-          /* only saved for the emulator mode (Op 95), so that the files
+          /* only saved for the classic mode (Op 95), so that the files
              in ROM mode (the default) are the same as before */
           if (!Number.RomMode())
             SaveBool(POut, "rom_mode", false, 8);

@@ -1009,19 +1009,24 @@ calculator.
   return the factorial of the current displayed number.
 <LI><SPAN CLASS="yellowbutton">2nd</SPAN>
   <SPAN CLASS="alttext">Op</SPAN> <B>95</B> — switch between the
-  <I>ROM mode</I> and the <I>emulator mode</I>, return the new mode:
-  <B>1</B> for the ROM mode, <B>0</B> for the emulator mode.
-  <p>In ROM mode (the default) the trigonometric functions and their
-  inverses, <SPAN CLASS="alttext">lnx</SPAN>, <SPAN CLASS="alttext">log</SPAN>,
-  e<sup>x</sup>, 10<sup>x</sup>, y<sup>x</sup>, the roots and
-  <SPAN CLASS="alttext">P→R</SPAN> are computed by the original TI-59
-  ROM, so they give the same results as the real calculator, to the last
-  digit (for example asin 0.5 = 29.99999999993 in degrees). In emulator
-  mode they are computed by ti5x with the usual mathematical functions,
-  which is faster. The other operations (+ − × ÷, x², √x, 1/x,
-  <SPAN CLASS="alttext">D.MS</SPAN>, statistics) always give the results
-  of the TI-59. The mode is kept when the calculator is closed. In
-  emulator mode a <B>~</B> is shown in the title bar, after the
+  <I>ROM mode</I> and the <I>classic mode</I>, return the new mode:
+  <B>1</B> for the ROM mode, <B>0</B> for the classic mode.
+  <p>In ROM mode (the default) the calculator gives the same results as
+  the real TI-59, to the last digit: the arithmetic (+ − × ÷, x², √x,
+  1/x) uses the algorithms of the TI-59 ROM, and the trigonometric
+  functions and their inverses, <SPAN CLASS="alttext">lnx</SPAN>,
+  <SPAN CLASS="alttext">log</SPAN>, e<sup>x</sup>, 10<sup>x</sup>,
+  y<sup>x</sup>, the roots and <SPAN CLASS="alttext">P→R</SPAN> are
+  computed by the original TI-59 ROM (for example asin 0.5 =
+  29.99999999993 in degrees).</p>
+  <p>The classic mode gives the results of the previous versions of
+  ti5x: the arithmetic is rounded to 13 digits and the functions are
+  computed with the usual mathematical functions, which is faster. The
+  last digits can then differ from the TI-59, and so can the results of
+  programs that depend on them (for example the random numbers of the
+  Master Library program 15).</p>
+  <p>The mode is kept when the calculator is closed. In classic mode a
+  <B>~</B> is shown in the title bar, after the
   <SPAN CLASS="alttext">2nd</SPAN> and <SPAN CLASS="brownbutton">INV</SPAN>
   indicators.</p>
 <LI><SPAN CLASS="yellowbutton">2nd</SPAN>

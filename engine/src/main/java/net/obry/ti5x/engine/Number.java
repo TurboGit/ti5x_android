@@ -199,11 +199,15 @@ public class Number {
 
   // maths
 
-  /* The arithmetic is the one of the TI-59 ROM (see romAdd, romSub,
-     romMult and romDiv), this number is the first operand. */
+  /* The arithmetic: in ROM mode the one of the TI-59 ROM (see romAdd,
+     romSub, romMult and romDiv), in classic mode the rounding to 13 digits.
+     This number is the first operand. */
 
   public void add(Number n) {
-    romAdd(n);
+    if (UseRom)
+      romAdd(n);
+    else
+      v = v.add(n.v, mc);
   }
 
   public void add(long i) {
@@ -211,7 +215,10 @@ public class Number {
   }
 
   public void sub(Number n) {
-    romSub(n);
+    if (UseRom)
+      romSub(n);
+    else
+      v = v.subtract(n.v, mc);
   }
 
   public void sub(long i) {
@@ -289,7 +296,10 @@ public class Number {
   }
 
   public void mult(Number n) {
-    romMult(n);
+    if (UseRom)
+      romMult(n);
+    else
+      v = v.multiply(n.v, mc);
   }
 
   public void mult(long i) {
@@ -408,7 +418,13 @@ public class Number {
   }
 
   public void div(Number n) {
-    romDiv(n);
+    if (UseRom)
+      romDiv(n);
+    else if (n.v.signum() == 0) {
+      v = B_ERROR;
+      error = true;
+    } else
+      v = v.divide(n.v, mc);
   }
 
   public void div(long i) {
@@ -536,7 +552,7 @@ public class Number {
   /* the functions done by the original TI-59 ROM (see RomMath): the ROM
      of ti5x by default, created when first used; none after SetRom(null) */
   private static RomMath TheRom = null;
-  private static boolean UseRom = true;
+  private static volatile boolean UseRom = true;
 
   public static synchronized RomMath Rom() {
     if (UseRom && TheRom == null)
@@ -549,10 +565,12 @@ public class Number {
     UseRom = R != null;
   }
 
-  /* ROM mode (the functions are computed by the ROM, the default) or
-     emulator mode (computed by ti5x): Op 95 */
+  /* ROM mode (the default): the arithmetic is done with the algorithms
+     of the TI-59 ROM and the functions are computed by the ROM. Classic
+     mode: the original computations of ti5x (13-digit rounding and the
+     Java mathematical functions). Switched by Op 95. */
 
-  public static synchronized boolean RomMode() {
+  public static boolean RomMode() {
     return UseRom;
   }
 
@@ -688,24 +706,45 @@ public class Number {
     }
   }
 
-  public void sqrt() {
-    if (v.compareTo(B_ZERO) < 0.0) {
-      v = sqrt(v.negate(mc));
-      error = true;
-    } else
-      v = sqrt(v);
+  /* the square root of the classic mode */
+
+  private static BigDecimal classicSqrt(BigDecimal A) {
+    if (A.signum() == 0)
+      return B_ZERO;
+    BigDecimal x0 = new BigDecimal("0", mc);
+    BigDecimal x1 = new BigDecimal(Math.sqrt(A.doubleValue()), mc);
+    BigDecimal diff = x0.subtract(x1);
+
+    while (diff.doubleValue() > 0.0000000000001) {
+      x0 = x1;
+      x1 = A.divide(x0, mc);
+      x1 = x1.add(x0);
+      x1 = x1.divide(B_TWO, mc);
+      diff = x1.subtract(x0);
+    }
+    return x1;
   }
 
-  /* x^2 and 1/x use the ROM multiplication and division */
+  public void sqrt() {
+    final BigDecimal A = v.abs();
+    if (v.signum() < 0)
+      error = true;
+    v = UseRom ? sqrt(A) : classicSqrt(A);
+  }
+
+  /* x^2 and 1/x: in ROM mode with the ROM multiplication and division */
 
   public void x2() {
-    romMult(this);
+    if (UseRom)
+      romMult(this);
+    else
+      v = v.multiply(v, mc);
   }
 
   public void reciprocal() {
     final Number Value = new Number(v);
     v = B_ONE;
-    romDiv(Value);
+    div(Value);
   }
 
   public void pow(Number n) {

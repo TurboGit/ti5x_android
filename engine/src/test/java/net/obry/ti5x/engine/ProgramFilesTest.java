@@ -173,7 +173,7 @@ class ProgramFilesTest {
 
   @Test
   void romModeRoundTrip() {
-    /* the emulator mode (Op 95) is saved, the ROM mode (default) is not */
+    /* the classic mode (Op 95) is saved, the ROM mode (default) is not */
     final Calculator Engine = new TestHost().NewCalculator();
     try {
       assertFalse(Prog00(SaveState(Engine)).contains("rom_mode"));

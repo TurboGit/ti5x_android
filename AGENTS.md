@@ -87,13 +87,15 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   (skipped if the app was not built) and checks save/load round trips.
 - `RomCpu.java` / `RomMath.java` / `RomData.java`: the original TI-59 ROM
   (`RomData`, generated from `workspace/emul` `dump.txt` and `Const.c`) run by
-  a Java port of the CPU of the reference emulator. By default
-  (`Number.Rom()`) the trigonometric, logarithmic and power functions, 10^x,
-  roots and P→R/R→P are computed by the ROM, so they match the TI-59 to the
-  last digit. `Op 95` switches between this ROM mode and the emulator mode
-  (functions of ti5x), saved as the `rom_mode` state param only when off.
-  CLI: `--no-rom` starts in emulator mode, `--rom DIR` loads another dump. `NumberTest` runs without
-  the ROM, `RomMathTest` checks the ROM against the reference emulator.
+  a Java port of the CPU of the reference emulator. In ROM mode (the
+  default) the arithmetic of `Number` uses the ROM algorithms (`romAdd`,
+  `romMult`, …) and the trigonometric, logarithmic and power functions,
+  10^x, roots and P→R/R→P are computed by the ROM (`Number.Rom()`), so they
+  match the TI-59 to the last digit. `Op 95` switches to the classic mode
+  (13-digit rounding and the Java functions, as previous versions), saved
+  as the `rom_mode` state param only when on. CLI: `--no-rom` starts in
+  classic mode, `--rom DIR` loads another dump. `NumberTest` runs in
+  classic mode, `RomMathTest` checks the ROM against the reference emulator.
 - Host interfaces the app or CLI implement: `Scheduler` (run loop),
   `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
   (files), `ErrorSink` (I/O error reports), and `BankStore` (card bank files).

@@ -80,7 +80,7 @@ final class Global {
       StatStr = StatStr + SP.repeat(3);
     }
 
-    /* emulator mode (Op 95): the functions are not computed by the ROM */
+    /* classic mode (Op 95): the computations of the previous versions */
     if (!net.obry.ti5x.engine.Number.RomMode()) {
       StatStr = StatStr + " ~";
     }
