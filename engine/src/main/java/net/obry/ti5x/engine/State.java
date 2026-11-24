@@ -2184,6 +2184,12 @@ public class State {
             }
             OK = true;
             break;
+          case 95: /* extension! switch between ROM mode and emulator mode */
+            Number.SetRomMode(!Number.RomMode());
+            X.set(Number.RomMode() ? 1 : 0);
+            SetX(X, true);
+            OK = true;
+            break;
           case 98:
             TracePrintActivated = !TracePrintActivated;
             OK = true;

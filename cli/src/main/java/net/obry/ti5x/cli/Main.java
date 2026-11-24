@@ -44,8 +44,9 @@ public final class Main {
      + "  --max-steps N      stop a running program after N steps\n"
      + "  --no-printer       don't show the printer output (PRT lines)\n"
      + "  --dir DIR          directory for the Data/ and Banks/ files (default .)\n"
-     + "  --no-rom           don't use the original TI-59 ROM for the\n"
-     + "                     trigonometric, logarithmic and power functions\n"
+     + "  --no-rom           start in emulator mode: don't use the original TI-59\n"
+     + "                     ROM for the trigonometric, logarithmic and power\n"
+     + "                     functions (Op 95 switches the mode)\n"
      + "  --rom DIR          use another ROM: DIR has the ROM dump.txt and the\n"
      + "                     constants Const.c\n"
      + "  -h, --help         show this help\n"
@@ -133,7 +134,7 @@ public final class Main {
             S.BaseDir = new File(Value(Args, ++i));
             break;
           case "--no-rom":
-            net.obry.ti5x.engine.Number.SetRom(null);
+            net.obry.ti5x.engine.Number.SetRomMode(false);
             break;
           case "--rom": {
             final File Dir = new File(Value(Args, ++i));

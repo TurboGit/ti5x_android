@@ -745,6 +745,10 @@ public final class ProgramFiles {
           SaveInt(POut, "PC", Calc.PC, 8);
           SaveInt(POut, "bank", Calc.CurBank, 8);
           SaveInt(POut, "regoffset", Calc.RegOffset, 8);
+          /* only saved for the emulator mode (Op 95), so that the files
+             in ROM mode (the default) are the same as before */
+          if (!Number.RomMode())
+            SaveBool(POut, "rom_mode", false, 8);
           POut.println("        <retstack>");
           for (int i = 0; i <= Calc.ReturnLast; ++i) {
             final State.ReturnStackEntry Ret = Calc.ReturnStack[i];
@@ -1006,6 +1010,8 @@ public final class ProgramFiles {
             Calc.CurBank = GetInt(Value);
           } else if (Name.equals("regoffset")) {
             Calc.RegOffset = GetInt(Value);
+          } else if (Name.equals("rom_mode")) {
+            Number.SetRomMode(GetBool(Value));
           } else {
             throw new DataFormatException
                (

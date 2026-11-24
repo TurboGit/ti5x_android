@@ -549,6 +549,17 @@ public class Number {
     UseRom = R != null;
   }
 
+  /* ROM mode (the functions are computed by the ROM, the default) or
+     emulator mode (computed by ti5x): Op 95 */
+
+  public static synchronized boolean RomMode() {
+    return UseRom;
+  }
+
+  public static synchronized void SetRomMode(boolean On) {
+    UseRom = On;
+  }
+
   /* sets the result of a ROM function, false if the ROM is not used */
 
   private boolean FromRom(BigDecimal R) {

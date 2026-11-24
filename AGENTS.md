@@ -90,8 +90,9 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   a Java port of the CPU of the reference emulator. By default
   (`Number.Rom()`) the trigonometric, logarithmic and power functions, 10^x,
   roots and P→R/R→P are computed by the ROM, so they match the TI-59 to the
-  last digit. `Number.SetRom(null)` (CLI `--no-rom`) uses the functions of
-  ti5x instead; `--rom DIR` loads another dump. `NumberTest` runs without
+  last digit. `Op 95` switches between this ROM mode and the emulator mode
+  (functions of ti5x), saved as the `rom_mode` state param only when off.
+  CLI: `--no-rom` starts in emulator mode, `--rom DIR` loads another dump. `NumberTest` runs without
   the ROM, `RomMathTest` checks the ROM against the reference emulator.
 - Host interfaces the app or CLI implement: `Scheduler` (run loop),
   `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
