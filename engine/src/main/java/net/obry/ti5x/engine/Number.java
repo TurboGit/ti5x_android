@@ -199,8 +199,11 @@ public class Number {
 
   // maths
 
+  /* The arithmetic is the one of the TI-59 ROM (see romAdd, romSub,
+     romMult and romDiv), this number is the first operand. */
+
   public void add(Number n) {
-    v = v.add(n.v, mc);
+    romAdd(n);
   }
 
   public void add(long i) {
@@ -208,7 +211,7 @@ public class Number {
   }
 
   public void sub(Number n) {
-    v = v.subtract(n.v, mc);
+    romSub(n);
   }
 
   public void sub(long i) {
@@ -286,7 +289,7 @@ public class Number {
   }
 
   public void mult(Number n) {
-    v = v.multiply(n.v, mc);
+    romMult(n);
   }
 
   public void mult(long i) {
@@ -405,11 +408,7 @@ public class Number {
   }
 
   public void div(Number n) {
-    if (n.v.compareTo(B_ZERO) == 0) {
-      v = B_ERROR;
-      error = true;
-    } else
-      v = v.divide(n.v, mc);
+    romDiv(n);
   }
 
   public void div(long i) {
@@ -596,19 +595,35 @@ public class Number {
       set((logBigInteger(v.unscaledValue()) + (-v.scale() * LOG10)));
   }
 
-  private static BigDecimal sqrt(BigDecimal A) {
-    BigDecimal x0 = new BigDecimal("0", mc);
-    BigDecimal x1 = new BigDecimal(Math.sqrt(A.doubleValue()), mc);
-    BigDecimal diff = x0.subtract(x1);
+  /* The square root as computed by the TI-59 ROM: the exact square root
+     truncated to 13 digits. */
 
-    while (diff.doubleValue() > 0.0000000000001) {
-      x0 = x1;
-      x1 = A.divide(x0, mc);
-      x1 = x1.add(x0);
-      x1 = x1.divide(B_TWO, mc);
-      diff = x1.subtract(x0);
+  private static BigDecimal sqrt(BigDecimal A) {
+    if (A.signum() == 0)
+      return B_ZERO;
+
+    final int[] Exp = new int[1];
+    final long M = mantissa(A, Exp);
+
+    // A = M * 10^(Exp - 12): scale M so that the exponent left is even
+    // and the integer square root has 13 digits
+    final int Shift = ((Exp[0] - 12 - 12) % 2 == 0) ? 12 : 13;
+    final BigInteger N = BigInteger.valueOf(M).multiply(BigInteger.TEN.pow(Shift));
+    final BigInteger R = isqrt(N);
+
+    return new BigDecimal(R, -((Exp[0] - 12 - Shift) / 2));
+  }
+
+  /* floor of the square root (BigInteger.sqrt is not on Android API 23) */
+
+  static BigInteger isqrt(BigInteger N) {
+    BigInteger X = BigInteger.ONE.shiftLeft((N.bitLength() + 1) / 2);
+    while (true) {
+      final BigInteger Y = X.add(N.divide(X)).shiftRight(1);
+      if (Y.compareTo(X) >= 0)
+        return X;
+      X = Y;
     }
-    return x1;
   }
 
   public void sqrt() {
@@ -619,16 +634,16 @@ public class Number {
       v = sqrt(v);
   }
 
+  /* x^2 and 1/x use the ROM multiplication and division */
+
   public void x2() {
-    v = v.multiply(v, mc);
+    romMult(this);
   }
 
   public void reciprocal() {
-    if (v.signum() == 0) {
-      v = B_ERROR;
-      error = true;
-    } else
-      v = B_ONE.divide(v, mc);
+    final Number Value = new Number(v);
+    v = B_ONE;
+    romDiv(Value);
   }
 
   public void pow(Number n) {

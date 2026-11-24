@@ -1596,6 +1596,68 @@ class Tester {
     return true;
   }
 
+  private boolean isX(String expected) {
+    return Calc.X.isEqual(new Number(expected));
+  }
+
+  private boolean dms(String x, boolean inv, String expected) {
+    Clear();
+    Calc.X.set(x);
+    Calc.SetX(Calc.X, false);
+    Calc.InvState = inv;
+    Calc.D_MS();
+    Calc.InvState = false;
+    return isX(expected);
+  }
+
+  private boolean Test_45() {
+    // D.MS, square root and statistics as done by the TI-59 ROM (values
+    // checked on the ROM emulator). D.MS works on the displayed value.
+    if (!dms(".4582", false, ".7727777777777")) return false;
+    if (!dms("149.1411764705", true, "149.08282354")) return false;
+    if (!dms(".3815350389321", false, ".6375973302777")) return false;
+
+    Clear();
+    Calc.X.set(5);
+    Calc.SetX(Calc.X, false);
+    Calc.Sqrt();
+    if (!isX("2.236067977499")) return false;
+
+    final double[][] Points = {{1.5, 2.25}, {3.7, 8.1}, {4.2, 9.95}};
+    final String[][] Results = {
+       // Op 11, Op 12, Op 13, Op 14, Op 15, Inv x-bar (X then T)
+       {"11", "", "10.77055555561", "1.37555555557"},
+       {"12", "", "-1.986672051693", "2.793618739903"},
+       {"13", "", ".9983599493846", null},
+       {"14", "5.5", "13.37823101777", null},
+       {"15", "5.5", "2.679919040045", null},
+       {"mean", "", "4.019431966503", "1.436430761761"},
+    };
+    for (String[] R : Results) {
+      Clear();
+      for (double[] P : Points) {
+        SetT(P[0]);
+        SetX(P[1]);
+        Calc.StatsSum();
+      }
+      if (!R[1].isEmpty()) {
+        Calc.X.set(R[1]);
+        Calc.SetX(Calc.X, false);
+      }
+      if (R[0].equals("mean")) {
+        Calc.InvState = true;
+        Calc.StatsResult();
+        Calc.InvState = false;
+      } else {
+        Calc.SpecialOp(Integer.parseInt(R[0]), false);
+      }
+      if (!isX(R[2])) return false;
+      if (R[3] != null && !Calc.T.isEqual(new Number(R[3]))) return false;
+    }
+
+    return true;
+  }
+
   public int Run() {
     Calc = Engine.Calc;
     int Total = 0;
@@ -1687,6 +1749,8 @@ class Tester {
     if (!Test_43()) return -43;
     Total++;
     if (!Test_44()) return -44;
+    Total++;
+    if (!Test_45()) return -45;
     Total++;
     Clear();
 

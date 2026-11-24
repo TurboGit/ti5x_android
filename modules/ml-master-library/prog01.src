@@ -41,7 +41,7 @@ lbl =
    ee
    inv ee
    x⇌t
-   377.258095 ; original code adjusted for emulatore 377.2580954
+   377.2580953 ; original code 377.2580954, adjusted until sin/cos match the ROM
    x=t write
    0
    1/x

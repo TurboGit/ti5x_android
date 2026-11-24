@@ -1307,20 +1307,23 @@ public class State {
   public void D_MS() {
     Enter(88);
 
-    // Must be done on the displayed value and not X. That is if Fix-01 is set, the number must
-    // be with a single digit.
-
-    // X = new Number (CurDisplay);
-
-    if(CurNrDecimals == -1)
-      X.roundUpNDigits(9);
-    else
-      X.roundUpNDigits(CurNrDecimals);
+    /* As on the ROM, the conversion is done on the displayed value: X is
+       rounded to the displayed decimals, at most 10 digits and at most 10
+       decimals (or the Fix decimals). */
 
     Number Sign = new Number(X);
     Sign.signum();
 
     X.abs();
+
+    int IntDigits = 0;
+    for (Number P = new Number(1); X.compareTo(P) >= 0 && IntDigits < 10; P.mult(10))
+      IntDigits++;
+
+    int Decimals = 10 - IntDigits;
+    if (CurNrDecimals >= 0 && CurNrDecimals < Decimals)
+      Decimals = CurNrDecimals;
+    X.roundUpNDigits(Decimals);
 
     Number Degrees = new Number(X);
     Degrees.intPart();
@@ -1328,34 +1331,38 @@ public class State {
     Number Fraction = new Number(X);
     Fraction.fracPart();
 
-    Number Minutes = new Number(Fraction);
-    Number Seconds;
-
     if (InvState) {
+      /* D + MM / 100 + SS / 10000 with MM.mm = 60 frac and SS = 60 .mm */
+      Number Minutes = new Number(Fraction);
       Minutes.mult(60);
-      Seconds = new Number(Minutes);
-
+      Number Seconds = new Number(Minutes);
       Minutes.intPart();
       Seconds.fracPart();
+      Seconds.mult(60);
 
       Minutes.div(100);
-      Seconds.mult(6);
-      Seconds.div(1000);
-    } else {
-      Minutes.mult(100);
-      Seconds = new Number(Minutes);
+      Seconds.div(10000);
 
+      X.set(Degrees);
+      X.add(Minutes);
+      X.add(Seconds);
+    } else {
+      /* (60 MM + SS) / 3600 + D */
+      Number Minutes = new Number(Fraction);
+      Minutes.mult(100);
+      Number Seconds = new Number(Minutes);
       Minutes.intPart();
       Seconds.fracPart();
+      Seconds.mult(100);
 
-      Minutes.div(60);
-      Seconds.div(36);
+      Minutes.mult(60);
+      Minutes.add(Seconds);
+      Minutes.div(3600);
+
+      X.set(Minutes);
+      X.add(Degrees);
     }
 
-    X.set(Degrees);
-
-    X.add(Minutes);
-    X.add(Seconds);
     X.mult(Sign);
 
     SetX(X, true);
@@ -1883,16 +1890,14 @@ public class State {
               final Number N_SIGMAY = Memory[(RegOffset + STATSREG_SIGMAY) % 100];
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
 
-              Number N_N_2 = new Number(N_N);
-              N_N_2.x2();
-
+              /* as on the ROM: sum(x^2) / n - (sum(x) / n)^2 */
               Number C1 = new Number(N_SIGMAX);
+              C1.div(N_N);
               C1.x2();
-              C1.div(N_N_2);
 
               Number C2 = new Number(N_SIGMAY);
+              C2.div(N_N);
               C2.x2();
-              C2.div(N_N_2);
 
               T = new Number(N_SIGMAX2);
               T.div(N_N);
@@ -1934,25 +1939,34 @@ public class State {
               final Number N_SIGMAX = Memory[(RegOffset + STATSREG_SIGMAX) % 100];
               final Number N_SIGMAY = Memory[(RegOffset + STATSREG_SIGMAY) % 100];
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
-              final Number m = StatsSlope();
+              /* as on the ROM:
+                   (sum(xy) - sum(x) sum(y) / n)
+                   / sqrt((sum(x^2) - sum(x)^2 / n) (sum(y^2) - sum(y)^2 / n)) */
+              final Number N_SIGMAXY = Memory[(RegOffset + STATSREG_SIGMAXY) % 100];
+
+              Number Cov = new Number(N_SIGMAX);
+              Cov.mult(N_SIGMAY);
+              Cov.div(N_N);
+              Cov.negate();
+              Cov.add(N_SIGMAXY);
 
               Number C1 = new Number(N_SIGMAX);
               C1.x2();
               C1.div(N_N);
               C1.negate();
               C1.add(N_SIGMAX2);
-              C1.sqrt();
 
               Number C2 = new Number(N_SIGMAY);
               C2.x2();
               C2.div(N_N);
               C2.negate();
               C2.add(N_SIGMAY2);
-              C2.sqrt();
 
-              X = m;
-              X.mult(C1);
-              X.div(C2);
+              C1.mult(C2);
+              C1.sqrt();
+
+              X = Cov;
+              X.div(C1);
 
               SetX(X, true);
               OK = true;
@@ -1966,13 +1980,16 @@ public class State {
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
               final Number m = StatsSlope();
 
-              Number C1 = new Number(N_SIGMAX);
-              C1.mult(m);
+              /* as on the ROM, the slope is the first operand */
+              Number C1 = new Number(m);
+              C1.mult(N_SIGMAX);
               C1.negate();
               C1.add(N_SIGMAY);
               C1.div(N_N);
 
-              X.mult(m);
+              Number Y = new Number(m);
+              Y.mult(X);
+              X = Y;
               X.add(C1);
               SetX(X, true);
               OK = true;
@@ -1986,8 +2003,8 @@ public class State {
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
               final Number m = StatsSlope();
 
-              Number C1 = new Number(N_SIGMAX);
-              C1.mult(m);
+              Number C1 = new Number(m);
+              C1.mult(N_SIGMAX);
               C1.negate();
               C1.add(N_SIGMAY);
               C1.div(N_N);

@@ -117,7 +117,8 @@ class NumberTest {
     assertFalse(x.isError());
     x.set(-5);
     x.sqrt();
-    assertEquals("2.2360679775", str(x));
+    /* the ROM truncates the square root: 2.23606797749979 */
+    assertEquals("2.236067977499", str(x));
     assertTrue(x.isError());
   }
 

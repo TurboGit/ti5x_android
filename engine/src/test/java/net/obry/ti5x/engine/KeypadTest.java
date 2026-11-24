@@ -117,7 +117,7 @@ class KeypadTest {
   @Test
   void op99RunsBuiltinTests() {
     Keys(OP, DIGIT[9], DIGIT[9]);
-    assertEquals("44.", Display());
+    assertEquals("45.", Display());
   }
 
   @Test
