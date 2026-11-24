@@ -431,12 +431,39 @@ public class State {
       ResetEntry();
   }
 
+  /* the number of digits of the mantissa being entered, as the display
+     counts them: the leading zeros of the integer part do not count,
+     all the digits after the decimal point do (0.0001234567 has 10) */
+
+  private int MantissaDigits() {
+    String M = ExponentEntered ? CurDisplay.substring(0, CurDisplay.length() - 3) : CurDisplay;
+    M = M.replace("-", "").trim();
+    final int Point = M.indexOf('.');
+    String Int = Point >= 0 ? M.substring(0, Point) : M;
+    final String Frac = Point >= 0 ? M.substring(Point + 1) : "";
+    while (Int.startsWith("0"))
+      Int = Int.substring(1);
+    return Int.length() + Frac.length();
+  }
+
+  /* the display has 10 digits: 8 for the mantissa with an exponent */
+
+  private int MaxMantissaDigits() {
+    return ExponentEntered ? 8 : 10;
+  }
+
   public void Digit
      (
         char TheDigit
      ) {
     if (CurState == ResultState) {
       ResetEntry();
+    }
+
+    /* as the ROM: no more digits than the display can show */
+    if ((CurState == EntryState || CurState == DecimalEntryState)
+        && MantissaDigits() >= MaxMantissaDigits()) {
+      return;
     }
 
     String SaveExponent = "";
@@ -527,6 +554,16 @@ public class State {
     switch (CurState) {
       case EntryState:
       case DecimalEntryState:
+        if (!ExponentEntered && MantissaDigits() > 8) {
+          /* as the ROM: no room for the exponent on the display, it
+             cannot be entered but the format becomes scientific */
+          if (InvState) {
+            if (CurFormat == FORMAT_FLOAT)
+              CurFormat = FORMAT_FIXED;
+          } else if (CurFormat == FORMAT_FIXED)
+            CurFormat = FORMAT_FLOAT;
+          break;
+        }
         if (!ExponentEntered) {
           CurDisplay = CurDisplay + " 00";
           if (CurFormat == FORMAT_FIXED)
@@ -572,10 +609,18 @@ public class State {
           CurFormat = FORMAT_FLOAT;
 
           if (!ExponentEntered) {
-            // ?? the following test is because just above (InvState) we set ExponentEntered.
-            //    but the exponent can still be displayed. This is wrong and should be fixed
-            //    at some point.
-            if (!HasExponent()) {
+            /* as the ROM, the displayed number becomes the number being
+               entered (so it is rounded to the display) */
+            if (HasExponent()) {
+              /* scientific or engineering display: the new digits go
+                 to the exponent */
+              CurState = ExponentEntryState;
+              ExponentEntered = true;
+            } else if (MantissaDigits() > 8) {
+              /* no room for the exponent: the new digits go to the
+                 mantissa (if there is room) */
+              CurState = CurDisplay.contains(".") ? DecimalEntryState : EntryState;
+            } else {
               CurDisplay = CurDisplay + " 00";
               CurState = ExponentEntryState;
               SetShowing(CurDisplay);

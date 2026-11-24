@@ -80,7 +80,7 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   (`.ti5l`), card banks (`.ti5b`) and the calculator state (ZIP + XML, see
   `file_format.txt`). Host UI state saved with it goes through `UiState`.
 - `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
-  must display **45** (the number of tests passed). A negative value `-n` means
+  must display **46** (the number of tests passed). A negative value `-n` means
   test `n` failed. `CalculatorTest` runs it in `./gradlew :engine:test`.
   `KeypadTest` drives the engine through key presses (see `TestHost` for an
   in-memory host). `ProgramFilesTest` loads every generated `res/raw` file
@@ -127,7 +127,7 @@ Command line (`cli/src/main/java/net/obry/ti5x/cli/`):
 - Examples:
   ```sh
   ti5x --trace --fast --max-steps 50 examples/counter/prog
-  ti5x --keys "op 99"                 # built-in tests, shows 45.
+  ti5x --keys "op 99"                 # built-in tests, shows 46.
   ti5x --lib app/src/main/res/raw/ml.ti5l --keys "pgm 01 sbr ="
   ```
 
@@ -171,7 +171,7 @@ Follow the existing style:
 
 - Engine unit tests: `./gradlew :engine:test` (JUnit 5, `engine/src/test/`).
 - CLI tests: `./gradlew :cli:test` (`SessionTest` runs whole sessions in memory).
-- Calculator behaviour: run `Op 99` and check that the display shows `45`.
+- Calculator behaviour: run `Op 99` and check that the display shows `46`.
   When fixing a calculator bug, add a test case to `Tester.java` (and update the expected count everywhere it is mentioned).
 - Assembler/disassembler changes: `./gradlew :engine:test` (`AssemblerTest`)
   and `util/check-assemble-disassemble`.

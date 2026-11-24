@@ -1663,6 +1663,42 @@ class Tester {
     return true;
   }
 
+  private void keys(String k) {
+    // digits, '.', 'E' for EE, '/' and '=' as on the keyboard
+    for (char c : k.toCharArray()) {
+      switch (c) {
+        case '.': Calc.DecimalPoint(); break;
+        case 'E': Calc.EnterExponent(); break;
+        case '/': Calc.Operator(State.STACKOP_DIV); break;
+        case '=': Calc.Equals(); break;
+        default: Calc.Digit(c); break;
+      }
+    }
+  }
+
+  private boolean entry(String k, String expected) {
+    Clear();
+    Calc.ClearAll();
+    keys(k);
+    return isX(expected);
+  }
+
+  private boolean Test_46() {
+    // Number entry as the ROM: 10 digits (8 with an exponent), the zeros
+    // after the decimal point count, EE is refused when the mantissa has
+    // more than 8 digits, EE on a result makes the display the entry.
+    if (!entry("1234567891234=", "1234567891")) return false;
+    if (!entry("0.000123456789123=", ".0001234567")) return false;
+    if (!entry("000012345678912=", "1234567891")) return false;
+    if (!entry("1.2345678E5=", "123456.78")) return false;
+    if (!entry("1.23456789E5=", "1.234567895")) return false;
+    if (!entry("1.5E5.3456789=", "153456.78")) return false;
+    if (!entry("2/3=E5=", ".6666666667")) return false;
+    if (!entry("123456789/10=E5=", "12345678.95")) return false;
+    if (!entry("2/4=E5=", "50000")) return false;
+    return true;
+  }
+
   public int Run() {
     Calc = Engine.Calc;
     int Total = 0;
@@ -1756,6 +1792,8 @@ class Tester {
     if (!Test_44()) return -44;
     Total++;
     if (!Test_45()) return -45;
+    Total++;
+    if (!Test_46()) return -46;
     Total++;
     Clear();
 
