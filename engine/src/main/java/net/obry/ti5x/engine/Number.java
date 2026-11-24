@@ -527,7 +527,18 @@ public class Number {
       v = new BigDecimal(Math.acos(v.doubleValue()), mc).divide(trigScale2(Value), mc);
   }
 
+  /* when set, the functions done by the original TI-59 ROM (see RomMath) */
+  public static RomMath Rom = null;
+
   public void sin(int Angle) {
+    if (Rom != null) {
+      final BigDecimal R = Rom.Sin(v, Angle);
+      if (R != null) {
+        v = R;
+        return;
+      }
+    }
+
     NormalizeAngle(Angle);
 
     if (v.compareTo(B_ZERO) == 0 || v.compareTo(PI.v) == 0)
