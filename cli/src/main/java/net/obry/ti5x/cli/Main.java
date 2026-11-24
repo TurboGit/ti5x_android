@@ -52,7 +52,8 @@ public final class Main {
      + "  -h, --help         show this help\n"
      + "\n"
      + "Display: |       3.14| with \" !\" when flashing (error), \"C\" while running,\n"
-     + "then the 2nd, Inv, Rad/Grad and Lrn indicators.\n"
+     + "then the 2nd, Inv, Rad/Grad and Lrn indicators, and ~ in emulator mode\n"
+     + "(Op 95).\n"
      + "\n"
      + "Exit status: 0 ok, 1 calculator in error state, 2 bad arguments or load\n"
      + "error, 3 stopped by --max-steps.\n";

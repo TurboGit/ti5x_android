@@ -76,6 +76,13 @@ final class Global {
 
     if (Global.Calc.InvState) {
       StatStr = StatStr + "Inv";
+    } else {
+      StatStr = StatStr + SP.repeat(3);
+    }
+
+    /* emulator mode (Op 95): the functions are not computed by the ROM */
+    if (!net.obry.ti5x.engine.Number.RomMode()) {
+      StatStr = StatStr + " ~";
     }
 
     if (Status != null) {
