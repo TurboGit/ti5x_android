@@ -1664,13 +1664,14 @@ class Tester {
   }
 
   private void keys(String k) {
-    // digits, '.', 'E' for EE, '/' and '=' as on the keyboard
+    // digits, '.', 'E' for EE, '/', '=' and 'P' for Pgm 00 as on the keyboard
     for (char c : k.toCharArray()) {
       switch (c) {
         case '.': Calc.DecimalPoint(); break;
         case 'E': Calc.EnterExponent(); break;
         case '/': Calc.Operator(State.STACKOP_DIV); break;
         case '=': Calc.Equals(); break;
+        case 'P': Calc.SelectProgram(0, false); break;
         default: Calc.Digit(c); break;
       }
     }
@@ -1696,6 +1697,9 @@ class Tester {
     if (!entry("2/3=E5=", ".6666666667")) return false;
     if (!entry("123456789/10=E5=", "12345678.95")) return false;
     if (!entry("2/4=E5=", "50000")) return false;
+    // Pgm ends the entry
+    if (!entry("12P3=", "3")) return false;
+    if (!entry("2/3=EP.32=", ".32")) return false;
     return true;
   }
 

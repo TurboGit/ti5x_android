@@ -1554,6 +1554,8 @@ public class State {
         boolean Indirect
      ) {
     if (ProgNr >= 0) {
+      /* as the ROM, Pgm ends the number entry: 12 Pgm 15 3 gives 3 */
+      Enter(36);
       boolean OK = false;
       do /*once*/ {
         if (Indirect) {
