@@ -149,6 +149,10 @@ public final class ProgramFiles {
       if (!new String(Entries.get("mimetype")).equals(CalcMimeType)) {
         throw new DataFormatException("wrong MIME type");
       }
+      if (CalcState) {
+        /* ROM mode unless the state has the rom_mode param (classic mode) */
+        Number.SetRomMode(true);
+      }
       if (Libs) {
         final byte[] LibHelp = Entries.get("help");
         if (LibHelp != null) {

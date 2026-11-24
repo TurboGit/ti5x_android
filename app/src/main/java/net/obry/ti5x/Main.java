@@ -1304,10 +1304,31 @@ public class Main extends BaseCompatActivity {
     CheckDisplayOrientation();
   }
 
+  /* saves the calculator state, once it has been restored (else the
+     saved state would be replaced by the default one) */
+
+  private void SaveStateIfLoaded() {
+    if (StateLoaded && Global.Calc != null) {
+      try {
+        Persistent.SaveState(this, false);
+      } catch (RuntimeException Failed) {
+        System.err.println("ti5x: cannot save the state: " + Failed);
+      }
+    }
+  }
+
+  @Override
+  public void onStop() {
+    /* Android can kill the app in the background without calling
+       onDestroy: save the state (and the ROM/classic mode, Op 95) now */
+    SaveStateIfLoaded();
+    super.onStop();
+  }
+
   @Override
   public void onDestroy() {
     // save state before closing
-    Persistent.SaveState(this, false);
+    SaveStateIfLoaded();
     Global.KillBGTask();
     if (Global.Calc != null) {
       Global.Calc.ResetLibs();

@@ -183,6 +183,12 @@ class ProgramFilesTest {
       Number.SetRomMode(true);
       ProgramFiles.Load(new TestHost().NewCalculator().Calc, null, new ByteArrayInputStream(Saved), false, true);
       assertFalse(Number.RomMode());
+      /* a state saved in ROM mode restores the ROM mode */
+      Number.SetRomMode(true);
+      final byte[] RomSaved = SaveState(Engine);
+      Number.SetRomMode(false);
+      ProgramFiles.Load(new TestHost().NewCalculator().Calc, null, new ByteArrayInputStream(RomSaved), false, true);
+      assertTrue(Number.RomMode());
     } finally {
       Number.SetRomMode(true);
     }
