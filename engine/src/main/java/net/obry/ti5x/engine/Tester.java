@@ -1532,6 +1532,63 @@ class Tester {
     return true;
   }
 
+  private boolean operation(int op, String a, String b, String expected) {
+    Clear();
+    Calc.X.set(a);
+    Calc.SetX(Calc.X, false);
+    Calc.Operator(op);
+    Calc.X.set(b);
+    Calc.SetX(Calc.X, false);
+    Calc.Equals();
+    return Calc.X.isEqual(new Number(expected));
+  }
+
+  private boolean mult(String a, String b, String expected) {
+    return operation(State.STACKOP_MUL, a, b, expected);
+  }
+
+  private boolean div(String a, String b, String expected) {
+    return operation(State.STACKOP_DIV, a, b, expected);
+  }
+
+  private boolean Test_44() {
+    // Multiplication and division as done by the TI-59 ROM (values
+    // checked on the ROM emulator). Multiplication: repeated addition
+    // into a 13-digit accumulator, the 13th digit of the second operand
+    // is lost when an addition overflows. Division: the divisor loses
+    // its last digits as it is shifted, the quotient can be one more
+    // than the truncated one.
+    if (!mult("24298", "107766.3599999", "2618507015.255")) return false;
+    if (!mult("107766.3599999", "24298", "2618507015.277")) return false;
+    if (!mult("7", "4.290839263685", "30.03587484577")) return false;
+    if (!mult("1.999999999999", "1.999999999999", "3.999999999978")) return false;
+    if (!mult("-2.4298", "1.999999999999", "-4.859599999975")) return false;
+    if (!mult("2", "1.999999999999", "3.999999999998")) return false;
+
+    if (!div("10", "17.897541921", ".5587359450891")) return false;
+    if (!div("1889.95", "1.32892184", "1422.167913201")) return false;
+    if (!div("2", "3", ".6666666666666")) return false;
+
+    // Prd: the memory is the first operand
+    Clear();
+    Calc.Memory[8].set("2.4298");
+    Calc.X.set("1.077663599999");
+    Calc.SetX(Calc.X, false);
+    Calc.MemoryOp(State.MEMOP_MUL, 8, false);
+    if (!Calc.Memory[8].isEqual(new Number("2.618507015255"))) return false;
+
+    // Inv Prd: the memory is the dividend
+    Calc.Memory[8].set("10");
+    Calc.X.set("17.897541921");
+    Calc.SetX(Calc.X, false);
+    Calc.InvState = true;
+    Calc.MemoryOp(State.MEMOP_MUL, 8, false);
+    Calc.InvState = false;
+    if (!Calc.Memory[8].isEqual(new Number(".5587359450891"))) return false;
+
+    return true;
+  }
+
   public int Run() {
     Calc = Engine.Calc;
     int Total = 0;
@@ -1621,6 +1678,8 @@ class Tester {
     if (!Test_42()) return -42;
     Total++;
     if (!Test_43()) return -43;
+    Total++;
+    if (!Test_44()) return -44;
     Total++;
     Clear();
 

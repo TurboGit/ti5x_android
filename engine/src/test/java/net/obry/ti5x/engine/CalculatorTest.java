@@ -26,10 +26,10 @@ class CalculatorTest {
 
   @Test
   void builtinTestsPass() {
-    /* same as keying Op 99 on the calculator: 43 tests must pass */
+    /* same as keying Op 99 on the calculator: 44 tests must pass */
     final TestHost Host = new TestHost();
     final Calculator Engine = Host.NewCalculator();
-    assertEquals(43, Engine.RunTests());
+    assertEquals(44, Engine.RunTests());
     assertTrue(Host.Errors.isEmpty(), Host.Errors.toString());
   }
 
@@ -38,6 +38,6 @@ class CalculatorTest {
     final TestHost Host = new TestHost();
     final State Calc = Host.NewCalculator().Calc;
     Calc.SpecialOp(99, false);
-    assertEquals("43.", Calc.CurDisplay.trim());
+    assertEquals("44.", Calc.CurDisplay.trim());
   }
 }

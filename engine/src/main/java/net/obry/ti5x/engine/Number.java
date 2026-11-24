@@ -223,6 +223,117 @@ public class Number {
     mult(new Number((double) i));
   }
 
+  /* Multiplication done exactly as the TI-59 ROM does it, with this
+     number as the first operand and Second as the second one (the
+     display register for "a x b =" and the memory as first operand
+     for Prd).
+
+     The ROM multiplies the 13-digit mantissas by repeated addition:
+     the digits of the first operand are taken from the least
+     significant one, the second operand is added digit times into a
+     13-digit accumulator, and the accumulator is shifted right
+     (truncated, there is no guard digit) between two digits.
+
+     When an addition overflows the accumulator, the accumulator and
+     the second operand are shifted right, so the 13th digit of the
+     second operand is lost. At the next digit the second operand is
+     shifted back left instead of shifting the accumulator, so this
+     digit stays lost for the rest of the multiplication. If the
+     overflow is on the last digit the exponent is one more.
+
+     The result is then not always the 13-digit truncation of the
+     exact product, and it depends on the order of the operands:
+     24298 x 107766.3599999 = 2618507015.255 but
+     107766.3599999 x 24298 = 2618507015.277. Random number generators
+     keeping only a fractional part (ML-15) show the difference. */
+
+  public void romMult(Number Second) {
+    if (v.signum() == 0 || Second.v.signum() == 0) {
+      v = B_ZERO;
+      return;
+    }
+
+    final int[] ExpA = new int[1];
+    final int[] ExpB = new int[1];
+    final long MantA = mantissa(v, ExpA);
+    final long MantB = mantissa(Second.v, ExpB);
+    final int[] Carry = new int[1];
+    final long Result = romMultMantissa(MantA, MantB, Carry);
+
+    BigDecimal R = BigDecimal.valueOf(Result, 12 - (ExpA[0] + ExpB[0] + Carry[0]));
+    if (v.signum() != Second.v.signum())
+      R = R.negate();
+    v = R;
+  }
+
+  private final static long MANT_TOP = 10_000_000_000_000L; // 10^13
+
+  /* The 13-digit mantissa of a non-zero value (truncated if longer),
+     Exp[0] is set to its exponent: |d| = mantissa * 10^(Exp[0] - 12). */
+
+  private static long mantissa(BigDecimal d, int[] Exp) {
+    BigDecimal A = d.abs();
+    if (A.precision() > 13)
+      A = A.round(new MathContext(13, RoundingMode.DOWN));
+    final int P = A.precision();
+    Exp[0] = P - 1 - A.scale();
+    long M = A.unscaledValue().longValue();
+    for (int i = P; i < 13; i++)
+      M *= 10;
+    return M;
+  }
+
+  /* The ROM multiplication of two 13-digit mantissas (see romMult).
+     Carry[0] is set to 1 if the result has one more integer digit. The
+     digit times additions are done at once, an overflow is found by
+     computing the addition where it happens: the additions after it
+     are done with the second operand shifted, and cannot overflow
+     again. */
+
+  static long romMultMantissa(long First, long Second, int[] Carry) {
+    long Acc = 0;
+    long A = First;
+    long B = Second;
+    boolean Overflow = false;
+    boolean FirstDigit = true;
+
+    while (true) {
+      if (!FirstDigit) {
+        if (A == 0)
+          break;
+        if (Overflow) {
+          // shift the second operand back, its last digit is lost
+          B *= 10;
+          Overflow = false;
+        } else {
+          Acc /= 10;
+        }
+      }
+      FirstDigit = false;
+
+      final long Digit = A % 10;
+      A /= 10;
+
+      if (Digit == 0)
+        continue;
+
+      final long Sum = Acc + Digit * B;
+
+      if (Sum < MANT_TOP) {
+        Acc = Sum;
+      } else {
+        // the K-th addition overflows
+        final long K = (MANT_TOP - Acc + B - 1) / B;
+        Acc = (Acc + K * B) / 10 + (Digit - K) * (B / 10);
+        B /= 10;
+        Overflow = true;
+      }
+    }
+
+    Carry[0] = Overflow ? 1 : 0;
+    return Acc;
+  }
+
   public void div(Number n) {
     if (n.v.compareTo(B_ZERO) == 0) {
       v = B_ERROR;
@@ -233,6 +344,67 @@ public class Number {
 
   public void div(long i) {
     div(new Number((double) i));
+  }
+
+  /* Division done exactly as the TI-59 ROM does it, this number is the
+     dividend.
+
+     The ROM does a long division by repeated subtraction on 15 digits:
+     the 13 digits of the mantissas and the 2 exponent digits used as
+     guard digits. After each digit of the quotient the divisor is
+     shifted right and its last digit is lost, so the divisor gets a
+     bit smaller and the quotient is sometimes one more in its 13th
+     digit than the truncated exact quotient:
+     10 / 17.897541921 = .5587359450891 (exact .55873594508900382...).
+     The quotient digits are made until there are 13 of them, a first
+     digit 0 is not counted. */
+
+  public void romDiv(Number Divisor) {
+    if (Divisor.v.signum() == 0) {
+      v = B_ERROR;
+      error = true;
+      return;
+    }
+    if (v.signum() == 0) {
+      v = B_ZERO;
+      return;
+    }
+
+    final int[] ExpA = new int[1];
+    final int[] ExpB = new int[1];
+    final long MantA = mantissa(v, ExpA);
+    final long MantB = mantissa(Divisor.v, ExpB);
+    final int[] Shift = new int[1];
+    final long Result = romDivMantissa(MantA, MantB, Shift);
+
+    BigDecimal R = BigDecimal.valueOf(Result, 12 - (ExpA[0] - ExpB[0] - Shift[0]));
+    if (v.signum() != Divisor.v.signum())
+      R = R.negate();
+    v = R;
+  }
+
+  /* The ROM division of two 13-digit mantissas (see romDiv). Shift[0]
+     is set to 1 if the first digit of the quotient was 0. The repeated
+     subtractions for a digit are done at once by a division. */
+
+  static long romDivMantissa(long Dividend, long Divisor, int[] Shift) {
+    long R = Dividend * 100;
+    long D = Divisor * 100;
+    long Q = 0;
+    Shift[0] = 0;
+
+    while (true) {
+      Q += R / D;
+      R %= D;
+      if (Q >= MANT_TOP / 10)
+        break;
+      D /= 10;
+      Q *= 10;
+      if (Q == 0)
+        Shift[0]++;
+    }
+
+    return Q;
   }
 
   public void rem(Number n) {

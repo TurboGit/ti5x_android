@@ -762,10 +762,12 @@ public class State {
         X = ThisOp.Operand;
         break;
       case STACKOP_MUL:
-        X.mult(ThisOp.Operand);
+        /* the first operand drives the ROM multiplication */
+        ThisOp.Operand.romMult(X);
+        X = ThisOp.Operand;
         break;
       case STACKOP_DIV:
-        ThisOp.Operand.div(X);
+        ThisOp.Operand.romDiv(X);
         X = ThisOp.Operand;
         if (X.isError()) {
           SetX(X, false);
@@ -1561,10 +1563,11 @@ public class State {
             Memory[RegNr].sub(X);
             break;
           case MEMOP_MUL:
-            Memory[RegNr].mult(X);
+            /* as on the ROM, the memory is the first operand */
+            Memory[RegNr].romMult(X);
             break;
           case MEMOP_DIV:
-            Memory[RegNr].div(X);
+            Memory[RegNr].romDiv(X);
             if (Memory[RegNr].isError())
               SetErrorState(false);
             break;
