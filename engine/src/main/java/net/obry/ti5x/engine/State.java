@@ -90,7 +90,10 @@ public class State {
   public int CurNrDecimals = -1;
 
   /* Max and Min number that can be represented using a fixed format */
-  private final static Number minFixed = new Number(5.0 * Math.pow(10.0, -9.0));
+  /* as the ROM, the standard display is in fixed notation while the number
+     rounded to the 10 decimals of the display is not 0 (0.0000000012 for
+     1.234567891E-9) */
+  private final static Number minFixed = new Number("5E-11");
   private final static Number maxFixed = new Number(Math.pow(10.0, 10.0));
 
   /* angle units */
@@ -1688,7 +1691,7 @@ public class State {
     }
   }
 
-  private void HirOp
+  void HirOp
      (
         int Code
      ) {
@@ -1710,6 +1713,11 @@ public class State {
         if (RegNr != 0 && OpStack[RegNr - 1] == null)
           OpStack[RegNr - 1] = new OpStackEntry(new Number(), Code, 0);
 
+        /* as the ROM: when X is shown without exponent (fixed notation),
+           the HIR arithmetic uses X with the sign of its exponent dropped
+           (9.347E-6 is used as 9.347E6) */
+        final Number Arg = HasExponent() ? X : X.positiveExponent();
+
         switch (Op) {
           case HIROP_STO:
             if (RegNr != 0)
@@ -1723,25 +1731,25 @@ public class State {
             if (RegNr == 0)
               X.add(X);
             else
-              OpStack[RegNr - 1].Operand.romAdd(X);
+              OpStack[RegNr - 1].Operand.romAdd(Arg);
             break;
           case HIROP_SUB:
             if (RegNr == 0)
               X.set(0);
             else
-              OpStack[RegNr - 1].Operand.romSub(X);
+              OpStack[RegNr - 1].Operand.romSub(Arg);
             break;
           case HIROP_MUL:
             if (RegNr == 0)
               X.x2();
             else
-              OpStack[RegNr - 1].Operand.romMult(X);
+              OpStack[RegNr - 1].Operand.romMult(Arg);
             break;
           case HIROP_DIV:
             if (RegNr == 0)
               X.set(1);
             else
-              OpStack[RegNr - 1].Operand.romDiv(X);
+              OpStack[RegNr - 1].Operand.romDiv(Arg);
 
             if (X.isError())
               SetErrorState(false);

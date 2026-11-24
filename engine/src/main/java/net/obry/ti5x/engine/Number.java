@@ -716,6 +716,17 @@ public class Number {
       set(Math.pow(v.doubleValue(), n.v.doubleValue()));
   }
 
+  /* this number with the sign of its exponent dropped: 9.347E-6 gives
+     9.347E6 (see the HIR operations in State) */
+
+  public Number positiveExponent() {
+    if (v.signum() == 0)
+      return new Number(v);
+    final BigDecimal A = v.abs();
+    final int Exp = A.precision() - 1 - A.scale();
+    return new Number(Exp < 0 ? v.scaleByPowerOfTen(-2 * Exp) : v);
+  }
+
   /* 10^x and the X root of this number: only done by the ROM, false if
      it is not used */
 

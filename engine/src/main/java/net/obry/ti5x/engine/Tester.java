@@ -1699,6 +1699,47 @@ class Tester {
     return true;
   }
 
+  private boolean hirSum(String a, String x, String expected) {
+    Clear();
+    Calc.X.set(a);
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(3);  // HIR 03: STO 3
+    Calc.X.set(x);
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(33); // HIR 33: SUM 3
+    Calc.HirOp(13); // HIR 13: RCL 3
+    return isX(expected);
+  }
+
+  private boolean Test_47() {
+    // The standard display is fixed while the number rounded to 10
+    // decimals is not 0, as on the ROM.
+    Clear();
+    SetX(1.234e-9);
+    if (!check(".0000000012", false)) return false;
+    SetX(5e-11);
+    if (!check(".0000000001", false)) return false;
+    SetX(4.99e-11);
+    if (!check("4.99-11", false)) return false;
+
+    // HIR SUM/PRD use X with the sign of its exponent dropped when X is
+    // shown without exponent (values checked on the ROM emulator).
+    if (!hirSum("20.0339075", "9.347E-6", "9347020.033907")) return false;
+    if (!hirSum("20.0339075", "-9.347E-6", "-9346979.966093")) return false;
+    if (!hirSum("20.0339075", "1.5E-12", "20.0339075")) return false;
+    Calc.CurFormat = State.FORMAT_FLOAT;
+    Calc.X.set("20.0339075");
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(3);
+    Calc.X.set("9.347E-6");
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(33);
+    Calc.HirOp(13);
+    if (!isX("20.033916847")) return false;
+    Clear();
+    return true;
+  }
+
   public int Run() {
     Calc = Engine.Calc;
     int Total = 0;
@@ -1794,6 +1835,8 @@ class Tester {
     if (!Test_45()) return -45;
     Total++;
     if (!Test_46()) return -46;
+    Total++;
+    if (!Test_47()) return -47;
     Total++;
     Clear();
 

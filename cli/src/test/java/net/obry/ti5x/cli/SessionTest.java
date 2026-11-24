@@ -91,7 +91,7 @@ class SessionTest {
     S.KeyScripts.add("op 99");
     S.ShowPrinter = false;
     assertEquals(Session.EXIT_OK, S.Run());
-    assertEquals("|          46.|", LastLine());
+    assertEquals("|          47.|", LastLine());
   }
 
   @Test

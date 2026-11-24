@@ -41,7 +41,7 @@ used in `modules/` and `examples/`) or a list of opcodes (`--opcodes`).
 Keys are given as a script, using the key names of the source syntax,
 for example:
 
-    ti5x --keys "op 99"                     # built-in tests, shows 46.
+    ti5x --keys "op 99"                     # built-in tests, shows 47.
     ti5x --keys "2 + 3 ="                   # shows 5.
     ti5x --lib app/src/main/res/raw/ml.ti5l --keys "pgm 01 sbr ="
     ti5x --trace --fast --max-steps 50 examples/counter/prog
