@@ -1,6 +1,10 @@
 To build the ti5x app for Android, you will need the Android Studio
 and SDK, available from <http://developer.android.com/>, along with
-its prerequisites, including the Sun JDK.
+its prerequisites, including a JDK 17 or later. The JDK must include
+the Java compiler: a JDK without javac makes the build fail with
+"does not provide the required capabilities: [JAVA_COMPILER]". Either
+set JAVA_HOME to a full JDK or use the wrapper.sh script described
+below, which uses the JDK bundled with Android Studio.
 
 The scripts in the util directory require Python 3.1 or later.
 The rendercard script requires GhostScript to do the rendering.
@@ -50,7 +54,11 @@ following helper script on the top level directory:
     ./wrapper.sh build
 
 If this completes without errors, you should have a file
-bin/ti5x-release.apk, which is the application package.
+app/build/outputs/apk/release/app-release.apk, which is the
+application package. A debug package, which does not need
+keystore.properties to be filled in, is built with:
+
+    ./wrapper.sh assembleDebug
 
 You may clean the build tree with:
 
@@ -60,3 +68,20 @@ You can also install, debug or execute the application to an Android
 emulator directly under the emulator using Android Studio. It is also
 possible to install the application into an Android device connected
 via USB.
+
+Command line and tests
+======================
+
+The calculator engine (engine/) and the ti5x command line (cli/) are
+plain Java and only need the JDK. The command line is built with:
+
+    ./wrapper.sh :cli:installDist
+
+and is then run as cli/build/install/ti5x/bin/ti5x (see README.md).
+The unit tests are run with:
+
+    ./wrapper.sh :engine:test :cli:test
+
+Some tests use the libraries generated in app/src/main/res/raw by the
+app build, and the comparison of the Java assembler with util/assemble
+needs python3; these tests are skipped when not available.

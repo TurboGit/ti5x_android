@@ -21,7 +21,7 @@ package net.obry.ti5x;
 import android.graphics.RectF;
 import com.google.android.material.snackbar.Snackbar;
 
-class LabelCard extends android.view.View {
+class LabelCard extends android.view.View implements net.obry.ti5x.engine.HelpSink {
   private android.graphics.Bitmap CardImage, NewCardImage;
   private byte[] Help;
   private final int Dark, LEDOff;
@@ -40,46 +40,54 @@ class LabelCard extends android.view.View {
     LEDOff = Res.getColor(R.color.led_off);
     CardImage = null;
     Help = null;
-    setOnTouchListener
+    setOnClickListener
        (
-          new android.view.View.OnTouchListener() {
-            public boolean onTouch
+          new android.view.View.OnClickListener() {
+            public void onClick
                (
-                  android.view.View TheView,
-                  android.view.MotionEvent TheEvent
+                  android.view.View TheView
                ) {
-              boolean Handled = false;
-              if (!Global.BGTaskInProgress()) {
-                switch (TheEvent.getAction()) {
-                  case android.view.MotionEvent.ACTION_DOWN:
-                    TheView.performClick();
-                  case android.view.MotionEvent.ACTION_MOVE:
-                    if (Help != null) {
-                      final android.content.Intent ShowHelp =
-                         new android.content.Intent(android.content.Intent.ACTION_VIEW);
-                      ShowHelp.putExtra(net.obry.ti5x.Help.ContentID, Help);
-                      ShowHelp.setClass(ctx, Help.class);
-                      ctx.startActivity(ShowHelp);
-                    } else {
-                      Snackbar.make(
-                            TheView,
-                            ctx.getString(R.string.no_prog_help),
-                            Snackbar.LENGTH_SHORT
-                         ).show();
-                    }
-                    Handled = true;
-                    break;
-                  case android.view.MotionEvent.ACTION_UP:
-                    TheView.performClick();
-                  case android.view.MotionEvent.ACTION_CANCEL:
-                    Handled = true;
-                    break;
-                }
+              if (Global.BGTaskInProgress())
+                return;
+              if (Help != null) {
+                final android.content.Intent ShowHelp =
+                   new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                ShowHelp.putExtra(net.obry.ti5x.Help.ContentID, Help);
+                ShowHelp.setClass(ctx, Help.class);
+                ctx.startActivity(ShowHelp);
+              } else if (CanEditCard()) {
+                /* no help for the user program, make its label card */
+                CardEditor.Launch(ctx);
+              } else {
+                Snackbar.make(
+                      TheView,
+                      ctx.getString(R.string.no_prog_help),
+                      Snackbar.LENGTH_SHORT
+                   ).show();
               }
-              return Handled;
             }
           }
        );
+    setOnLongClickListener
+       (
+          new android.view.View.OnLongClickListener() {
+            public boolean onLongClick
+               (
+                  android.view.View TheView
+               ) {
+              if (Global.BGTaskInProgress() || !CanEditCard())
+                return false;
+              CardEditor.Launch(ctx);
+              return true;
+            }
+          }
+       );
+  }
+
+  private static boolean CanEditCard() {
+    /* the label card of the user program (Pgm 00) can be made in the app,
+       not while a program is running */
+    return Global.Calc != null && Global.Calc.CurBank == 0 && !Global.Calc.TaskRunning;
   }
 
   private void SlideInNewCard() {
@@ -141,10 +149,13 @@ class LabelCard extends android.view.View {
 
   public void SetHelp
      (
-        android.graphics.Bitmap NewCardImage,
+        byte[] NewCardData, /* PNG image, can be null */
         byte[] NewHelp
      ) {
-    this.NewCardImage = NewCardImage;
+    this.NewCardImage =
+       NewCardData != null
+          ? android.graphics.BitmapFactory.decodeByteArray(NewCardData, 0, NewCardData.length)
+          : null;
     if (CardImage != null) {
       SlideOutOldCard();
     } else if (NewCardImage != null) {

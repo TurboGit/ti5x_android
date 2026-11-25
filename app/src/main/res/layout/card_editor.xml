@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_editor"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- card preview -->
+        <ImageView
+            android:id="@+id/card_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/card_preview"/>
+
+        <TextView
+            android:id="@+id/card_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:visibility="gone"
+            android:text="@string/card_no_source"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="12dp">
+
+            <EditText
+                android:id="@+id/card_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:hint="@string/card_title"
+                android:inputType="textCapCharacters"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+
+            <EditText
+                android:id="@+id/card_id"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/card_id"
+                android:inputType="textCapCharacters"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/card_prime_a"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="A'"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_prime_b"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="B'"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_prime_c"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="C'"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_prime_d"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="D'"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_prime_e"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="E'"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/card_base_a"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="A"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_base_b"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="B"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_base_c"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="C"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_base_d"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="D"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+            <EditText
+                android:id="@+id/card_base_e"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="E"
+                android:inputType="text"
+                android:singleLine="true"
+                android:importantForAutofill="no"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="12dp">
+
+            <Button
+                android:id="@+id/card_new"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAllCaps="false"
+                android:text="@string/card_new"/>
+
+            <Button
+                android:id="@+id/card_select"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAllCaps="false"
+                android:text="@string/card_select"/>
+
+            <Button
+                android:id="@+id/card_remove"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAllCaps="false"
+                android:text="@string/card_remove"/>
+
+            <Button
+                android:id="@+id/card_save"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAllCaps="false"
+                android:text="@string/card_save"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

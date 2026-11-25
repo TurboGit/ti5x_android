@@ -18,79 +18,31 @@
 
 package net.obry.ti5x;
 
-import java.util.zip.ZipEntry;
-import java.io.StreamTokenizer;
-import java.io.StringReader;
-import java.util.ArrayList;
+import net.obry.ti5x.engine.State;
+import net.obry.ti5x.engine.Constants;
+import net.obry.ti5x.engine.DataFormatException;
+import net.obry.ti5x.engine.Disassembler;
+import net.obry.ti5x.engine.ProgramFiles;
+
 import java.io.File;
-
-class ZipComponentWriter
-  /* convenient writing of components to a ZIP archive, with automatic
-     calculation of size and CRC fields. */ {
-  final private java.util.zip.ZipOutputStream Parent;
-  final private ZipEntry Entry;
-  java.io.ByteArrayOutputStream Out;
-
-  ZipComponentWriter
-     (
-        java.util.zip.ZipOutputStream Parent,
-        String Name,
-        boolean Compressed
-     ) {
-    this.Parent = Parent;
-    Entry = new ZipEntry(Name);
-    Entry.setMethod
-       (
-          Compressed ?
-             ZipEntry.DEFLATED
-             :
-             ZipEntry.STORED
-       );
-    Out = new java.io.ByteArrayOutputStream();
-  }
-
-  void write
-     (
-        byte[] buffer
-     ) {
-    Out.write(buffer, 0, buffer.length);
-  }
-
-  void write
-     (
-        String data
-     ) {
-    write(data.getBytes());
-  }
-
-  void close()
-     throws java.io.IOException {
-     /* finalizes output of this archive component. */
-    Out.close();
-    final byte[] TheData = Out.toByteArray();
-    Entry.setSize(TheData.length);
-    final java.util.zip.CRC32 crc = new java.util.zip.CRC32();
-    crc.update(TheData);
-    Entry.setCrc(crc.getValue());
-    Parent.putNextEntry(Entry);
-    Parent.write(TheData, 0, TheData.length);
-    Parent.closeEntry();
-  }
-}
 
 public class Persistent {
   /* saving/loading of libraries and calculator state. */
-  static final String CalcMimeType = "application/vnd.nz.gen.geek_central.ti5x";
+  static final String CalcMimeType = ProgramFiles.CalcMimeType;
   private static final String StateExt = ".ti5s"; /* for saved calculator state */
   static final String ProgExt = ".ti5p"; /* for saved user program */
   static final String LibExt = ".ti5l"; /* for library */
-  static final String BankExt = ".ti5b"; /* for library */
-  static final String DataExt = ".dat"; /* for data export */
+  static final String BankExt = Constants.BankExt;
+  static final String DataExt = Constants.DataExt;
   static final String TextExt = ".txt"; /* for exported program text */
-  static final String ProgramsDir = "Programs"; /* where to save user programs */
-  static final String DataDir = "Data"; /* where to save exported data */
+  static final String ProgramsDir = Constants.ProgramsDir;
+  static final String DataDir = Constants.DataDir;
   static final String PrinterDir = "Paper"; /* where to save exported paper */
-  static final String BankDir = "Banks"; /* where to save bank files */
+  static final String CardDir = "Card"; /* label card images */
+  static final String CardImageExt = ".png";
+  static final String CardSourceExt = ".xml";
+  static final String InAppCard = "inapp"; /* card saved by the card editor */
+  static final String BankDir = Constants.BankDir;
   static final String StateDir = "State"; /* where to save state files */
   static final String[] ExternalCalcDirectories =
       /* where to load programs/libraries from */
@@ -115,16 +67,6 @@ public class Persistent {
   /* loaded library saved separately so it doesn't have to be re-saved
      every time state changes */
 
-  static class DataFormatException extends RuntimeException {
-    /* indicates a problem parsing a saved state file. */
-
-    DataFormatException
-       (
-          String Message
-       ) {
-      super(Message);
-    }
-  }
   public static String EnsureDirExists
      (
         android.content.Context ctx,
@@ -140,120 +82,13 @@ public class Persistent {
     return Dir + (FileName == "" ? "" : "/" + FileName);
   }
 
-  private static void SaveBool
-     (
-        java.io.PrintStream POut,
-        String Name,
-        boolean Value,
-        int Indent
-     ) {
-    POut.printf(Global.StdLocale, String.format(Global.StdLocale, "%%%ds", Indent), " ");
-    POut.printf(Global.StdLocale, "<param name=\"%s\" value=\"%s\"/>\n", Name, Value ? "1" : "0");
-  }
-
-  private static void SaveInt
-     (
-        java.io.PrintStream POut,
-        String Name,
-        int Value,
-        int Indent
-     ) {
-    POut.printf(Global.StdLocale, String.format(Global.StdLocale, "%%%ds", Indent), " ");
-    POut.printf(Global.StdLocale, "<param name=\"%s\" value=\"%d\"/>\n", Name, Value);
-  }
-
-  private static void SaveNumber
-     (
-        java.io.PrintStream POut,
-        String Name,
-        Number Value,
-        int Indent
-     ) {
-    POut.printf(Global.StdLocale, String.format(Global.StdLocale, "%%%ds", Indent), " ");
-    POut.printf
-       ("<param name=\"%s\" value=\""
-          + Value.formatString(Global.StdLocale, Global.NrSigFigures)
-          + "\"/>\n", Name);
-  }
-
-  static boolean GetBool
-     (
-        String Value
-     ) {
-    boolean Result;
-    int IntValue;
-    try {
-      IntValue = Integer.parseInt(Value);
-    } catch (NumberFormatException Bad) {
-      throw new DataFormatException(String.format(Global.StdLocale, "bad boolean value \"%s\"", Value));
-    }
-    if (IntValue == 0) {
-      Result = false;
-    } else if (IntValue == 1) {
-      Result = true;
-    } else {
-      throw new DataFormatException(String.format(Global.StdLocale, "bad boolean value %d", IntValue));
-    }
-    return Result;
-  }
-
-  static int GetInt
-     (
-        String Value
-     ) {
-    int Result;
-    try {
-      Result = Integer.parseInt(Value);
-    } catch (NumberFormatException Bad) {
-      throw new DataFormatException(String.format(Global.StdLocale, "bad integer value \"%s\"", Value));
-    }
-    return Result;
-  }
-
-  static double GetDouble
-     (
-        String Value
-     ) {
-    double Result;
-    try {
-      Result = Double.parseDouble(Value);
-    } catch (NumberFormatException Bad) {
-      throw new DataFormatException(String.format(Global.StdLocale, "bad double value \"%s\"", Value));
-    }
-    return Result;
-  }
-
-  // read string content expected to have a set of values. This is designed to read
-  // progs & memories as saved into an XML file.
-  private static ArrayList<Double> parseNumbers(String content)
-  {
-    ArrayList<Double> opCodes = new ArrayList<Double>();
-    StringReader In = new StringReader(content);
-    StreamTokenizer sTokenizer = new StreamTokenizer(In);
-
-    try {
-      while(sTokenizer.nextToken() != StreamTokenizer.TT_EOF) {
-        if(sTokenizer.ttype == StreamTokenizer.TT_NUMBER) {
-          opCodes.add(new Double(sTokenizer.nval));
-        }
-      }
-    }
-    catch (Exception e) {
-      e.getStackTrace();
-    }
-
-    return opCodes;
-  }
-
   public static void LoadBankFile
       (
           android.content.Context ctx,
           int N,
           int CardId,
           String FileName,
-          State Calc,
-          Display Disp,
-          ButtonGrid Buttons
+          State Calc
       ) {
 
     if (!Global.DataStorage.fileExists(BankDir, FileName)) {
@@ -272,26 +107,13 @@ public class Persistent {
         final String ToFile = Global.DataStorage.GetAppDataBankFile(FileName);
         In = new java.io.FileInputStream(ToFile);
       }
-      javax.xml.parsers.SAXParserFactory.newInstance().newSAXParser().parse
-            (
-                In,
-                new CalcStateLoader(Disp, Buttons, Calc, N, CardId,false)
-            );
-      } catch (javax.xml.parsers.ParserConfigurationException Bug) {
-        throw new RuntimeException("SAX parser error: " + Bug.toString());
-      } catch (org.xml.sax.SAXException Bad) {
-        throw new DataFormatException("SAX parser error: " + Bad.toString());
-      } catch (java.io.FileNotFoundException Failed) {
-        throw new RuntimeException
-          (
-              "ti5x.Persistent.LoadBankFile open error " + Failed.toString()
-          );
-      }  catch (java.io.IOException Failed) {
-        throw new RuntimeException
-          (
+    } catch (java.io.FileNotFoundException Failed) {
+      throw new RuntimeException
+        (
             "ti5x.Persistent.LoadBankFile open error " + Failed.toString()
-          );
-      }
+        );
+    }
+    ProgramFiles.LoadBank(Calc, In, N, CardId);
   }
 
   public static void SaveBankFile
@@ -319,461 +141,7 @@ public class Persistent {
           );
     }
 
-    java.io.PrintStream POut = new java.io.PrintStream(Out);
-    POut.println("<state>");
-    POut.println("    <calc>");
-    // save now
-    SaveBank(N, Id, Calc, Calc.Program, POut, 8);
-
-    POut.println("    </calc>");
-    POut.println("</state>");
-
-    try {
-      POut.flush();
-      Out.close();
-    } catch (java.io.IOException Failed) {
-      throw new RuntimeException("ti5x.Persistent.SaveBankFile error " + Failed.toString());
-    }
-  }
-
-  private static void SaveBank
-          (
-                  int N, /* bank number 1 to 4 */
-                  int Id,
-                  State Calc,
-                  byte[] Program,
-                  java.io.PrintStream POut,
-                  int Indent
-          ) {
-
-    POut.print(String.format(Global.StdLocale,
-        String.format(Global.StdLocale,
-            "%%%ds<bankprog n='%01d' id='%03d'>\n", Indent, N, Id), ""));
-    int Cols = 0;
-
-    for (int k = (N - 1) * 240; k < N * 240; k++) {
-      if (Cols == 24) {
-        POut.print("\n");
-        Cols = 0;
-      }
-      if (Cols != 0) {
-        POut.print(" ");
-      } else {
-        POut.print
-          (
-            String.format
-              (
-                 Global.StdLocale,
-                 String.format(Global.StdLocale, "%%%ds", Indent + 4),
-                ""
-              )
-          );
-      }
-      POut.printf(Global.StdLocale, "%02d", Program[k]);
-      Cols++;
-    }
-    POut.print
-      (
-        String.format(Global.StdLocale,
-            String.format(Global.StdLocale,
-                "\n%%%ds</bankprog>\n", Indent), "")
-      );
-
-    POut.print(String.format(Global.StdLocale, String.format(Global.StdLocale, "%%%ds<bankmem n='%01d' id='%03d'>\n", Indent, N, Id), ""));
-
-    for (int k = (4 - N) * 30; k < (4 - N + 1) * 30; k++) {
-      if (k < Calc.MaxMemories) {
-        POut.printf("            %s\n", Calc.Memory[k].formatString(Global.StdLocale, 16));
-      }
-    }
-
-    POut.print
-      (
-        String.format(Global.StdLocale, String.format(Global.StdLocale, "%%%ds</bankmem>\n", Indent, N), "")
-      );
-  }
-
-  private static void SaveProg
-     (
-        byte[] Program,
-        java.io.PrintStream POut,
-        int Indent
-     ) {
-    /* outputs a <prog> section to POut containing the contents of Program. Trailing
-       zeroes are omitted. */
-    POut.print(String.format(Global.StdLocale, String.format(Global.StdLocale, "%%%ds<prog>\n", Indent), ""));
-    int Cols = 0;
-    int i = 0;
-    int LastNonzero = -1;
-    for (; ; ) {
-      if (i == Program.length) {
-        if (Cols != 0) {
-          POut.println();
-        }
-        break;
-      }
-      if (Program[i] != 0) {
-        for (int j = LastNonzero + 1; j <= i; ++j) {
-          if (Cols == 24) {
-            POut.print("\n");
-            Cols = 0;
-          }
-          if (Cols != 0) {
-            POut.print(" ");
-          } else {
-            POut.print
-               (
-                  String.format
-                     (
-                        Global.StdLocale,
-                        String.format(Global.StdLocale, "%%%ds", Indent + 4),
-                        ""
-                     )
-               );
-          }
-          POut.printf(Global.StdLocale, "%02d", Program[j]);
-          ++Cols;
-        }
-        LastNonzero = i;
-      }
-      ++i;
-    }
-    POut.print
-       (
-          String.format(Global.StdLocale, String.format(Global.StdLocale, "%%%ds</prog>\n", Indent), "")
-       );
-  }
-
-  /* Note Importer and Exporter states are NOT saved/restored */
-
-  private static void Save
-     (
-        ButtonGrid Buttons, /* ignored unless CalcState */
-        State Calc,
-        boolean Libs, /* save currently-loaded library */
-        boolean CalcState,
-        /* true to save entire calculator state (apart from library),
-           false to only save user-entered program */
-        java.io.OutputStream RawOut
-     ) {
-    try {
-      java.util.zip.ZipOutputStream Out = new java.util.zip.ZipOutputStream(RawOut);
-      {
-        /* Follow ODF convention of an uncompressed "mimetype" entry at known offset
-           to allow magic-number sniffing. Must be first. */
-        final ZipComponentWriter MimeType = new ZipComponentWriter(Out, "mimetype", false);
-        MimeType.write(CalcMimeType);
-        MimeType.close();
-      }
-      if (Libs && Calc.ModuleHelp != null) {
-        final ZipComponentWriter LibHelp = new ZipComponentWriter(Out, "help", true);
-        LibHelp.write(Calc.ModuleHelp);
-        LibHelp.close();
-      }
-      for (int BankNr = 0; ; ) {
-        if (BankNr == Calc.MaxBanks)
-          break;
-        if (BankNr != 0 ? Libs && Calc.Bank[BankNr] != null : !Libs || CalcState) {
-          final State.ProgBank Bank = Calc.Bank[BankNr];
-          if (Bank.Card != null) {
-            final ZipComponentWriter CardOut =
-               new ZipComponentWriter
-                  (
-                     Out,
-                     String.format(Global.StdLocale, "card%02d", BankNr),
-                     true
-                  );
-            Bank.Card.compress
-               (
-                  android.graphics.Bitmap.CompressFormat.PNG,
-                              /* good enough, won't be large */
-                  100, /* ignored */
-                  CardOut.Out
-               );
-            CardOut.close();
-          }
-          if (BankNr != 0 && Bank.Program != null)
-                      /* bank 0 program written out later */ {
-            final ZipComponentWriter ProgOut =
-               new ZipComponentWriter
-                  (
-                     Out,
-                     String.format(Global.StdLocale, "prog%02d", BankNr),
-                     true
-                  );
-            java.io.PrintStream POut = new java.io.PrintStream(ProgOut.Out);
-            POut.println("<state>");
-            POut.println("    <calc>");
-            SaveProg(Bank.Program, POut, 8);
-            POut.println("    </calc>");
-            POut.println("</state>");
-            POut.flush();
-            ProgOut.close();
-          }
-          if (Bank.Help != null) {
-            final ZipComponentWriter BankHelp = new ZipComponentWriter
-               (
-                  Out,
-                  String.format(Global.StdLocale, "help%02d", BankNr),
-                  true
-               );
-            BankHelp.write(Bank.Help);
-            BankHelp.close();
-          }
-        }
-        if (!Libs) /* only bank 0 for programs */
-          break;
-        ++BankNr;
-      }
-      if (CalcState || !Libs) {
-        final ZipComponentWriter StateOut = new ZipComponentWriter(Out, "prog00", true);
-        java.io.PrintStream POut = new java.io.PrintStream(StateOut.Out);
-        POut.println("<state>");
-        if (CalcState) {
-          POut.println("    <buttons>");
-          SaveBool(POut, "alt", Buttons.AltState, 8);
-          SaveBool(POut, "overlay", Buttons.OverlayVisible, 8);
-          SaveInt(POut, "selected_button", Buttons.SelectedButton, 8);
-          SaveInt(POut, "digits_needed", Buttons.DigitsNeeded, 8);
-          SaveBool(POut, "accept_symbolic", Buttons.AcceptSymbolic, 8);
-          SaveBool(POut, "accept_ind", Buttons.AcceptInd, 8);
-          SaveBool(POut, "next_literal", Buttons.NextLiteral, 8);
-          SaveInt(POut, "accum_digits", Buttons.AccumDigits, 8);
-          SaveInt(POut, "first_operand", Buttons.FirstOperand, 8);
-          SaveBool(POut, "got_first_operand", Buttons.GotFirstOperand, 8);
-          SaveBool(POut, "got_first_ind", Buttons.GotFirstInd, 8);
-          SaveBool(POut, "is_symbolic", Buttons.IsSymbolic, 8);
-          SaveBool(POut, "got_ind", Buttons.GotInd, 8);
-          SaveInt(POut, "collecting_for_function", Buttons.CollectingForFunction, 8);
-          POut.println("    </buttons>");
-        }
-        POut.println("    <calc>");
-        if (CalcState) {
-          {
-            String StateName;
-            switch (Calc.CurState) {
-              case State.EntryState:
-                StateName = "entry";
-                break;
-              case State.DecimalEntryState:
-                StateName = "decimal_entry";
-                break;
-              case State.ExponentEntryState:
-                StateName = "exponent_entry";
-                break;
-              case State.ResultState:
-                StateName = "result";
-                break;
-              default:
-                throw new RuntimeException
-                   (
-                      String.format
-                         (
-                            Global.StdLocale,
-                            "unrecognized Calc.CurState = %d",
-                            Calc.CurState
-                         )
-                   );
-            }
-            POut.printf
-               (
-                  Global.StdLocale,
-                  "        <param name=\"state\" value=\"%s\"/>\n",
-                  StateName
-               );
-          }
-          SaveBool(POut, "exponent_entered", Calc.ExponentEntered, 8);
-          SaveBool(POut, "error_state", State.inError, 8);
-          if (Calc.CurState != State.ResultState) {
-            POut.printf
-               (
-                  Global.StdLocale,
-                  "        <param name=\"display\" value=\"%s\"/>\n",
-                  Calc.CurDisplay
-               );
-          }
-          SaveBool(POut, "inv", Calc.InvState, 8);
-          {
-            String FmtName;
-            switch (Calc.CurFormat) {
-              case State.FORMAT_FIXED:
-                FmtName = "fixed";
-                break;
-              case State.FORMAT_FLOAT:
-                FmtName = "float";
-                break;
-              case State.FORMAT_ENG:
-                FmtName = "eng";
-                break;
-              default:
-                throw new RuntimeException
-                   (
-                      String.format(Global.StdLocale, "unrecognized Calc.CurFormat = %d", Calc.CurFormat)
-                   );
-            }
-            POut.printf(Global.StdLocale, "        <param name=\"format\" value=\"%s\"/>\n", FmtName);
-          }
-          SaveInt(POut, "nr_decimals", Calc.CurNrDecimals, 8);
-          {
-            String Name;
-            switch (Calc.CurAng) {
-              case State.ANG_RAD:
-                Name = "radians";
-                break;
-              case State.ANG_DEG:
-                Name = "degrees";
-                break;
-              case State.ANG_GRAD:
-                Name = "gradians";
-                break;
-              default:
-                throw new RuntimeException
-                   (
-                      String.format(Global.StdLocale, "unrecognized Calc.Ang = %d", Calc.CurAng)
-                   );
-            }
-            POut.printf
-               (
-                  Global.StdLocale,
-                  "        <param name=\"angle_units\" value=\"%s\"/>\n",
-                  Name
-               );
-          }
-          POut.println("        <opstack>");
-          for (int i = 0; i < Calc.OpStackNext; ++i) {
-            final State.OpStackEntry Op = Calc.OpStack[i];
-            String OpName;
-            switch (Op.Operator) {
-              case State.STACKOP_ADD:
-                OpName = "add";
-                break;
-              case State.STACKOP_SUB:
-                OpName = "sub";
-                break;
-              case State.STACKOP_MUL:
-                OpName = "mul";
-                break;
-              case State.STACKOP_DIV:
-                OpName = "div";
-                break;
-              case State.STACKOP_MOD:
-                OpName = "mod";
-                break;
-              case State.STACKOP_EXP:
-                OpName = "exp";
-                break;
-              case State.STACKOP_ROOT:
-                OpName = "root";
-                break;
-              default:
-                throw new RuntimeException
-                   (
-                      String.format(Global.StdLocale, "unrecognized stacked op %d at pos %d", Op.Operator, i)
-                   );
-            }
-            POut.printf
-               (
-                  Global.StdLocale,
-                  "            <op name=\"%s\" opnd=\"%.16e\" parens=\"%d\"/>\n",
-                  OpName,
-                  Op.Operand.get(),
-                  Op.ParenFollows
-               );
-          }
-          POut.println("        </opstack>");
-          SaveNumber(POut, "X", Calc.X, 8);
-          SaveNumber(POut, "T", Calc.T, 8);
-          SaveBool(POut, "learn_mode", Calc.ProgMode, 8);
-          POut.println("        <mem>");
-          for (int i = 0; i < Calc.Memory.length; ++i) {
-            POut.printf("            %s\n", Calc.Memory[i].formatString(Global.StdLocale, 16));
-          }
-          POut.println("        </mem>");
-          POut.print("        <feedback kind=\"");
-          switch (Buttons.FeedbackType) {
-            default:
-            case ButtonGrid.FEEDBACK_CLICK:
-              POut.print("click");
-              break;
-            case ButtonGrid.FEEDBACK_VIBRATE:
-              POut.print("vibrate");
-              break;
-            case ButtonGrid.FEEDBACK_BOTH:
-              POut.print("both");
-              break;
-            case ButtonGrid.FEEDBACK_NONE:
-              POut.print("none");
-              break;
-          }
-          POut.println("\"/>");
-        }
-
-        SaveProg(Calc.Program, POut, 8);
-
-        for (int k = 1; k <= Calc.BankNumber; k++)
-        {
-          if (Calc.CardBankUsed[k-1])
-          {
-            SaveBank(k, 0, Calc, Calc.CardProgram, POut,8);
-          }
-        }
-
-        if (CalcState) {
-          POut.print("        <flags>\n            ");
-          for (int i = 0; i < Calc.Flag.length; ++i) {
-            if (i != 0) {
-              POut.print(" ");
-            }
-            POut.print(Calc.Flag[i] ? "1" : "0");
-          }
-          POut.print("\n        </flags>\n");
-          SaveInt(POut, "PC", Calc.PC, 8);
-          SaveInt(POut, "bank", Calc.CurBank, 8);
-          SaveInt(POut, "regoffset", Calc.RegOffset, 8);
-          POut.println("        <retstack>");
-          for (int i = 0; i <= Calc.ReturnLast; ++i) {
-            final State.ReturnStackEntry Ret = Calc.ReturnStack[i];
-            POut.printf
-               (
-                  "            <ret bank=\"%d\" addr=\"%d\" from_interactive=\"%s\"/>\n",
-                  Ret.BankNr,
-                  Ret.Addr,
-                  Ret.FromInteractive ? "1" : "0"
-               );
-          }
-          POut.println("        </retstack>");
-          POut.print("        <printreg>\n            ");
-          for (int i = 0; i < Calc.PrintRegister.length; ++i) {
-            if (i != 0) {
-              POut.print(" ");
-            }
-            POut.printf("%d", Calc.PrintRegister[i]);
-          }
-          POut.println("\n        </printreg>");
-        }
-        POut.println("    </calc>");
-
-        //  Save printer status
-        POut.println("    <printer>");
-        int LineStart = 0;
-        final int LineEnd = Global.Print != null ? Global.Print.Content.size() : 0;
-        if(LineEnd > Global.MaxPrinterLineSaved) {
-          LineStart = LineEnd - Global.MaxPrinterLineSaved;
-        }
-        for(int i = LineStart; i < LineEnd; i++) {
-          final byte[] line = Global.Print.Content.get(i);
-          POut.printf("      <line>%s</line>", Global.Print.BackToText(line));
-        }
-        POut.println("    </printer>");
-
-        POut.println("</state>");
-        POut.flush();
-        StateOut.close();
-      }
-      Out.finish();
-    } catch (java.io.IOException Failed) {
-      throw new RuntimeException("ti5x.Persistent.Save error " + Failed.toString());
-    }
+    ProgramFiles.SaveBank(Calc, Out, N, Id);
   }
 
   static void Save
@@ -801,7 +169,7 @@ public class Persistent {
             "ti5x.Persistent.Save create error " + Failed.toString()
          );
     }
-    Save(Buttons, Calc, Libs, CalcState, Out);
+    ProgramFiles.Save(Calc, Buttons, Libs, CalcState, Out);
     try {
       Out.flush();
       Out.close();
@@ -810,567 +178,34 @@ public class Persistent {
     }
   }
 
-  static byte[] ReadAll
+  static void ExportProgramText
      (
-        java.io.InputStream From
-     )
-     throws java.io.IOException {
-     /* reads all available data from From. */
-    java.io.ByteArrayOutputStream Result = new java.io.ByteArrayOutputStream();
-    final byte[] Buf = new byte[256]; /* just to reduce number of I/O operations */
-    for (; ; ) {
-      final int BytesRead = From.read(Buf);
-      if (BytesRead < 0)
-        break;
-      Result.write(Buf, 0, BytesRead);
-    }
-    return Result.toByteArray();
-  }
-
-  public static class CalcStateLoader extends org.xml.sax.helpers.DefaultHandler {
-    Display Disp;
-    ButtonGrid Buttons;
-    protected State Calc;
-    int BankNr = -1;
-    boolean CalcState;
-    int CardBankNr = -1;
-    int CardId = -1;
-    int UserCardId = -1;
-
-    private final int AtTopLevel = 0;
-    private final int DoingState = 1;
-    private final int DoingButtons = 2;
-    private final int DoingCalc = 3;
-    private final int DoingOpStack = 10;
-    private final int DoingMem = 11;
-    private final int DoingProg = 12;
-    private final int DoingFlags = 13;
-    private final int DoingRetStack = 14;
-    private final int DoingPrintReg = 15;
-    private final int DoingEmptyTag = 19;
-    private final int DoingBankProg = 20;
-    private final int DoingBankMem = 21;
-    private final int DoingPrinter = 22;
-    private int ParseState = AtTopLevel;
-    private boolean DoneState = false;
-    private boolean AllowContent;
-    java.io.ByteArrayOutputStream Content = null;
-
-    CalcStateLoader
-       (
-          Display Disp,
-          ButtonGrid Buttons,
-          State Calc,
-          int BankNr,
-          int UserCardId,
-          boolean CalcState
-       ) {
-      super();
-      this.Disp = Disp;
-      this.Buttons = Buttons;
-      this.Calc = Calc;
-      this.BankNr = BankNr;
-      this.CalcState = CalcState;
-      this.UserCardId = UserCardId;
-    } /*CalcStateLoader*/
-
-    private void StartContent() {
-      Content = new java.io.ByteArrayOutputStream();
-      AllowContent = true;
+        State Calc,
+        String ToFile
+     ) {
+    /* saves the currently selected program bank as source text. */
+    java.io.OutputStream Out = null;
+    try {
+      final File f = new File(ToFile);
+      final String ParentName = f.getParentFile() != null ? f.getParentFile().getName() : ProgramsDir;
+      Out = Global.DataStorage.getOutputStream(ParentName, f.getName(), false);
+      if (Out == null) {
+        Out = new java.io.FileOutputStream(ToFile);
+      }
+    } catch (Exception Failed) {
+      throw new RuntimeException("ti5x export program create error " + Failed.toString());
     }
 
-    @Override
-    public void startElement
-       (
-          String uri,
-          String localName,
-          String qName,
-          org.xml.sax.Attributes attributes
-       ) {
-      localName = localName.intern();
-      boolean Handled = false;
-      AllowContent = false; /* to begin with */
-      if (ParseState == AtTopLevel) {
-        if (localName.equals("state") && !DoneState) {
-          ParseState = DoingState;
-          Handled = true;
-        }
-      } else if (ParseState == DoingState) {
-        if (CalcState && localName.equals("buttons")) {
-          ParseState = DoingButtons;
-          Handled = true;
-        } else if (localName.equals("calc")) {
-          ParseState = DoingCalc;
-          Handled = true;
-        } else if (localName.equals("printer")) {
-          ParseState = DoingPrinter;
-          Handled = true;
-        }
-      } else if (ParseState == DoingButtons) {
-        if (localName.equals("param")) {
-          final String Name = attributes.getValue("name").intern();
-          final String Value = attributes.getValue("value");
-          if (Name.equals("alt")) {
-            Buttons.AltState = GetBool(Value);
-          } else if (Name.equals("overlay")) {
-            Buttons.OverlayVisible = GetBool(Value);
-          } else if (Name.equals("selected_button")) {
-            Buttons.SelectedButton = GetInt(Value);
-          } else if (Name.equals("digits_needed")) {
-            Buttons.DigitsNeeded = GetInt(Value);
-          } else if (Name.equals("accept_symbolic")) {
-            Buttons.AcceptSymbolic = GetBool(Value);
-          } else if (Name.equals("accept_ind")) {
-            Buttons.AcceptInd = GetBool(Value);
-          } else if (Name.equals("next_literal")) {
-            Buttons.NextLiteral = GetBool(Value);
-          } else if (Name.equals("accum_digits")) {
-            Buttons.AccumDigits = GetInt(Value);
-          } else if (Name.equals("first_operand")) {
-            Buttons.FirstOperand = GetInt(Value);
-          } else if (Name.equals("got_first_operand")) {
-            Buttons.GotFirstOperand = GetBool(Value);
-          } else if (Name.equals("got_first_ind")) {
-            Buttons.GotFirstInd = GetBool(Value);
-          } else if (Name.equals("is_symbolic")) {
-            Buttons.IsSymbolic = GetBool(Value);
-          } else if (Name.equals("got_ind")) {
-            Buttons.GotInd = GetBool(Value);
-          } else if (Name.equals("collecting_for_function")) {
-            Buttons.CollectingForFunction = GetInt(Value);
-          } else {
-            throw new DataFormatException
-               (
-                  String.format(Global.StdLocale, "unrecognized <buttons> param \"%s\"", Name)
-               );
-          }
-          Handled = true;
-        }
-      } else if (ParseState == DoingCalc) {
-        if (CalcState && localName.equals("param")) {
-          final String Name = attributes.getValue("name").intern();
-          final String Value = attributes.getValue("value").intern();
-          if (Name.equals("state")) {
-            if (Value.equals("entry")) {
-              Calc.CurState = State.EntryState;
-            } else if (Value.equals("decimal_entry")) {
-              Calc.CurState = State.DecimalEntryState;
-            } else if (Value.equals("exponent_entry")) {
-              Calc.CurState = State.ExponentEntryState;
-            } else if (Value.equals("result")) {
-              Calc.CurState = State.ResultState;
-            } else if (Value.equals("error")) {
-              // for compatibility with previous version
-              State.inError = true;
-            } else {
-              throw new RuntimeException
-                 (
-                    String.format(Global.StdLocale, "unrecognized calc state \"%s\"", Value)
-                 );
-            }
-          } else if (Name.equals("exponent_entered")) {
-            Calc.ExponentEntered = GetBool(Value);
-          } else if (Name.equals("error_state")) {
-            State.inError = GetBool(Value);
-          } else if (Name.equals("display")) {
-            Calc.CurDisplay = Value;
-          } else if (Name.equals("inv")) {
-            Calc.InvState = GetBool(Value);
-          } else if (Name.equals("format")) {
-            if (Value.equals("fixed")) {
-              Calc.CurFormat = State.FORMAT_FIXED;
-            } else if (Value.equals("float")) {
-              Calc.CurFormat = State.FORMAT_FLOAT;
-            } else if (Value.equals("eng")) {
-              Calc.CurFormat = State.FORMAT_ENG;
-            } else {
-              throw new RuntimeException
-                 (
-                    String.format(Global.StdLocale, "unrecognized calc format \"%s\"", Value)
-                 );
-            }
-          } else if (Name.equals("nr_decimals")) {
-            Calc.CurNrDecimals = GetInt(Value);
-          } else if (Name.equals("angle_units")) {
-            if (Value.equals("radians")) {
-              Calc.CurAng = State.ANG_RAD;
-            } else if (Value.equals("degrees")) {
-              Calc.CurAng = State.ANG_DEG;
-            } else if (Value.equals("gradians")) {
-              Calc.CurAng = State.ANG_GRAD;
-            } else {
-              throw new RuntimeException
-                 (
-                    String.format(Global.StdLocale, "unrecognized calc angle_units \"%s\"", Value)
-                 );
-            }
-          } else if (Name.equals("X")) {
-            Calc.X = new Number(Value);
-          } else if (Name.equals("T")) {
-            Calc.T = new Number(Value);
-          } else if (Name.equals("learn_mode")) {
-            Calc.ProgMode = GetBool(Value);
-          } else if (Name.equals("PC")) {
-            Calc.PC = GetInt(Value);
-          } else if (Name.equals("bank")) {
-            Calc.CurBank = GetInt(Value);
-          } else if (Name.equals("regoffset")) {
-            Calc.RegOffset = GetInt(Value);
-          } else {
-            throw new DataFormatException
-               (
-                  String.format(Global.StdLocale, "unrecognized <calc> param \"%s\"", Name)
-               );
-          }
-          Handled = true;
-        } else if (CalcState && localName.equals("opstack")) {
-          Calc.OpStackNext = 0;
-          ParseState = DoingOpStack;
-          Handled = true;
-        } else if (CalcState && localName.equals("mem")) {
-          ParseState = DoingMem;
-          StartContent();
-          Handled = true;
-        } else if (localName.equals("bankmem")) {
-          ParseState = DoingBankMem;
-          CardBankNr = Integer.parseInt(attributes.getValue("n").intern());
-          CardId = Integer.parseInt(attributes.getValue("id").intern());
-          StartContent();
-          Handled = true;
-        } else if (localName.equals("feedback")) {
-          final String Kind = attributes.getValue("kind").intern();
-          if (Kind.equals("none")) {
-            Buttons.FeedbackType = ButtonGrid.FEEDBACK_NONE;
-          } else if (Kind.equals("vibrate")) {
-            Buttons.FeedbackType = ButtonGrid.FEEDBACK_VIBRATE;
-          } else if (Kind.equals("both")) {
-            Buttons.FeedbackType = ButtonGrid.FEEDBACK_BOTH;
-          } else {
-            Buttons.FeedbackType = ButtonGrid.FEEDBACK_CLICK;
-          }
-          ParseState = DoingEmptyTag;
-          Handled = true;
-        } else if (localName.equals("prog")) /* only one allowed if not CalcState */ {
-          ParseState = DoingProg;
-          StartContent();
-          Handled = true;
-        } else if (localName.equals("bankprog")) {
-          ParseState = DoingBankProg;
-          CardBankNr = Integer.parseInt(attributes.getValue("n").intern());
-          CardId = Integer.parseInt(attributes.getValue("id").intern());
-          StartContent();
-          Handled = true;
-        } else if (CalcState && localName.equals("flags")) {
-          ParseState = DoingFlags;
-          StartContent();
-          Handled = true;
-        } else if (CalcState && localName.equals("retstack")) {
-          Calc.ReturnLast = -1;
-          ParseState = DoingRetStack;
-          Handled = true;
-        } else if (CalcState && localName.equals("printreg")) {
-          ParseState = DoingPrintReg;
-          StartContent();
-          Handled = true;
-        }
-      } else if (ParseState == DoingOpStack) {
-        if (localName.equals("op")) {
-          final String OpName = attributes.getValue("name").intern();
-          int Op;
-          if (OpName.equals("add")) {
-            Op = State.STACKOP_ADD;
-          } else if (OpName.equals("sub")) {
-            Op = State.STACKOP_SUB;
-          } else if (OpName.equals("mul")) {
-            Op = State.STACKOP_MUL;
-          } else if (OpName.equals("div")) {
-            Op = State.STACKOP_DIV;
-          } else if (OpName.equals("mod")) {
-            Op = State.STACKOP_MOD;
-          } else if (OpName.equals("exp")) {
-            Op = State.STACKOP_EXP;
-          } else if (OpName.equals("root")) {
-            Op = State.STACKOP_ROOT;
-          } else {
-            throw new DataFormatException
-               (
-                  String.format(Global.StdLocale, "unrecognized <op> operator \"%s\"", OpName)
-               );
-          }
-          if (Calc.OpStackNext == Calc.MaxOpStack) {
-            throw new DataFormatException
-               (
-                  String.format(Global.StdLocale, "too many <op> entries -- only %d allowed", Calc.MaxOpStack)
-               );
-          }
-          Calc.OpStack[Calc.OpStackNext++] = new State.OpStackEntry
-             (
-                new Number(attributes.getValue("opnd")),
-                Op,
-                GetInt(attributes.getValue("parens"))
-             );
-          Handled = true;
-        }
-      } else if (ParseState == DoingRetStack) {
-        if (localName.equals("ret")) {
-          if (Calc.ReturnLast == Calc.MaxReturnStack - 1) {
-            throw new DataFormatException
-               (
-                  String.format(Global.StdLocale, "too many <ret> entries -- only %d allowed", Calc.MaxReturnStack)
-               );
-          }
-          Calc.ReturnStack[++Calc.ReturnLast] = new State.ReturnStackEntry
-             (
-                GetInt(attributes.getValue("bank")),
-                GetInt(attributes.getValue("addr")),
-                GetBool(attributes.getValue("from_interactive"))
-             );
-          Handled = true;
-        }
-      } else if (ParseState == DoingPrinter) {
-        if (localName.equals ("line")) {
-          StartContent();
-        }
-        Handled = true;
-      }
-      if (!Handled) {
-        throw new DataFormatException("unexpected XML tag " + localName + " in state " + ParseState);
-      }
-    }
+    final byte[] Program = Calc.Bank[Calc.CurBank].Program != null
+        ? Calc.Bank[Calc.CurBank].Program
+        : Calc.Program;
+    final String Text = Disassembler.disassemble(Program);
 
-    @Override
-    public void characters
-       (
-          char[] ch,
-          int start,
-          int length
-       ) {
-      if (AllowContent) {
-        try {
-          Content.write(new String(ch, start, length).getBytes());
-        } catch (java.io.IOException Failed) {
-          throw new RuntimeException("ti5x XML content parse error " + Failed.toString());
-        }
-      }
-    }
-
-    @Override
-    public void endElement
-       (
-          String uri,
-          String localName,
-          String qName
-       ) {
-      localName = localName.intern();
-      final String ContentStr = Content != null ? Content.toString() : null;
-      final int ContentStrLen = ContentStr == null ? 0 : ContentStr.length();
-      Content = null;
-      AllowContent = false;
-      switch (ParseState) {
-        case DoingState:
-          if (localName.equals("state")) {
-            ParseState = AtTopLevel;
-            DoneState = true;
-          }
-          break;
-        case DoingButtons:
-          if (localName.equals("buttons")) {
-            ParseState = DoingState;
-          }
-          break;
-        case DoingCalc:
-          if (localName.equals("calc")) {
-            ParseState = DoingState;
-          }
-          break;
-        case DoingOpStack:
-          if (localName.equals("opstack")) {
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingRetStack:
-          if (localName.equals("retstack")) {
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingPrintReg:
-          if (localName.equals("printreg")) {
-
-            ArrayList<Double> r = parseNumbers(ContentStr);
-
-            if (r.size() > Calc.PrintRegister.length) {
-              throw new DataFormatException
-                  (
-                      String.format
-                          (
-                              Global.StdLocale,
-                              "too many columns in print register, only %d allowed",
-                              Calc.PrintRegister.length
-                          ));
-            }
-            for (int Place = 0; Place < r.size(); ++Place) {
-              Calc.PrintRegister[Place] = r.get(Place).byteValue();
-            }
-
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingPrinter:
-          if (localName.equals("line")) {
-            byte[] line = new byte[Printer.CharColumns];
-            if (Global.Print == null && Calc != null && Calc.ctx != null) {
-              Global.Print = new Printer(Calc.ctx);
-            }
-            if (Global.Print != null) {
-              Global.Print.Translate(ContentStr, line);
-              Global.Print.Content.add(line);
-            }
-          } else if (localName.equals("printer")) {
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingMem:
-          if (localName.equals("mem")) {
-
-            ArrayList<Double> m = parseNumbers(ContentStr);
-
-            if (m.size() > Calc.MaxMemories) {
-              throw new DataFormatException
-                  (
-                      String.format(Global.StdLocale, "too many memories, only %d allowed", Calc.MaxMemories)
-                  );
-            }
-            for (int reg = 0; reg < m.size(); ++reg) {
-              Calc.Memory[reg] = new Number(m.get(reg));
-            }
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingBankMem:
-          if (localName.equals("bankmem")) {
-            ArrayList<Double> m = parseNumbers(ContentStr);
-
-            if (m.size() > 30) {
-              throw new DataFormatException
-                  (
-                      String.format(Global.StdLocale, "too many mem, only 30 allowed for a bank")
-                  );
-            }
-
-            if (BankNr != 0 && CardBankNr != BankNr) {
-              Calc.SetErrorState(true);
-            } else {
-              Number[] CardMem = new Number[m.size()];
-
-              for (int addr = 0; addr < m.size(); ++addr) {
-                double val = m.get(addr);
-                CardMem[addr] = new Number(val);
-              }
-              Calc.Store.SetMem(CardId, CardBankNr, CardMem);
-            }
-
-            ParseState = DoingCalc;
-          }
-
-          break;
-        case DoingProg:
-          if (localName.equals("prog")) {
-
-            if (BankNr == 0) {
-              for (int i = 0; i < Calc.MaxProgramSteps; ++i) {
-                Calc.Program[i] = (byte) 0;
-              }
-            }
-            ArrayList<Double> p = parseNumbers(ContentStr);
-
-            if (BankNr == 0 ? p.size() > Calc.MaxProgramSteps : p.size() >= Calc.MaxCardProgramSteps) {
-              throw new DataFormatException
-                  (
-                      String.format(Global.StdLocale, "too many memories, only %d allowed", Calc.MaxMemories)
-                  );
-            }
-            if (BankNr != 0) {
-              Calc.Bank[BankNr].Program = new byte[p.size()];
-            }
-
-            for (int addr = 0; addr < p.size(); ++addr) {
-              byte val = p.get(addr).byteValue();
-              if (BankNr != 0) {
-                Calc.Bank[BankNr].Program[addr] = val;
-              } else {
-                Calc.Program[addr] = val;
-              }
-            }
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingBankProg:
-          if (localName.equals("bankprog")) {
-
-            ArrayList<Double> p = parseNumbers(ContentStr);
-
-            if (p.size() > 240) {
-              throw new DataFormatException
-                  (
-                      String.format(Global.StdLocale, "too many opcodes, only 240 allowed for a bank")
-                  );
-            }
-
-            if (BankNr != 0 && CardBankNr != BankNr) {
-              Calc.SetErrorState(true);
-            } else {
-              byte[] CardProg = new byte[p.size()];
-
-              for (int addr = 0; addr < p.size(); ++addr) {
-                byte val = p.get(addr).byteValue();
-                CardProg[addr] = val;
-              }
-
-              Calc.Store.SetProg(CardId, CardBankNr, CardProg);
-            }
-
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingFlags:
-          if (localName.equals("flags")) {
-            int Flag = 0;
-            int i = 0;
-            for (; ; ) {
-              for (; ; ) {
-                if (i == ContentStrLen)
-                  break;
-                if (ContentStr.charAt(i) > ' ')
-                  break;
-                ++i;
-              }
-              final int Start = i;
-              for (; ; ) {
-                if (i == ContentStrLen)
-                  break;
-                if (ContentStr.charAt(i) <= ' ')
-                  break;
-                ++i;
-              }
-              if (i > Start) {
-                if (Flag == Calc.MaxFlags) {
-                  throw new DataFormatException
-                     (
-                        String.format(Global.StdLocale, "too many flags, only %d allowed", Calc.MaxFlags)
-                     );
-                }
-                Calc.Flag[Flag++] = GetBool(ContentStr.substring(Start, i));
-              }
-              if (i == ContentStrLen)
-                break;
-            }
-            ParseState = DoingCalc;
-          }
-          break;
-        case DoingEmptyTag:
-          ParseState = DoingCalc;
-          break;
-      }
+    try (java.io.PrintStream PS = new java.io.PrintStream(Out)) {
+      PS.print(Text);
+      PS.flush();
+    } catch (Exception Failed) {
+      throw new RuntimeException("ti5x export program error " + Failed.toString());
     }
   }
 
@@ -1378,7 +213,6 @@ public class Persistent {
     private final String FromFile;
     private final boolean Libs;
     private final boolean CalcState;
-    private final Display Disp;
     private final ButtonGrid Buttons;
     private final State Calc;
 
@@ -1387,14 +221,12 @@ public class Persistent {
           String FromFile,
           boolean Libs, /* true to load nonzero program banks, false to load bank 0 */
           boolean CalcState, /* true to load all state (including all available program banks) */
-          Display Disp,
           ButtonGrid Buttons,
           State Calc
        ) {
       this.FromFile = FromFile;
       this.Libs = Libs;
       this.CalcState = CalcState;
-      this.Disp = Disp;
       this.Buttons = Buttons;
       this.Calc = Calc;
     }
@@ -1403,6 +235,7 @@ public class Persistent {
     public boolean PreRun() {
       if (CalcState) {
         Buttons.Reset();
+        Calc.Engine.Keys.Reset();
         Calc.Reset(Libs);
       } else if (Libs) {
         Calc.ResetLibs();
@@ -1415,106 +248,11 @@ public class Persistent {
     @Override
     public void BGRun() {
       try {
-        try {
-          java.io.InputStream stream = Global.DataStorage.getInputStreamForPath(FromFile);
-          if (stream == null) {
-            throw new java.io.FileNotFoundException("File not found: " + FromFile);
-          }
-
-          File tempFile = File.createTempFile("load", ".tmp", Global.DataStorage.getContext().getCacheDir());
-          tempFile.deleteOnExit();
-          try (java.io.OutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(tempFile))) {
-            byte[] buf = new byte[8192];
-            for (int len; (len = stream.read(buf)) > 0; ) {
-              out.write(buf, 0, len);
-            }
-          }
-          stream.close();
-
-          final java.util.zip.ZipFile In = new java.util.zip.ZipFile
-             (
-                tempFile,
-                java.util.zip.ZipFile.OPEN_READ
-             );
-          final ZipEntry MimeType = In.getEntry("mimetype");
-          if (MimeType == null) {
-            throw new DataFormatException
-               (
-                  "missing mandatory archive component: mimetype"
-               );
-          }
-          if
-             (
-              !In.entries().nextElement().getName().intern().equals("mimetype")
-                ||
-                MimeType.getMethod() != ZipEntry.STORED
-             ) {
-            throw new DataFormatException("mimetype must be uncompressed and first in archive");
-          }
-          if (!new String(ReadAll(In.getInputStream(MimeType))).intern().equals(CalcMimeType)) {
-            throw new DataFormatException("wrong MIME type");
-          }
-          if (Libs) {
-            final ZipEntry LibHelpEntry = In.getEntry("help");
-            if (LibHelpEntry != null) {
-              Calc.ModuleHelp = ReadAll(In.getInputStream(LibHelpEntry));
-            }
-          }
-          for (int BankNr = 0; ; ) {
-            if (BankNr == Calc.MaxBanks)
-              break;
-            if (BankNr != 0 ? Libs : !Libs || CalcState) {
-              final ZipEntry StateEntry =
-                 In.getEntry(String.format(Global.StdLocale, "prog%02d", BankNr));
-              if (StateEntry != null) {
-                final ZipEntry CardEntry =
-                   In.getEntry(String.format(Global.StdLocale, "card%02d", BankNr));
-                final ZipEntry HelpEntry =
-                   In.getEntry(String.format(Global.StdLocale, "help%02d", BankNr));
-                android.graphics.Bitmap CardImage = null;
-                byte[] BankHelp = null;
-                if (CardEntry != null) {
-                  CardImage = android.graphics.BitmapFactory.decodeStream
-                     (
-                        In.getInputStream(CardEntry)
-                     );
-                }
-                if (HelpEntry != null) {
-                  BankHelp = ReadAll(In.getInputStream(HelpEntry));
-                }
-                if (BankNr != 0) {
-                  Calc.Bank[BankNr] =
-                     new State.ProgBank(null /* filled in below */, CardImage, BankHelp);
-                } else {
-                                  /* don't overwrite Calc.Bank[0].Program */
-                  Calc.Bank[0].Card = CardImage;
-                  Calc.Bank[0].Help = BankHelp;
-                }
-                try {
-                  javax.xml.parsers.SAXParserFactory.newInstance().newSAXParser().parse
-                     (
-                        In.getInputStream(StateEntry),
-                        new CalcStateLoader(Disp, Buttons, Calc, BankNr, 0, CalcState)
-                     );
-                } catch (javax.xml.parsers.ParserConfigurationException Bug) {
-                  throw new RuntimeException("SAX parser error: " + Bug.toString());
-                } catch (org.xml.sax.SAXException Bad) {
-                  throw new DataFormatException("SAX parser error: " + Bad.toString());
-                }
-              } else if (BankNr == 0) {
-                throw new DataFormatException
-                   (
-                      "missing mandatory archive component: prog00"
-                   );
-              }
-            }
-            if (!Libs) /* only bank 0 for programs */
-              break;
-            ++BankNr;
-          }
-        } catch (java.io.IOException IOError) {
-          throw new DataFormatException("I/O error: " + IOError.toString());
+        final java.io.InputStream In = Global.DataStorage.getInputStreamForPath(FromFile);
+        if (In == null) {
+          throw new DataFormatException("I/O error: File not found: " + FromFile);
         }
+        ProgramFiles.Load(Calc, Buttons, In, Libs, CalcState);
       } catch (DataFormatException Failure) {
         SetStatus(-1, Failure);
       }
@@ -1575,7 +313,6 @@ public class Persistent {
             TempLibFile,
             IsLib,
             false,
-            Global.Disp,
             Global.Buttons,
             Global.Calc
          );
@@ -1638,10 +375,10 @@ public class Persistent {
     } catch (java.io.FileNotFoundException Eh) {
       throw new RuntimeException("ti5x save-state create error " + Eh.toString());
     }
-    Save
+    ProgramFiles.Save
        (
-          Global.Buttons,
           Global.Calc,
+          Global.Buttons,
           SaveLib,
           !SaveLib,
           CurSave
@@ -1711,7 +448,6 @@ public class Persistent {
                     StateFile,
                     LoadingLib,
                     !LoadingLib,
-                    Global.Disp,
                     Global.Buttons,
                     Global.Calc
                  );
