@@ -731,9 +731,14 @@ class Tester {
     if (!check(ERROR, true))
       return false;
 
-    //     -y**-x -> y**-x (flashing)
+    //     -y**-x -> y**-x (flashing), as the ROM: (-8)^-2 = .015625
     exp(-8, -2, false);
-    if (!check("64.", true))
+    if (!check("0.015625", true))
+      return false;
+
+    //     -y**x -> y**x (flashing), as the ROM: (-8)^3 = 512
+    exp(-8, 3, false);
+    if (!check("512.", true))
       return false;
 
     // inv -y**-x -> inv y**-x (flashing)
@@ -1532,7 +1537,226 @@ class Tester {
     return true;
   }
 
+  private boolean operation(int op, String a, String b, String expected) {
+    Clear();
+    Calc.X.set(a);
+    Calc.SetX(Calc.X, false);
+    Calc.Operator(op);
+    Calc.X.set(b);
+    Calc.SetX(Calc.X, false);
+    Calc.Equals();
+    return Calc.X.isEqual(new Number(expected));
+  }
+
+  private boolean mult(String a, String b, String expected) {
+    return operation(State.STACKOP_MUL, a, b, expected);
+  }
+
+  private boolean sub(String a, String b, String expected) {
+    return operation(State.STACKOP_SUB, a, b, expected);
+  }
+
+  private boolean div(String a, String b, String expected) {
+    return operation(State.STACKOP_DIV, a, b, expected);
+  }
+
+  private boolean Test_44() {
+    // Arithmetic as done by the TI-59 ROM (values
+    // checked on the ROM emulator). Multiplication: repeated addition
+    // into a 13-digit accumulator, the 13th digit of the second operand
+    // is lost when an addition overflows. Division: the divisor loses
+    // its last digits as it is shifted, the quotient can be one more
+    // than the truncated one. Subtraction: the operand with the smaller
+    // exponent is truncated as it is aligned.
+    if (!mult("24298", "107766.3599999", "2618507015.255")) return false;
+    if (!mult("107766.3599999", "24298", "2618507015.277")) return false;
+    if (!mult("7", "4.290839263685", "30.03587484577")) return false;
+    if (!mult("1.999999999999", "1.999999999999", "3.999999999978")) return false;
+    if (!mult("-2.4298", "1.999999999999", "-4.859599999975")) return false;
+    if (!mult("2", "1.999999999999", "3.999999999998")) return false;
+
+    if (!div("10", "17.897541921", ".5587359450891")) return false;
+    if (!div("1889.95", "1.32892184", "1422.167913201")) return false;
+    if (!div("2", "3", ".6666666666666")) return false;
+    if (!sub("33.28601", "1.404796669725", "31.88121333028")) return false;
+    if (!sub("1", ".9999999999999", "1E-12")) return false;
+
+    // Prd: the memory is the first operand
+    Clear();
+    Calc.Memory[8].set("2.4298");
+    Calc.X.set("1.077663599999");
+    Calc.SetX(Calc.X, false);
+    Calc.MemoryOp(State.MEMOP_MUL, 8, false);
+    if (!Calc.Memory[8].isEqual(new Number("2.618507015255"))) return false;
+
+    // Inv Prd: the memory is the dividend
+    Calc.Memory[8].set("10");
+    Calc.X.set("17.897541921");
+    Calc.SetX(Calc.X, false);
+    Calc.InvState = true;
+    Calc.MemoryOp(State.MEMOP_MUL, 8, false);
+    Calc.InvState = false;
+    if (!Calc.Memory[8].isEqual(new Number(".5587359450891"))) return false;
+
+    return true;
+  }
+
+  private boolean isX(String expected) {
+    return Calc.X.isEqual(new Number(expected));
+  }
+
+  private boolean dms(String x, boolean inv, String expected) {
+    Clear();
+    Calc.X.set(x);
+    Calc.SetX(Calc.X, false);
+    Calc.InvState = inv;
+    Calc.D_MS();
+    Calc.InvState = false;
+    return isX(expected);
+  }
+
+  private boolean Test_45() {
+    // D.MS, square root and statistics as done by the TI-59 ROM (values
+    // checked on the ROM emulator). D.MS works on the displayed value.
+    if (!dms(".4582", false, ".7727777777777")) return false;
+    if (!dms("149.1411764705", true, "149.08282354")) return false;
+    if (!dms(".3815350389321", false, ".6375973302777")) return false;
+
+    Clear();
+    Calc.X.set(5);
+    Calc.SetX(Calc.X, false);
+    Calc.Sqrt();
+    if (!isX("2.236067977499")) return false;
+
+    final double[][] Points = {{1.5, 2.25}, {3.7, 8.1}, {4.2, 9.95}};
+    final String[][] Results = {
+       // Op 11, Op 12, Op 13, Op 14, Op 15, Inv x-bar (X then T)
+       {"11", "", "10.77055555561", "1.37555555557"},
+       {"12", "", "-1.986672051693", "2.793618739903"},
+       {"13", "", ".9983599493846", null},
+       {"14", "5.5", "13.37823101777", null},
+       {"15", "5.5", "2.679919040045", null},
+       {"mean", "", "4.019431966503", "1.436430761761"},
+    };
+    for (String[] R : Results) {
+      Clear();
+      for (double[] P : Points) {
+        SetT(P[0]);
+        SetX(P[1]);
+        Calc.StatsSum();
+      }
+      if (!R[1].isEmpty()) {
+        Calc.X.set(R[1]);
+        Calc.SetX(Calc.X, false);
+      }
+      if (R[0].equals("mean")) {
+        Calc.InvState = true;
+        Calc.StatsResult();
+        Calc.InvState = false;
+      } else {
+        Calc.SpecialOp(Integer.parseInt(R[0]), false);
+      }
+      if (!isX(R[2])) return false;
+      if (R[3] != null && !Calc.T.isEqual(new Number(R[3]))) return false;
+    }
+
+    return true;
+  }
+
+  private void keys(String k) {
+    // digits, '.', 'E' for EE, '/', '=' and 'P' for Pgm 00 as on the keyboard
+    for (char c : k.toCharArray()) {
+      switch (c) {
+        case '.': Calc.DecimalPoint(); break;
+        case 'E': Calc.EnterExponent(); break;
+        case '/': Calc.Operator(State.STACKOP_DIV); break;
+        case '=': Calc.Equals(); break;
+        case 'P': Calc.SelectProgram(0, false); break;
+        default: Calc.Digit(c); break;
+      }
+    }
+  }
+
+  private boolean entry(String k, String expected) {
+    Clear();
+    Calc.ClearAll();
+    keys(k);
+    return isX(expected);
+  }
+
+  private boolean Test_46() {
+    // Number entry as the ROM: 10 digits (8 with an exponent), the zeros
+    // after the decimal point count, EE is refused when the mantissa has
+    // more than 8 digits, EE on a result makes the display the entry.
+    if (!entry("1234567891234=", "1234567891")) return false;
+    if (!entry("0.000123456789123=", ".0001234567")) return false;
+    if (!entry("000012345678912=", "1234567891")) return false;
+    if (!entry("1.2345678E5=", "123456.78")) return false;
+    if (!entry("1.23456789E5=", "1.234567895")) return false;
+    if (!entry("1.5E5.3456789=", "153456.78")) return false;
+    if (!entry("2/3=E5=", ".6666666667")) return false;
+    if (!entry("123456789/10=E5=", "12345678.95")) return false;
+    if (!entry("2/4=E5=", "50000")) return false;
+    // Pgm ends the entry
+    if (!entry("12P3=", "3")) return false;
+    if (!entry("2/3=EP.32=", ".32")) return false;
+    return true;
+  }
+
+  private boolean hirSum(String a, String x, String expected) {
+    Clear();
+    Calc.X.set(a);
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(3);  // HIR 03: STO 3
+    Calc.X.set(x);
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(33); // HIR 33: SUM 3
+    Calc.HirOp(13); // HIR 13: RCL 3
+    return isX(expected);
+  }
+
+  private boolean Test_47() {
+    // The standard display is fixed while the number rounded to 10
+    // decimals is not 0, as on the ROM.
+    Clear();
+    SetX(1.234e-9);
+    if (!check(".0000000012", false)) return false;
+    SetX(5e-11);
+    if (!check(".0000000001", false)) return false;
+    SetX(4.99e-11);
+    if (!check("4.99-11", false)) return false;
+
+    // HIR SUM/PRD use X with the sign of its exponent dropped when X is
+    // shown without exponent (values checked on the ROM emulator).
+    if (!hirSum("20.0339075", "9.347E-6", "9347020.033907")) return false;
+    if (!hirSum("20.0339075", "-9.347E-6", "-9346979.966093")) return false;
+    if (!hirSum("20.0339075", "1.5E-12", "20.0339075")) return false;
+    Calc.CurFormat = State.FORMAT_FLOAT;
+    Calc.X.set("20.0339075");
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(3);
+    Calc.X.set("9.347E-6");
+    Calc.SetX(Calc.X, false);
+    Calc.HirOp(33);
+    Calc.HirOp(13);
+    if (!isX("20.033916847")) return false;
+    Clear();
+    return true;
+  }
+
   public int Run() {
+    /* the tests check the TI-59 results: always run in ROM mode, the
+       classic mode (Op 95) is restored after */
+    final boolean RomMode = Number.RomMode();
+    Number.SetRomMode(true);
+    try {
+      return RunTests();
+    } finally {
+      Number.SetRomMode(RomMode);
+    }
+  }
+
+  private int RunTests() {
     Calc = Engine.Calc;
     int Total = 0;
 
@@ -1621,6 +1845,14 @@ class Tester {
     if (!Test_42()) return -42;
     Total++;
     if (!Test_43()) return -43;
+    Total++;
+    if (!Test_44()) return -44;
+    Total++;
+    if (!Test_45()) return -45;
+    Total++;
+    if (!Test_46()) return -46;
+    Total++;
+    if (!Test_47()) return -47;
     Total++;
     Clear();
 

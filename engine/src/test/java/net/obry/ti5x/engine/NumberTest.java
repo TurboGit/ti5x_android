@@ -26,9 +26,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Locale;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class NumberTest {
+
+  /* these tests check the classic mode (Op 95, --no-rom): the arithmetic
+     rounded to 13 digits and the functions of ti5x; see RomArithmeticTest
+     and RomMathTest for the ROM mode */
+
+  private static RomMath Saved;
+
+  @BeforeAll
+  static void NoRom() {
+    Saved = Number.Rom();
+    Number.SetRom(null);
+  }
+
+  @AfterAll
+  static void RestoreRom() {
+    Number.SetRom(Saved);
+  }
 
   private static String str(Number n) {
     return String.valueOf(n.get());
@@ -117,6 +136,7 @@ class NumberTest {
     assertFalse(x.isError());
     x.set(-5);
     x.sqrt();
+    /* classic mode: rounded (the ROM truncates: 2.236067977499) */
     assertEquals("2.2360679775", str(x));
     assertTrue(x.isError());
   }

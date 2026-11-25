@@ -90,7 +90,10 @@ public class State {
   public int CurNrDecimals = -1;
 
   /* Max and Min number that can be represented using a fixed format */
-  private final static Number minFixed = new Number(5.0 * Math.pow(10.0, -9.0));
+  /* as the ROM, the standard display is in fixed notation while the number
+     rounded to the 10 decimals of the display is not 0 (0.0000000012 for
+     1.234567891E-9) */
+  private final static Number minFixed = new Number("5E-11");
   private final static Number maxFixed = new Number(Math.pow(10.0, 10.0));
 
   /* angle units */
@@ -431,12 +434,39 @@ public class State {
       ResetEntry();
   }
 
+  /* the number of digits of the mantissa being entered, as the display
+     counts them: the leading zeros of the integer part do not count,
+     all the digits after the decimal point do (0.0001234567 has 10) */
+
+  private int MantissaDigits() {
+    String M = ExponentEntered ? CurDisplay.substring(0, CurDisplay.length() - 3) : CurDisplay;
+    M = M.replace("-", "").trim();
+    final int Point = M.indexOf('.');
+    String Int = Point >= 0 ? M.substring(0, Point) : M;
+    final String Frac = Point >= 0 ? M.substring(Point + 1) : "";
+    while (Int.startsWith("0"))
+      Int = Int.substring(1);
+    return Int.length() + Frac.length();
+  }
+
+  /* the display has 10 digits: 8 for the mantissa with an exponent */
+
+  private int MaxMantissaDigits() {
+    return ExponentEntered ? 8 : 10;
+  }
+
   public void Digit
      (
         char TheDigit
      ) {
     if (CurState == ResultState) {
       ResetEntry();
+    }
+
+    /* as the ROM: no more digits than the display can show */
+    if ((CurState == EntryState || CurState == DecimalEntryState)
+        && MantissaDigits() >= MaxMantissaDigits()) {
+      return;
     }
 
     String SaveExponent = "";
@@ -527,6 +557,16 @@ public class State {
     switch (CurState) {
       case EntryState:
       case DecimalEntryState:
+        if (!ExponentEntered && MantissaDigits() > 8) {
+          /* as the ROM: no room for the exponent on the display, it
+             cannot be entered but the format becomes scientific */
+          if (InvState) {
+            if (CurFormat == FORMAT_FLOAT)
+              CurFormat = FORMAT_FIXED;
+          } else if (CurFormat == FORMAT_FIXED)
+            CurFormat = FORMAT_FLOAT;
+          break;
+        }
         if (!ExponentEntered) {
           CurDisplay = CurDisplay + " 00";
           if (CurFormat == FORMAT_FIXED)
@@ -572,10 +612,18 @@ public class State {
           CurFormat = FORMAT_FLOAT;
 
           if (!ExponentEntered) {
-            // ?? the following test is because just above (InvState) we set ExponentEntered.
-            //    but the exponent can still be displayed. This is wrong and should be fixed
-            //    at some point.
-            if (!HasExponent()) {
+            /* as the ROM, the displayed number becomes the number being
+               entered (so it is rounded to the display) */
+            if (HasExponent()) {
+              /* scientific or engineering display: the new digits go
+                 to the exponent */
+              CurState = ExponentEntryState;
+              ExponentEntered = true;
+            } else if (MantissaDigits() > 8) {
+              /* no room for the exponent: the new digits go to the
+                 mantissa (if there is room) */
+              CurState = CurDisplay.contains(".") ? DecimalEntryState : EntryState;
+            } else {
               CurDisplay = CurDisplay + " 00";
               CurState = ExponentEntryState;
               SetShowing(CurDisplay);
@@ -762,7 +810,9 @@ public class State {
         X = ThisOp.Operand;
         break;
       case STACKOP_MUL:
-        X.mult(ThisOp.Operand);
+        /* the first operand drives the ROM multiplication */
+        ThisOp.Operand.mult(X);
+        X = ThisOp.Operand;
         break;
       case STACKOP_DIV:
         ThisOp.Operand.div(X);
@@ -786,6 +836,14 @@ public class State {
         }
         break;
       case STACKOP_ROOT:
+        if (ThisOp.Operand.romRoot(X)) {
+          X = ThisOp.Operand;
+          if (X.isError()) {
+            SetX(X, false);
+            SetErrorState(false);
+          }
+          break;
+        }
         if (X.getSignum() == 0) {
           if (ThisOp.Operand.getSignum() == 0
              || ThisOp.Operand.compareTo(Number.ONE) == 0
@@ -1024,9 +1082,11 @@ public class State {
   public void Log() {
     Enter(28);
     if (InvState) {
-      Number NewX = new Number(10.0);
-      NewX.pow(X);
-      X = NewX;
+      if (!X.romExp10()) {
+        Number NewX = new Number(10.0);
+        NewX.pow(X);
+        X = NewX;
+      }
     } else {
       X.log();
     }
@@ -1094,6 +1154,16 @@ public class State {
 
   public void Polar() {
     Enter(37);
+
+    final Number[] Rom = Number.romPolar(InvState, T, X, CurAng);
+    if (Rom != null) {
+      T = Rom[1];
+      final boolean Error = Rom[0].isError();
+      SetX(Rom[0], true);
+      if (Error)
+        SetErrorState(false);
+      return;
+    }
 
     Number NewX, NewY;
     Number OldX, OldT;
@@ -1305,20 +1375,23 @@ public class State {
   public void D_MS() {
     Enter(88);
 
-    // Must be done on the displayed value and not X. That is if Fix-01 is set, the number must
-    // be with a single digit.
-
-    // X = new Number (CurDisplay);
-
-    if(CurNrDecimals == -1)
-      X.roundUpNDigits(9);
-    else
-      X.roundUpNDigits(CurNrDecimals);
+    /* As on the ROM, the conversion is done on the displayed value: X is
+       rounded to the displayed decimals, at most 10 digits and at most 10
+       decimals (or the Fix decimals). */
 
     Number Sign = new Number(X);
     Sign.signum();
 
     X.abs();
+
+    int IntDigits = 0;
+    for (Number P = new Number(1); X.compareTo(P) >= 0 && IntDigits < 10; P.mult(10))
+      IntDigits++;
+
+    int Decimals = 10 - IntDigits;
+    if (CurNrDecimals >= 0 && CurNrDecimals < Decimals)
+      Decimals = CurNrDecimals;
+    X.roundUpNDigits(Decimals);
 
     Number Degrees = new Number(X);
     Degrees.intPart();
@@ -1326,34 +1399,38 @@ public class State {
     Number Fraction = new Number(X);
     Fraction.fracPart();
 
-    Number Minutes = new Number(Fraction);
-    Number Seconds;
-
     if (InvState) {
+      /* D + MM / 100 + SS / 10000 with MM.mm = 60 frac and SS = 60 .mm */
+      Number Minutes = new Number(Fraction);
       Minutes.mult(60);
-      Seconds = new Number(Minutes);
-
+      Number Seconds = new Number(Minutes);
       Minutes.intPart();
       Seconds.fracPart();
+      Seconds.mult(60);
 
       Minutes.div(100);
-      Seconds.mult(6);
-      Seconds.div(1000);
-    } else {
-      Minutes.mult(100);
-      Seconds = new Number(Minutes);
+      Seconds.div(10000);
 
+      X.set(Degrees);
+      X.add(Minutes);
+      X.add(Seconds);
+    } else {
+      /* (60 MM + SS) / 3600 + D */
+      Number Minutes = new Number(Fraction);
+      Minutes.mult(100);
+      Number Seconds = new Number(Minutes);
       Minutes.intPart();
       Seconds.fracPart();
+      Seconds.mult(100);
 
-      Minutes.div(60);
-      Seconds.div(36);
+      Minutes.mult(60);
+      Minutes.add(Seconds);
+      Minutes.div(3600);
+
+      X.set(Minutes);
+      X.add(Degrees);
     }
 
-    X.set(Degrees);
-
-    X.add(Minutes);
-    X.add(Seconds);
     X.mult(Sign);
 
     SetX(X, true);
@@ -1477,6 +1554,8 @@ public class State {
         boolean Indirect
      ) {
     if (ProgNr >= 0) {
+      /* as the ROM, Pgm ends the number entry: 12 Pgm 15 3 gives 3 */
+      Enter(36);
       boolean OK = false;
       do /*once*/ {
         if (Indirect) {
@@ -1561,6 +1640,7 @@ public class State {
             Memory[RegNr].sub(X);
             break;
           case MEMOP_MUL:
+            /* as on the ROM, the memory is the first operand */
             Memory[RegNr].mult(X);
             break;
           case MEMOP_DIV:
@@ -1613,7 +1693,7 @@ public class State {
     }
   }
 
-  private void HirOp
+  void HirOp
      (
         int Code
      ) {
@@ -1635,6 +1715,11 @@ public class State {
         if (RegNr != 0 && OpStack[RegNr - 1] == null)
           OpStack[RegNr - 1] = new OpStackEntry(new Number(), Code, 0);
 
+        /* as the ROM: when X is shown without exponent (fixed notation),
+           the HIR arithmetic uses X with the sign of its exponent dropped
+           (9.347E-6 is used as 9.347E6) */
+        final Number Arg = HasExponent() ? X : X.positiveExponent();
+
         switch (Op) {
           case HIROP_STO:
             if (RegNr != 0)
@@ -1648,25 +1733,25 @@ public class State {
             if (RegNr == 0)
               X.add(X);
             else
-              OpStack[RegNr - 1].Operand.add(X);
+              OpStack[RegNr - 1].Operand.add(Arg);
             break;
           case HIROP_SUB:
             if (RegNr == 0)
               X.set(0);
             else
-              OpStack[RegNr - 1].Operand.sub(X);
+              OpStack[RegNr - 1].Operand.sub(Arg);
             break;
           case HIROP_MUL:
             if (RegNr == 0)
               X.x2();
             else
-              OpStack[RegNr - 1].Operand.mult(X);
+              OpStack[RegNr - 1].Operand.mult(Arg);
             break;
           case HIROP_DIV:
             if (RegNr == 0)
               X.set(1);
             else
-              OpStack[RegNr - 1].Operand.div(X);
+              OpStack[RegNr - 1].Operand.div(Arg);
 
             if (X.isError())
               SetErrorState(false);
@@ -1880,16 +1965,14 @@ public class State {
               final Number N_SIGMAY = Memory[(RegOffset + STATSREG_SIGMAY) % 100];
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
 
-              Number N_N_2 = new Number(N_N);
-              N_N_2.x2();
-
+              /* as on the ROM: sum(x^2) / n - (sum(x) / n)^2 */
               Number C1 = new Number(N_SIGMAX);
+              C1.div(N_N);
               C1.x2();
-              C1.div(N_N_2);
 
               Number C2 = new Number(N_SIGMAY);
+              C2.div(N_N);
               C2.x2();
-              C2.div(N_N_2);
 
               T = new Number(N_SIGMAX2);
               T.div(N_N);
@@ -1931,25 +2014,34 @@ public class State {
               final Number N_SIGMAX = Memory[(RegOffset + STATSREG_SIGMAX) % 100];
               final Number N_SIGMAY = Memory[(RegOffset + STATSREG_SIGMAY) % 100];
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
-              final Number m = StatsSlope();
+              /* as on the ROM:
+                   (sum(xy) - sum(x) sum(y) / n)
+                   / sqrt((sum(x^2) - sum(x)^2 / n) (sum(y^2) - sum(y)^2 / n)) */
+              final Number N_SIGMAXY = Memory[(RegOffset + STATSREG_SIGMAXY) % 100];
+
+              Number Cov = new Number(N_SIGMAX);
+              Cov.mult(N_SIGMAY);
+              Cov.div(N_N);
+              Cov.negate();
+              Cov.add(N_SIGMAXY);
 
               Number C1 = new Number(N_SIGMAX);
               C1.x2();
               C1.div(N_N);
               C1.negate();
               C1.add(N_SIGMAX2);
-              C1.sqrt();
 
               Number C2 = new Number(N_SIGMAY);
               C2.x2();
               C2.div(N_N);
               C2.negate();
               C2.add(N_SIGMAY2);
-              C2.sqrt();
 
-              X = m;
-              X.mult(C1);
-              X.div(C2);
+              C1.mult(C2);
+              C1.sqrt();
+
+              X = Cov;
+              X.div(C1);
 
               SetX(X, true);
               OK = true;
@@ -1963,13 +2055,16 @@ public class State {
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
               final Number m = StatsSlope();
 
-              Number C1 = new Number(N_SIGMAX);
-              C1.mult(m);
+              /* as on the ROM, the slope is the first operand */
+              Number C1 = new Number(m);
+              C1.mult(N_SIGMAX);
               C1.negate();
               C1.add(N_SIGMAY);
               C1.div(N_N);
 
-              X.mult(m);
+              Number Y = new Number(m);
+              Y.mult(X);
+              X = Y;
               X.add(C1);
               SetX(X, true);
               OK = true;
@@ -1983,8 +2078,8 @@ public class State {
               final Number N_N = Memory[(RegOffset + STATSREG_N) % 100];
               final Number m = StatsSlope();
 
-              Number C1 = new Number(N_SIGMAX);
-              C1.mult(m);
+              Number C1 = new Number(m);
+              C1.mult(N_SIGMAX);
               C1.negate();
               C1.add(N_SIGMAY);
               C1.div(N_N);
@@ -2087,6 +2182,12 @@ public class State {
             } else {
               ResetImport();
             }
+            OK = true;
+            break;
+          case 95: /* extension! switch between ROM mode and classic mode */
+            Number.SetRomMode(!Number.RomMode());
+            X.set(Number.RomMode() ? 1 : 0);
+            SetX(X, true);
             OK = true;
             break;
           case 98:

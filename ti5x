@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Using a program:
+# ./ti5x modules/ml-master-library/prog15.src --keys "0.32 E 1 A 10 B C C C"
+# Unsin a lib:
+# ./ti5x --lib app/src/main/res/raw/av.ti5l --keys "Pgm 01 SBR ="
+
+CLI=./cli/build/install/ti5x/bin/ti5x
+
+if [[ ! -f $CLI ]]; then
+    echo Compiling ti5x cli...
+    ./wrapper.sh :cli:installDist
+fi
+if [[ ! -f $CLI ]]; then
+    echo "Compilation failed!"
+    exit 1
+fi
+
+$CLI "$@"

@@ -80,11 +80,22 @@ Engine (`engine/src/main/java/net/obry/ti5x/engine/`):
   (`.ti5l`), card banks (`.ti5b`) and the calculator state (ZIP + XML, see
   `file_format.txt`). Host UI state saved with it goes through `UiState`.
 - `Tester.java`: built-in regression suite. Running `Op 99` on the calculator
-  must display **43** (the number of tests passed). A negative value `-n` means
+  must display **47** (the number of tests passed). A negative value `-n` means
   test `n` failed. `CalculatorTest` runs it in `./gradlew :engine:test`.
   `KeypadTest` drives the engine through key presses (see `TestHost` for an
   in-memory host). `ProgramFilesTest` loads every generated `res/raw` file
   (skipped if the app was not built) and checks save/load round trips.
+- `RomCpu.java` / `RomMath.java` / `RomData.java`: the original TI-59 ROM
+  (`RomData`, generated from `workspace/emul` `dump.txt` and `Const.c`) run by
+  a Java port of the CPU of the reference emulator. In ROM mode (the
+  default) the arithmetic of `Number` uses the ROM algorithms (`romAdd`,
+  `romMult`, …) and the trigonometric, logarithmic and power functions,
+  10^x, roots and P→R/R→P are computed by the ROM (`Number.Rom()`), so they
+  match the TI-59 to the last digit. `Op 95` switches to the classic mode
+  (13-digit rounding and the Java functions, as previous versions), saved
+  as the `rom_mode` state param only when on. CLI: `--no-rom` starts in
+  classic mode, `--rom DIR` loads another dump. `NumberTest` runs in
+  classic mode, `RomMathTest` checks the ROM against the reference emulator.
 - Host interfaces the app or CLI implement: `Scheduler` (run loop),
   `DisplaySink` (LED display), `HelpSink` (label card and help), `FileStore`
   (files), `ErrorSink` (I/O error reports), and `BankStore` (card bank files).
@@ -119,7 +130,7 @@ Command line (`cli/src/main/java/net/obry/ti5x/cli/`):
 - Examples:
   ```sh
   ti5x --trace --fast --max-steps 50 examples/counter/prog
-  ti5x --keys "op 99"                 # built-in tests, shows 43.
+  ti5x --keys "op 99"                 # built-in tests, shows 47.
   ti5x --lib app/src/main/res/raw/ml.ti5l --keys "pgm 01 sbr ="
   ```
 
@@ -163,7 +174,7 @@ Follow the existing style:
 
 - Engine unit tests: `./gradlew :engine:test` (JUnit 5, `engine/src/test/`).
 - CLI tests: `./gradlew :cli:test` (`SessionTest` runs whole sessions in memory).
-- Calculator behaviour: run `Op 99` and check that the display shows `43`.
+- Calculator behaviour: run `Op 99` and check that the display shows `47`.
   When fixing a calculator bug, add a test case to `Tester.java` (and update the expected count everywhere it is mentioned).
 - Assembler/disassembler changes: `./gradlew :engine:test` (`AssemblerTest`)
   and `util/check-assemble-disassemble`.

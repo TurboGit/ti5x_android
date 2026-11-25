@@ -172,6 +172,29 @@ class ProgramFilesTest {
   }
 
   @Test
+  void romModeRoundTrip() {
+    /* the classic mode (Op 95) is saved, the ROM mode (default) is not */
+    final Calculator Engine = new TestHost().NewCalculator();
+    try {
+      assertFalse(Prog00(SaveState(Engine)).contains("rom_mode"));
+      Number.SetRomMode(false);
+      final byte[] Saved = SaveState(Engine);
+      assertTrue(Prog00(Saved).contains("<param name=\"rom_mode\" value=\"0\"/>"));
+      Number.SetRomMode(true);
+      ProgramFiles.Load(new TestHost().NewCalculator().Calc, null, new ByteArrayInputStream(Saved), false, true);
+      assertFalse(Number.RomMode());
+      /* a state saved in ROM mode restores the ROM mode */
+      Number.SetRomMode(true);
+      final byte[] RomSaved = SaveState(Engine);
+      Number.SetRomMode(false);
+      ProgramFiles.Load(new TestHost().NewCalculator().Calc, null, new ByteArrayInputStream(RomSaved), false, true);
+      assertTrue(Number.RomMode());
+    } finally {
+      Number.SetRomMode(true);
+    }
+  }
+
+  @Test
   void programCardRoundTrip() {
     final Calculator Engine = new TestHost().NewCalculator();
     final State Calc = Engine.Calc;

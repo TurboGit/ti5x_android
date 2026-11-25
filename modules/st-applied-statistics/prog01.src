@@ -42,7 +42,7 @@ lbl =
    ee
    inv ee
    x⇌t
-   377.258095 ; adjusted for emulatore, real value is 377.2580954
+   377.2580954
    x=t write
    0
    1/x

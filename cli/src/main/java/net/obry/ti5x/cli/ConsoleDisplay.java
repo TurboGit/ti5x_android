@@ -30,9 +30,9 @@ final class ConsoleDisplay implements DisplaySink {
         | 9.9999999 99| !       flashing: error state
         |C            |         running
 
-     followed by the 2nd, Inv and angle (Rad/Grad) indicators. In trace
-     mode each change is printed on its own line, otherwise the line is
-     redrawn in place. Printer output is shown as "PRT <line>". */
+     followed by the 2nd, Inv and angle (Rad/Grad) indicators, and ~ in
+     classic mode (Op 95). In trace mode each change is printed on its
+     own line, otherwise the line is redrawn in place. Printer output is shown as "PRT <line>". */
 
   private static final int NrDigits = 12;
 
@@ -108,6 +108,8 @@ final class ConsoleDisplay implements DisplaySink {
       S.append(" Grad");
     if (Calc.ProgMode)
       S.append(" Lrn");
+    if (!net.obry.ti5x.engine.Number.RomMode())
+      S.append(" ~"); /* classic mode (Op 95) */
     return S.toString();
   }
 

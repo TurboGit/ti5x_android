@@ -91,7 +91,7 @@ class SessionTest {
     S.KeyScripts.add("op 99");
     S.ShowPrinter = false;
     assertEquals(Session.EXIT_OK, S.Run());
-    assertEquals("|          43.|", LastLine());
+    assertEquals("|          47.|", LastLine());
   }
 
   @Test
@@ -113,6 +113,24 @@ class SessionTest {
     assertTrue(L.contains("|C            |"), L.toString());
     assertTrue(L.contains("|           1.|"), L.toString());
     assertTrue(L.contains("|           4.|"), L.toString());
+  }
+
+  @Test
+  void masterLibraryRandomNumbers() {
+    /* ML-15 random numbers: the result depends on the 13th digit of the
+       products, the values are the ones of a real TI-59 (and of its ROM) */
+    final File Prog = new File("../modules/ml-master-library/prog15.src");
+    assumeTrue(Prog.exists());
+    final Session S = NewSession("");
+    S.Program = Prog;
+    S.KeyScripts.add("0.32 e 1 a 10 b c");
+    S.KeyScripts.add("c");
+    S.KeyScripts.add("c");
+    assertEquals(Session.EXIT_OK, S.Run());
+    final List<String> L = Lines();
+    assertTrue(L.contains("|      5.87341|"), L.toString());
+    assertTrue(L.contains("|      7.34635|"), L.toString());
+    assertEquals("|       3.5911|", LastLine());
   }
 
   @Test

@@ -76,6 +76,13 @@ final class Global {
 
     if (Global.Calc.InvState) {
       StatStr = StatStr + "Inv";
+    } else {
+      StatStr = StatStr + SP.repeat(3);
+    }
+
+    /* classic mode (Op 95): the computations of the previous versions */
+    if (!net.obry.ti5x.engine.Number.RomMode()) {
+      StatStr = StatStr + " ~";
     }
 
     if (Status != null) {

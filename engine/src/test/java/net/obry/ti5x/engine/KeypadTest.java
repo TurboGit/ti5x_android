@@ -115,9 +115,24 @@ class KeypadTest {
   }
 
   @Test
+  void op95SwitchesRomMode() {
+    try {
+      assertTrue(Number.RomMode());
+      Keys(OP, DIGIT[9], DIGIT[5]);
+      assertEquals("0.", Display());
+      assertFalse(Number.RomMode());
+      Keys(OP, DIGIT[9], DIGIT[5]);
+      assertEquals("1.", Display());
+      assertTrue(Number.RomMode());
+    } finally {
+      Number.SetRomMode(true);
+    }
+  }
+
+  @Test
   void op99RunsBuiltinTests() {
     Keys(OP, DIGIT[9], DIGIT[9]);
-    assertEquals("43.", Display());
+    assertEquals("47.", Display());
   }
 
   @Test
